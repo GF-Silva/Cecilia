@@ -4,15 +4,18 @@ import os
 import asyncio
 
 class LLM:
-    def __init__(self, system_prompt: str):
+    def __init__(self, system_prompt: str | None = None):
         print("Init groq llm class")
 
         load_dotenv()
 
-        self.context: list = [{
-            "role": "system",
-            "content": system_promt
-        }]
+        self.context: list = []
+
+        if system_prompt:
+            self.context.append({
+                "role": "system",
+                "content": system_promt
+            })
 
         self.model = "openai/gpt-oss-120b"
 
