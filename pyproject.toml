@@ -7,7 +7,10 @@ authors = [
     { name = "GS-Silva", email = "gabriel.ferreira.profile@gmail.com" }
 ]
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "fastapi[standard]>=0.143.0",
+    "groq>=1.7.0",
+]
 
 [project.scripts]
 cecilia = "cecilia:main"
@@ -15,3 +18,8 @@ cecilia = "cecilia:main"
 [build-system]
 requires = ["uv_build>=0.12.17,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.uv.workspace]
+members = [
+    "cecilia",
+]
