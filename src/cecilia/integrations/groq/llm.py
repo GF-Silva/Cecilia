@@ -1,13 +1,10 @@
-from groq import AsyncGroq
-from dotenv import load_dotenv
-import os
+from cecilia.core.settings import settings
+from .client import client
 import asyncio
 
 class LLM:
     def __init__(self, system_prompt: str | None = None):
         print("Init groq llm class")
-
-        load_dotenv()
 
         self.context: list = []
 
@@ -17,23 +14,14 @@ class LLM:
                 "content": system_promt
             })
 
-        self.model = "openai/gpt-oss-120b"
-
-        self.client = AsyncGroq(
-            api_key=os.getenv("GROQ_API_KEY")
-        )
-
-    # Ideia: Criar ranges de prompt, tipo low memory, medium and high, 
-    # cada uma mudando quanto do contexto a llm pega
-    # Criar um contexto perssistente no disco?
     async def send_prompt(self, prompt: str):
         self.context.append({
             "role": "user",
             "content": prompt
         })
 
-        completion = await self.client.chat.completions.create(
-            model=self.model,
+        completion = await client.chat.completions.create(
+            model=settings.groq.llm_model,
             messages=self.context
         )
 
