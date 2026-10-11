@@ -5,6 +5,7 @@ class GroqSettings(BaseSettings):
     stt_model: str = "whisper-large-v3"
     stt_language: str = "pt"
     llm_model: str = "openai/gpt-oss-120b"
+    system_prompt: str = "Você é uma assistente feliz e alegre, sempre disponivel para ajudar"
 
 class AzureSettings(BaseSettings):
     speech_key: str

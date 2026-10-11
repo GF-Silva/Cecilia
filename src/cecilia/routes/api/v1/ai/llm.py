@@ -1,12 +1,13 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from src.cecilia.integrations.groq import LLM
+from cecilia.integrations.groq import LLM
+from cecilia.core.settings import settings
 
 class PromptRequest(BaseModel):
     prompt: str
 
 router = APIRouter()
-llm = LLM()
+llm = LLM(settings.groq.system_prompt)
 
 @router.post("/")
 async def send_promt(request: PromptRequest):

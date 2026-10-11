@@ -11,7 +11,7 @@ class LLM:
         if system_prompt:
             self.context.append({
                 "role": "system",
-                "content": system_promt
+                "content": system_prompt
             })
 
     async def send_prompt(self, prompt: str):
