@@ -12,9 +12,15 @@ class AzureSettings(BaseSettings):
     speech_region: str = "brazilsouth"
     speech_synthesis_voice_name: str = 'pt-BR-ThalitaNeural'
 
+class OpenRouterSettings(BaseSettings):
+    api_key: str
+    server_url: str = "https://ai.hackclub.com/proxy/v1"
+    system_prompt: str = "Seu nome é Cecilia"
+
 class Settings(BaseSettings):
     groq: GroqSettings
     azure: AzureSettings
+    open_router: OpenRouterSettings
 
     model_config = SettingsConfigDict(
         env_file=".env",
