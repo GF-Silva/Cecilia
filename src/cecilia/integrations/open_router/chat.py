@@ -18,13 +18,14 @@ class Chat:
             })
 
         if contents.audios:
-            user_request.append({
-                "type": "input_audio",
-                "input_audio": {
-                    "data": audio.data,
-                    "format": audio.format
-                }
-            } for audio in contents.audios)
+            for audio in contents.audios:
+                user_request.append({
+                    "type": "input_audio",
+                    "input_audio": {
+                        "data": audio.data,
+                        "format": audio.format
+                    }
+                })
 
         if contents.images:
             print("Ignorando imagens, sem suporte ainda...")
