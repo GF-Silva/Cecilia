@@ -1,9 +1,9 @@
 from pydantic import BaseModel, ConfigDict, Field, model_validator, AfterValidator
-from .client import client
 from typing import Annotated
+from .client import guest_client
 import re
 
-def check_ai_model_name(name: str) -> str:
+def check_ai_model_name(name: ModelName) -> ModelName:
     regex = r'^[A-Za-z0-9~._:@+-]+/[A-Za-z0-9~._:@+-]+$'
     
     if not re.match(regex, name):
@@ -13,14 +13,13 @@ def check_ai_model_name(name: str) -> str:
 
 ModelName = Annotated[str, AfterValidator(check_ai_model_name)]
 
-def ai_model_exists(name: str):
+def ai_model_exists(name: str) -> bool:
     try:
         author, slug = name.split('/')
-
-        return client.models.get(author=author, slug=slug)
+        return guest_client.models.get(author=author, slug=slug) is not None
     
-    except Exception as error:
-        raise error
+    except:
+        return False
 
 class MediaModel(BaseModel):
     model_config = ConfigDict(

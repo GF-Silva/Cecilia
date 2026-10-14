@@ -11,6 +11,14 @@ class SendModel(BaseModel):
     contents: ContentsModel
     model: ModelName = Field(min_length=1)
 
+    @field_validator('model')
+    @classmethod
+    def validate_ai_model(cls, value: ModelName) -> ModelName:
+        if not ai_model_exists(value):
+            raise ValueError('modelo de IA não encontrado')
+
+        return value
+
 chat = Chat()
 
 @router.post("", response_class=StreamingResponse)
