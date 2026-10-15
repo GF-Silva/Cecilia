@@ -1,32 +1,29 @@
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import StreamingResponse
-from cecilia.integrations.open_router import Chat
-from cecilia.integrations.open_router.models import ContentsModel, ModelName, ai_model_exists
-from pydantic import BaseModel, Field, field_validator
+from fastapi import APIRouter
+from pydantic import BaseModel, Field
 from collections.abc import AsyncIterable
+from fastapi.sse import EventSourceResponse, ServerSentEvent
+
+from cecilia.integrations.open_router import Chat
+from cecilia.integrations.open_router.models import ContentsModel, AIModelName
+
+class Request(BaseModel):
+    contents: ContentsModel
+    model: AIModelName = Field(min_length=1)
 
 router = APIRouter()
-
-class SendModel(BaseModel):
-    contents: ContentsModel
-    model: ModelName = Field(min_length=1)
-
-    @field_validator('model')
-    @classmethod
-    def validate_ai_model(cls, value: ModelName) -> ModelName:
-        if not ai_model_exists(value):
-            raise ValueError('modelo de IA não encontrado')
-
-        return value
-
 chat = Chat()
 
-@router.post("", response_class=StreamingResponse)
-async def send(request: SendModel) -> AsyncIterable[str]:
-    stream = chat.send(request.model, request.contents)
-    
-    async for chunk in stream:
-        yield chunk
+@router.post("", response_class=EventSourceResponse)
+async def send(request: Request):
+    try:
+        stream = chat.send(request.model, request.contents)
+
+        async for chunk in stream:
+            yield ServerSentEvent(data=chunk.data, event=chunk.event)
+        
+    except Exception as error:
+        print("Erro: ", error)
+        yield ServerSentEvent(event='error')
 
 @router.get("")
 def get_context():

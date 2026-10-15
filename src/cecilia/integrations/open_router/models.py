@@ -3,7 +3,7 @@ from typing import Annotated
 from .client import guest_client
 import re
 
-def check_ai_model_name(name: ModelName) -> ModelName:
+def check_ai_model_name(name: AIModelName) -> AIModelName:
     regex = r'^[A-Za-z0-9~._:@+-]+/[A-Za-z0-9~._:@+-]+$'
     
     if not re.match(regex, name):
@@ -11,7 +11,7 @@ def check_ai_model_name(name: ModelName) -> ModelName:
 
     return name
 
-ModelName = Annotated[str, AfterValidator(check_ai_model_name)]
+AIModelName = Annotated[str, AfterValidator(check_ai_model_name)]
 
 def ai_model_exists(name: str) -> bool:
     try:
