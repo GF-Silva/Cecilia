@@ -1,11 +1,7 @@
-from fastapi import APIRouter
-from collections.abc import AsyncIterable
-from fastapi.sse import EventSourceResponse, ServerSentEvent
 from pydantic import BaseModel, ConfigDict, Field, model_validator, AfterValidator
 from typing import Annotated
 import re
 
-from cecilia.integrations.open_router import Chat
 from cecilia.integrations.open_router.types import Contents as OpenRouterContents, ContentsAudios
 
 def check_ai_model_name(name: AIModelName) -> AIModelName:
@@ -59,25 +55,6 @@ class ContentsModel(BaseModel):
             images = self.images
         )
 
-class Request(BaseModel):
+class ChatPayload(BaseModel):
     contents: ContentsModel
     model: AIModelName = Field(min_length=1)
-
-router = APIRouter()
-chat = Chat()
-
-@router.post("", response_class=EventSourceResponse)
-async def send(request: Request):
-    try:
-        stream = chat.send(request.model, request.contents.to_openrouter_contents())
-
-        async for chunk in stream:
-            yield ServerSentEvent(data=chunk.data, event=chunk.event)
-        
-    except Exception as error:
-        print("Erro: ", error)
-        yield ServerSentEvent(event='error')
-
-@router.get("")
-def get_context():
-    return chat.context
