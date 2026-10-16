@@ -1,7 +1,6 @@
 from .client import client
 from cecilia.core.settings import settings
-from .schemas.sse import EventPayload, EventData
-from .types import Contents
+from .types import Contents, Event, EventData
 
 class Chat:
     def __init__(self):
@@ -53,7 +52,7 @@ class Chat:
 
             async for chunk in stream:
                 if chunk.choices[0].finish_reason:
-                    yield EventPayload(
+                    yield Event(
                         event="finished"
                     )
                     break
@@ -63,7 +62,7 @@ class Chat:
                 if delta_content:
                     response += delta_content
 
-                    yield EventPayload(
+                    yield Event(
                         data=EventData(
                             message="Chunk generated",
                             chunk=delta_content
