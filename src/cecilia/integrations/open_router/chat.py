@@ -1,7 +1,7 @@
 from .client import client
 from cecilia.core.settings import settings
-from .models import ContentsModel, AIModelName
 from .schemas.sse import EventPayload, EventData
+from .types import Contents
 
 class Chat:
     def __init__(self):
@@ -9,7 +9,7 @@ class Chat:
 
         self.context = []
 
-    async def send(self, model: AIModelName, contents: ContentsModel):
+    async def send(self, model: str, contents: Contents):
         try:
             user_request = []
 
