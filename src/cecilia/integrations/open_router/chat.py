@@ -6,9 +6,7 @@ class Chat:
     def __init__(self):
         print("Init OpenRouter Chat")
 
-        self.context = []
-
-    async def send(self, model: str, contents: Contents):
+    async def send(self, model: str, contents: Contents, context):
         try:
             user_request = []
 
@@ -31,7 +29,7 @@ class Chat:
             if contents.images:
                 print("Ignorando imagens, sem suporte ainda...")
 
-            self.context.append({
+            context.append({
                 "role": "user",
                 "content": user_request
             })
@@ -43,7 +41,7 @@ class Chat:
                         "role": "system",
                         "content": settings.open_router.system_prompt
                     },
-                    *self.context
+                    *context
                 ],
                 stream=True
             )
@@ -53,7 +51,8 @@ class Chat:
             async for chunk in stream:
                 if chunk.choices[0].finish_reason:
                     yield Event(
-                        event="finished"
+                        event="finished",
+                        raw_data=response
                     )
                     break
 
@@ -69,8 +68,8 @@ class Chat:
                         ),
                         event='chunk_generated'
                     )
-            
-            self.context.append({
+
+            context.append({
                 "role": "assistant",
                 "content": response
             })

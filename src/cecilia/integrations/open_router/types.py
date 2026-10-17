@@ -21,4 +21,9 @@ class EventData:
 class Event:
     event: Literal["finished", "error", "chunk_generated"]
     data: EventData | None = None
+    raw_data: str | None = None
+
+    def __post_init__(self):
+        if self.data and self.raw_data:
+            raise ValueError('Os campos "data" e "raw_data" não devem estar definidos ao mesmo tempo')
 
