@@ -1,4 +1,5 @@
 from sqlmodel import Field, SQLModel
+from datetime import datetime, UTC
 
 class AttachmentBase(SQLModel):
     type: str
@@ -8,11 +9,11 @@ class AttachmentBase(SQLModel):
 
 class Attachment(AttachmentBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    created_at: str | None = Field(default="2020-01-20")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 class AttachmentPublic(AttachmentBase):
     id: int
-    created_at: str | None
+    created_at: datetime
 
 class AttachmentCreate(AttachmentBase):
     pass
