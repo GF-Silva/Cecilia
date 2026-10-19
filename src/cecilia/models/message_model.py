@@ -3,7 +3,7 @@ from sqlmodel import SQLModel, Field
 class MessageBase(SQLModel):
     role: str
     chat_id: int
-    prompt: str | None = None
+    content: str | None = None
 
 class Message(MessageBase, table=True):
     id: int | None = Field(default=None, primary_key=True)

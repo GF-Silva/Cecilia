@@ -6,7 +6,7 @@ class Chat:
     def __init__(self):
         print("Init OpenRouter Chat")
 
-    async def send(self, model: str, contents: Contents, context):
+    async def send(self, model: str, contents: Contents, context: list = []):
         try:
             user_request = []
 
@@ -28,11 +28,11 @@ class Chat:
 
             if contents.images:
                 print("Ignorando imagens, sem suporte ainda...")
-
-            context.append({
+            
+            context = [{
                 "role": "user",
                 "content": user_request
-            })
+            }]
 
             stream = await client.chat.send_async(
                 model=model,

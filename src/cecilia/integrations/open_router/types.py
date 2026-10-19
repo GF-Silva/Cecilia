@@ -2,15 +2,15 @@ from dataclasses import dataclass
 from typing import Literal
 
 @dataclass
-class ContentsAudios:
+class ContentsAudio:
     format: str
     data: str
 
 @dataclass
 class Contents:
     prompt: str | None = None
-    audios: list[ContentsAudios] | None = None
-    images: list[ContentsAudios] | None = None
+    audios: list[ContentsAudio] | None = None
+    images: list[ContentsAudio] | None = None
 
 @dataclass
 class EventData:
