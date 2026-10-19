@@ -1,8 +1,9 @@
-from cecilia.models.attachment import Attachment, AttachmentPublic, AttachmentCreate
-from sqlmodel import select
+from cecilia.models.attachment_model import Attachment, AttachmentCreate
+from sqlmodel import select, Session
+from collections.abc import Sequence
 
 class AttachmentRepository:
-    def __init__(self, session):
+    def __init__(self, session: Session):
         print("Repository created")
         self.session = session
 
@@ -17,7 +18,7 @@ class AttachmentRepository:
     def show(self, id: int) -> Attachment | None:
         return self.session.get(Attachment, id)
 
-    def index(self, offset: int = 0, limit: int = 100) -> list[Attachment | None]:
+    def index(self, offset: int = 0, limit: int = 100) -> Sequence[Attachment]:
         return self.session.exec(select(Attachment).offset(offset).limit(limit)).all()
 
     def delete(self, attachment: Attachment):
