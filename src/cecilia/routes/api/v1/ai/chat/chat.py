@@ -27,3 +27,18 @@ def send_prompt(
     chat_payload: ChatPayload
 ):
     return chat_service.show(id)
+
+@router.get("/{chat_id}/messages", response_model=list[MessagePublic])
+def get_messages(
+    chat_id: int,
+    message_service: MessageServiceDep,
+    limit: int = 100,
+    offset: int = 0
+):
+    messages = message_service.get_all_by_chat_id(
+        chat_id=chat_id,
+        limit=limit,
+        offset=offset
+    )
+
+    return messages
