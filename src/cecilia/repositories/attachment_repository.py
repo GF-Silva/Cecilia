@@ -1,4 +1,5 @@
-from cecilia.models.attachment_model import Attachment, AttachmentCreate
+from cecilia.models.attachment_model import AttachmentCreate
+from cecilia.models.tables import Attachment
 from sqlmodel import select, Session
 from collections.abc import Sequence
 

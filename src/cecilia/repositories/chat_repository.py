@@ -1,4 +1,5 @@
-from cecilia.models.chat_model import Chat, ChatCreate, ChatUpdate
+from cecilia.models.chat_model import ChatCreate, ChatUpdate
+from cecilia.models.tables import Chat
 from collections.abc import Sequence
 from sqlmodel import select, Session
 
