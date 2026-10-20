@@ -37,4 +37,3 @@ class ContentsPayload(BaseModel):
 class ChatPayload(BaseModel):
     contents: ContentsPayload
     model: AIModelName = Field(min_length=1)
-    user_id: int
