@@ -4,7 +4,7 @@ from .attachment_model import AttachmentBase
 class MessageBase(SQLModel):
     role: str
     chat_id: int
-    content: str | None = None
+    text: str | None = None
 
 class MessagePublic(MessageBase):
     id: int
