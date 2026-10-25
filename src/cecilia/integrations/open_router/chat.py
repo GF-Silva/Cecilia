@@ -1,39 +1,13 @@
 from .client import client
 from cecilia.core.settings import settings
-from .types import Contents, Event, EventData
+from .types import Contents, Event, EventData, Message
 
 class Chat:
     def __init__(self):
         print("Init OpenRouter Chat")
 
-    async def send(self, model: str, contents: Contents, context: list = []):
+    async def send(self, model: str, context: list = [Message]):
         try:
-            user_request = []
-
-            if contents.prompt:
-                user_request.append({
-                    "type": "text",
-                    "text": contents.prompt
-                })
-
-            if contents.audios:
-                for audio in contents.audios:
-                    user_request.append({
-                        "type": "input_audio",
-                        "input_audio": {
-                            "data": audio.data,
-                            "format": audio.format
-                        }
-                    })
-
-            if contents.images:
-                print("Ignorando imagens, sem suporte ainda...")
-            
-            context = [{
-                "role": "user",
-                "content": user_request
-            }]
-
             stream = await client.chat.send_async(
                 model=model,
                 messages=[
@@ -68,11 +42,6 @@ class Chat:
                         ),
                         event='chunk_generated'
                     )
-
-            context.append({
-                "role": "assistant",
-                "content": response
-            })
 
         except Exception as error:
             raise error

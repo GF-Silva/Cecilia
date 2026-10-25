@@ -1,6 +1,7 @@
 from cecilia.core.database import SessionDep
 from cecilia.repositories import ChatRepository, MessageRepository, AttachmentRepository
 from cecilia.services import ChatService, MessageService, AttachmentService
+from cecilia.integrations.open_router.chat import Chat
 
 from fastapi import Depends
 from typing import Annotated
@@ -25,10 +26,14 @@ def get_message_service(
 
 def get_attachment_service(
     attachment_repository: AttachmentRepository = Depends(get_attachment_repository),
-    message_service: MessageService = Depends(get_message_service)
+    message_repository: MessageRepository = Depends(get_message_repository)
 ):
-    yield AttachmentService(attachment_repository, message_service)
+    yield AttachmentService(attachment_repository, message_repository)
+
+def get_openrouter_integration():
+    yield Chat()
 
 MessageServiceDep = Annotated[MessageService, Depends(get_message_service)]
 ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]
 AttachmentServiceDep = Annotated[AttachmentService, Depends(get_attachment_service)]
+OpenRouterIntegrationDep = Annotated[Chat, Depends(get_openrouter_integration)]
