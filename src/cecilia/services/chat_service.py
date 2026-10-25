@@ -15,7 +15,7 @@ class ChatService:
         db_chat = self.chat_repository.show(id)
 
         if not db_chat:
-            raise LookupError('chat não encontrado')
+            raise LookupError('chat not found for the given chat_id')
 
         return self._to_public_chat(db_chat)
 
