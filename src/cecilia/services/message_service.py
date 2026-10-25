@@ -21,7 +21,7 @@ class MessageService:
 
         return db_message
 
-    def get_all_by_chat_id(self, chat_id: int, offset: int = 0, limit: int = 100):
+    def get_all_by_chat_id(self, chat_id: int, offset: int = 0, limit: int = 100) -> Sequence[Message]:
         # Verifica se o chat existe
         db_chat = self.chat_repository.show(chat_id)
 
@@ -38,6 +38,11 @@ class MessageService:
         return self.message_repository.index(offset, limit)
 
     def create(self, message_data: MessageCreate) -> MessagePublic:
+        db_chat = self.chat_repository.show(message_data.chat_id)
+
+        if not db_chat:
+            raise LookupError("chat not found for the given chat_id")
+
         db_message = self.message_repository.create(message_data)
 
         return self._to_message_public(db_message)
