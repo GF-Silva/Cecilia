@@ -1,13 +1,16 @@
-from cecilia.repositories import AttachmentRepository
-from cecilia.services.message_service import MessageService
+from cecilia.repositories import AttachmentRepository, MessageRepository
 from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic
 from cecilia.models.tables import Attachment
 from collections.abc import Sequence
 
 class AttachmentService:
-    def __init__(self, attachment_repository: AttachmentRepository, message_service: MessageService):
+    def __init__(
+            self, 
+            attachment_repository: AttachmentRepository, 
+            message_repository: MessageRepository
+        ):
         self.attachment_repository = attachment_repository
-        self.message_service = message_service
+        self.message_repository = message_repository
 
     def show(self, id: int) -> Attachment:
         attachment = self.attachment_repository.show(id)
@@ -21,6 +24,11 @@ class AttachmentService:
         return self.attachment_repository.index(offset, limit)
 
     def create(self, attachment: AttachmentCreate) -> Attachment:
+        db_message = self.message_repository.show(attachment.message_id)
+
+        if not db_message:
+            raise LookupError("message not found for the given message_id")
+            
         return self.attachment_repository.create(attachment)
 
     def delete(self, id: int):
