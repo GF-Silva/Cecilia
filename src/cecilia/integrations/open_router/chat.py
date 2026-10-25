@@ -1,6 +1,6 @@
 from .client import client
 from cecilia.core.settings import settings
-from .types import Contents, Event, EventData, Message
+from .types import Event, EventData, Message
 
 class Chat:
     def __init__(self):

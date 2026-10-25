@@ -1,14 +1,14 @@
 from fastapi import APIRouter
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from collections.abc import AsyncIterable
+from dataclasses import asdict
 
 from .schemas import ChatPayload
 from .dependencies import ChatServiceDep, MessageServiceDep, OpenRouterIntegrationDep
 
 from cecilia.models.chat_model import ChatCreate, ChatPublic
-from cecilia.models.message_model import MessagePublic, MessageCreate
-
-from cecilia.integrations.open_router.types import Message, Content, Audio
+from cecilia.models.message_model import MessageCreate
+from cecilia.integrations.open_router.types import Message, Audio, AudioContent, TextContent, Content
 
 router = APIRouter(prefix="/chats")
 
@@ -29,7 +29,7 @@ async def send_prompt(
     try:
         db_messages = message_service.get_all_by_chat_id(chat_id)
 
-        messages: list[Message]  = []
+        messages: list = []
 
         # Construir cada mensagem
         for msg in db_messages:
@@ -43,8 +43,7 @@ async def send_prompt(
                             data=attachment.data
                         )
 
-                        contents.append(Content(
-                            type="input_audio",
+                        contents.append(AudioContent(
                             input_audio=audio
                         ))
 
@@ -52,8 +51,7 @@ async def send_prompt(
                         print("fds")
 
             if msg.text:
-                contents.append(Content(
-                    type="text",
+                contents.append(TextContent(
                     text=msg.text
                 ))
 
@@ -62,7 +60,7 @@ async def send_prompt(
                 content=contents
             )
 
-            messages.append(message)
+            messages.append(asdict(message))
         
         stream = open_router_integration.send(
             model=chat_payload.model,
@@ -76,6 +74,7 @@ async def send_prompt(
                 response = chunk.raw_data
 
             yield ServerSentEvent(
+                raw_data=chunk.raw_data,
                 data=chunk.data,
                 event=chunk.event
             )

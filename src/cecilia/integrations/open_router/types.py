@@ -33,10 +33,16 @@ class Audio:
     data: str
 
 @dataclass
-class Content:
-    type: str
-    text: str | None = None
-    input_audio: Audio | None = None
+class TextContent:
+    text: str
+    type: str = "text"
+
+@dataclass
+class AudioContent:
+    input_audio: Audio
+    type: str = "input_audio"
+
+Content = TextContent | AudioContent
 
 @dataclass
 class Message:
