@@ -27,3 +27,18 @@ class Event:
         if self.data and self.raw_data:
             raise ValueError('Os campos "data" e "raw_data" não devem estar definidos ao mesmo tempo')
 
+@dataclass
+class Audio:
+    format: str
+    data: str
+
+@dataclass
+class Content:
+    type: str
+    text: str | None = None
+    input_audio: Audio | None = None
+
+@dataclass
+class Message:
+    role: str
+    content: list[Content]
