@@ -11,15 +11,17 @@ def create_attachment(
     attachment_service: AttachmentServiceDep,
     attachments_create: list[AttachmentCreatePayload]
 ):
-    db_attachments = []
-
-    for attachment in attachments_create:
-        db_attachment = attachment_service.create(AttachmentCreate(
+    db_attachments_create = [
+        AttachmentCreate(
             message_id=message_id,
             **attachment.model_dump()
-        ))
+        ) for attachment in attachments_create
+    ]
 
-        db_attachments.append(db_attachment)
+    db_attachments = attachment_service.create_list(
+        message_id=message_id,
+        attachments=db_attachments_create
+    )
 
     return db_attachments
 

@@ -16,7 +16,7 @@ class AttachmentService:
         attachment = self.attachment_repository.show(id)
 
         if not attachment:
-            raise LookupError("Attachment não encontrado")
+            raise LookupError("attachment not found for the given attachment_id")
 
         return attachment
 
@@ -27,9 +27,23 @@ class AttachmentService:
         db_message = self.message_repository.show(attachment.message_id)
 
         if not db_message:
-            raise LookupError("message not found for the given message_id")
+            raise ValueError("message not found for the given message_id")
             
         return self.attachment_repository.create(attachment)
+
+    def create_list(self, message_id: int, attachments: list[AttachmentCreate]) -> list[Attachment]:
+        db_message = self.message_repository.show(message_id)
+
+        if not db_message:
+            raise ValueError("message not found for the given message_id")
+
+        db_attachments = []
+
+        for attachment in attachments:
+            db_attachment = self.create(attachment)
+            db_attachments.append(db_attachment)
+        
+        return db_attachments
 
     def delete(self, id: int):
         attachment = self.attachment_repository.show(id)

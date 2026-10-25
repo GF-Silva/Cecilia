@@ -17,7 +17,7 @@ class MessageService:
         db_message = self.message_repository.show(id)
 
         if not db_message:
-            raise LookupError('mensagem não encontrada')
+            raise LookupError('menssage not found for the given message_id')
 
         return db_message
 
@@ -26,7 +26,7 @@ class MessageService:
         db_chat = self.chat_repository.show(chat_id)
 
         if not db_chat:
-            raise LookupError("chat not found")
+            raise ValueError("chat not found")
 
         return self.message_repository.get_all_by_chat_id(
             chat_id=chat_id,
@@ -41,7 +41,7 @@ class MessageService:
         db_chat = self.chat_repository.show(message_data.chat_id)
 
         if not db_chat:
-            raise LookupError("chat not found for the given chat_id")
+            raise ValueError("chat not found for the given chat_id")
 
         db_message = self.message_repository.create(message_data)
 
