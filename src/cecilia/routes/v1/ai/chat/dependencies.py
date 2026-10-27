@@ -2,6 +2,7 @@ from cecilia.core.database import SessionDep
 from cecilia.repositories import ChatRepository, MessageRepository, AttachmentRepository
 from cecilia.services import ChatService, MessageService, AttachmentService
 from cecilia.integrations.open_router.chat import Chat
+from cecilia.integrations.hackclub_ai.completions import Completions
 
 from fastapi import Depends
 from typing import Annotated
@@ -33,7 +34,11 @@ def get_attachment_service(
 def get_openrouter_integration():
     yield Chat()
 
+def get_hcai_completion_integration():
+    yield Completions()
+
 MessageServiceDep = Annotated[MessageService, Depends(get_message_service)]
 ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]
 AttachmentServiceDep = Annotated[AttachmentService, Depends(get_attachment_service)]
 OpenRouterIntegrationDep = Annotated[Chat, Depends(get_openrouter_integration)]
+HCAICompletionIntegrationDep = Annotated[Completions, Depends(get_hcai_completion_integration)]
