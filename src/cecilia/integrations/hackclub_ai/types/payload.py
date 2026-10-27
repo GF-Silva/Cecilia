@@ -60,7 +60,7 @@ class Choice:
         )
 
 @dataclass
-class SSEPayload:
+class CompletionEvent:
     id: str
     object: str
     created: int

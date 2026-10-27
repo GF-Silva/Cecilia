@@ -1,11 +1,6 @@
 """ TODO:
-Quando um erro ocorre, a api retorna o content type como application/json, oq da erro
-no httpx_sse, q espera text/event-stream
-
-categorizar o SSE como completions
 usar o id da completion como id do SSE?
-
-
+Nao, vou criar um proprio pra n depender da resposta da hackclub
 """
 
 
@@ -17,7 +12,7 @@ usar o id da completion como id do SSE?
 
 from cecilia.core.settings import settings
 from httpx_sse import aconnect_sse
-from .types.payload import SSEPayload
+from .types.payload import CompletionEvent
 from .types.responses import SSEResponse, Data
 
 class Completions:
@@ -61,7 +56,7 @@ class Completions:
                             )
                             break
 
-                        data = SSEPayload.from_json(sse.data)
+                        data = CompletionEvent.from_json(sse.data)
 
                         response += data.choices[0].delta.content
 
