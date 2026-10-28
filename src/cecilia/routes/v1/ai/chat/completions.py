@@ -1,10 +1,10 @@
 from fastapi import APIRouter
-
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from collections.abc import AsyncIterable
 from dataclasses import asdict
-
 from .schemas import ChatPayload
+
+from httpx import ReadTimeout
 from cecilia.models.message_model import MessageCreate
 from .dependencies import MessageServiceDep, HCAICompletionIntegrationDep
 from cecilia.integrations.hackclub_ai.types.messages import (
@@ -97,8 +97,17 @@ async def create_completion(
     ) as err:
         print(err)
         yield ServerSentEvent(
-            raw_data=str(err),
+            data=err,
             event="error"
+        )
+
+    except ReadTimeout:
+        yield ServerSentEvent(
+            event="error",
+            data={
+                "message": "Timed out",
+                "code": "timeout"
+            }
         )
 
     except Exception as err:
