@@ -110,18 +110,15 @@ class Completions:
                         )
                 
             elif "text/event-stream" in content_type:
-                response = ""
+                
                 async for sse in event_source.aiter_sse():
                     if sse.data == "[DONE]":
                         yield SSEResponse(
-                            event="finished",
-                            raw_data=response
+                            event="finished"
                         )
                         break
         
                     data = CompletionEvent.from_json(sse.data)
-        
-                    response += data.choices[0].delta.content
         
                     yield SSEResponse(
                         event="message",

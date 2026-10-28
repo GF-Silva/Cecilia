@@ -13,7 +13,14 @@ class HackclubAISettings(BaseSettings):
 class Settings(BaseSettings):
     open_router: OpenRouterSettings
     hackclub_ai: HackclubAISettings
-    api_client: httpx.AsyncClient = httpx.AsyncClient()
+    api_client: httpx.AsyncClient = httpx.AsyncClient(
+        timeout=httpx.Timeout(
+            connect=5,
+            read=60,
+            write=10,
+            pool=5
+        )
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -9,4 +9,3 @@ class Data:
 class SSEResponse:
     event: Literal["finished", "error", "message"]
     data: Data | None = None
-    raw_data: str | None = None

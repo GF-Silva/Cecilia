@@ -1,8 +1,9 @@
 from fastapi import FastAPI, Request
 from scalar_fastapi import add_scalar_reference
 from fastapi.responses import JSONResponse
-from .routes import api_router
+from httpx import ReadTimeout
 
+from .routes import api_router
 from cecilia.core.database import create_db_and_tables
 
 app = FastAPI(title="Cecília API")
@@ -29,5 +30,14 @@ async def lookup_error_handler(request: Request, exception: LookupError):
         status_code=404,
         content={
             "detail": str(exception)
+        }
+    )
+
+@app.exception_handler(ReadTimeout)
+async def read_timeout_handler(request: Request, exception: ReadTimeout):
+    return JSONResponse(
+        status_code=504,
+        content={
+            "detail": "timed out while receiving data"
         }
     )
