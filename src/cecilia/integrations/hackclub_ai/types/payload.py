@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import json
+from enum import StrEnum
 
 @dataclass
 class CompletionTokensDetails:
@@ -43,11 +44,18 @@ class Delta:
             role=json.get('role')
         )
 
+class FinishReason(StrEnum):
+    TOOL_CALLS = "tool_calls"
+    STOP = "stop"
+    LENGTH = "length"
+    CONTENT_FILTER = "content_filter"
+    ERROR = "error"
+
 @dataclass
 class Choice:
     index: int
     delta: Delta
-    finish_reason: str | None = None
+    finish_reason: FinishReason
     native_finish_reason: str | None = None
 
     @classmethod
@@ -60,7 +68,7 @@ class Choice:
         )
 
 @dataclass
-class SSEPayload:
+class CompletionEvent:
     id: str
     object: str
     created: int
