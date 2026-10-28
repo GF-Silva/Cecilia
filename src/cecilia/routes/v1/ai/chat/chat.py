@@ -6,14 +6,12 @@ from dataclasses import asdict
 from .schemas import ChatPayload
 from .dependencies import (
     ChatServiceDep, 
-    MessageServiceDep, 
-    OpenRouterIntegrationDep,
+    MessageServiceDep,
     HCAICompletionIntegrationDep
 )
 
 from cecilia.models.chat_model import ChatCreate, ChatPublic
 from cecilia.models.message_model import MessageCreate
-from cecilia.integrations.open_router.types import Message, Audio, AudioContent, TextContent, Content
 
 from cecilia.integrations.hackclub_ai.types.messages import (
     Message, 
@@ -33,78 +31,6 @@ def create_new_chat(
     chat_service: ChatServiceDep
 ):
     return chat_service.create(chat_data)
-
-@router.post("/{chat_id}/prompt", response_class=EventSourceResponse)
-async def send_prompt(
-    chat_id: int,
-    message_service: MessageServiceDep,
-    chat_payload: ChatPayload,
-    open_router_integration: OpenRouterIntegrationDep
-):
-    try:
-        db_messages = message_service.get_all_by_chat_id(chat_id)
-
-        messages: list = []
-
-        # Construir cada mensagem
-        for msg in db_messages:
-            contents: list[Content] = []
-
-            if msg.attachments:
-                for attachment in msg.attachments:
-                    if attachment.type == "audio":
-                        audio = Audio(
-                            format=attachment.format,
-                            data=attachment.data
-                        )
-
-                        contents.append(AudioContent(
-                            input_audio=audio
-                        ))
-
-                    if attachment.type == "image":
-                        print("fds")
-
-            if msg.text:
-                contents.append(TextContent(
-                    text=msg.text
-                ))
-
-            message = Message(
-                role=msg.role,
-                content=contents
-            )
-
-            messages.append(asdict(message))
-        
-        stream = open_router_integration.send(
-            model=chat_payload.model,
-            context=messages
-        )
-
-        response = ""
-
-        async for chunk in stream:
-            if chunk.event == "finished":
-                response = chunk.raw_data
-
-            yield ServerSentEvent(
-                raw_data=chunk.raw_data,
-                data=chunk.data,
-                event=chunk.event
-            )
-
-        message_service.create(MessageCreate(
-            role="assistant",
-            chat_id=chat_id,
-            text=response
-        ))
-    
-    except (LookupError, ValueError) as err:
-        yield ServerSentEvent(
-            data=str(err),
-            event="error"
-        )
 
 @router.post("/{chat_id}/completions", response_class=EventSourceResponse)
 async def create_completion(
