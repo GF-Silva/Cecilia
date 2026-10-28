@@ -4,7 +4,7 @@ from collections.abc import AsyncIterable
 from dataclasses import asdict
 from .schemas import ChatPayload
 
-from httpx import ReadTimeout
+from httpx import ReadTimeout, WriteTimeout, ConnectTimeout, PoolTimeout
 from cecilia.models.message_model import MessageCreate
 from .dependencies import MessageServiceDep, HCAICompletionIntegrationDep
 from cecilia.integrations.hackclub_ai.types.messages import (
@@ -101,7 +101,7 @@ async def create_completion(
             event="error"
         )
 
-    except ReadTimeout:
+    except (ReadTimeout, WriteTimeout, ConnectTimeout, PoolTimeout):
         yield ServerSentEvent(
             event="error",
             data={
