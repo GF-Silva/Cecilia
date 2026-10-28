@@ -1,18 +1,3 @@
-"""
-TODO:
-
-Validar os dados / campos / especificar os try + exception
-
-trocar a rota de cecilia-ai.com para api.cecilia-ai.com
-
-a rota /chat vai ter /completions e /live, para modo em completion e modo live talk
-
-"""
-
-
-
-
-
 from fastapi import APIRouter
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from collections.abc import AsyncIterable
@@ -37,6 +22,8 @@ from cecilia.integrations.hackclub_ai.types.messages import (
     Content,
     Audio
 )
+
+from cecilia.integrations.hackclub_ai import errors
 
 router = APIRouter(prefix="/chats")
 
@@ -119,18 +106,18 @@ async def send_prompt(
             event="error"
         )
 
-@router.post("/completions", response_class=EventSourceResponse)
+@router.post("/{chat_id}/completions", response_class=EventSourceResponse)
 async def create_completion(
     chat_id: int,
     completions: HCAICompletionIntegrationDep,
     message_service: MessageServiceDep,
     chat_payload: ChatPayload
-):
+) -> AsyncIterable[ServerSentEvent]:
     try:
         db_messages = message_service.get_all_by_chat_id(chat_id)
 
-        # if not db_messages:
-        #     raise ValueError("messages empty")
+        if not db_messages:
+            raise errors.MessagesEmptyError(db_messages)
 
         messages: list = []
 
@@ -167,16 +154,40 @@ async def create_completion(
             model=chat_payload.model
         )
 
+        response = ""
         async for stream_event in stream:
+            response += stream_event.data.chunk if stream_event.data and stream_event.data.chunk else ''
+
             yield ServerSentEvent(
                 data=stream_event.data,
-                event=stream_event.event,
-                raw_data=stream_event.raw_data
+                event=stream_event.event
             )
 
-    except Exception as err:
+        # TODO: I have to remove this, this is just for visualization and needs to be removed when
+        # shipping the final version for the frontend
+        yield ServerSentEvent(
+            raw_data=response,
+            event="response"
+        )
+
+        message_service.create(MessageCreate(
+            role="assistant",
+            chat_id=chat_id,
+            text=response
+        ))
+
+    except (
+        errors.MessagesEmptyError, 
+        errors.InvalidModelIDError,
+        errors.SpendingLimitReachedError,
+        errors.HackClubBaseError
+    ) as err:
         print(err)
         yield ServerSentEvent(
             raw_data=str(err),
             event="error"
         )
+
+    except Exception as err:
+        print("uncaught exception: ", type(err))
+        print("How this happened? Oh man, we are doomed")
