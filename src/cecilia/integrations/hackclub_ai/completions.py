@@ -1,15 +1,3 @@
-""" TODO:
-usar o id da completion como id do SSE?
-Nao, vou criar um proprio pra n depender da resposta da hackclub
-"""
-
-
-
-
-
-
-
-
 from cecilia.core.settings import settings
 from httpx_sse import aconnect_sse, EventSource
 from .types.payload import CompletionEvent
