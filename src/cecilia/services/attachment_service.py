@@ -2,6 +2,7 @@ from cecilia.repositories import AttachmentRepository, MessageRepository
 from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic
 from cecilia.models.tables import Attachment
 from collections.abc import Sequence
+from cecilia.core.exceptions import NotFoundError
 
 class AttachmentService:
     def __init__(
@@ -16,7 +17,10 @@ class AttachmentService:
         attachment = self.attachment_repository.show(id)
 
         if not attachment:
-            raise LookupError("attachment not found for the given attachment_id")
+            raise NotFoundError(
+                resource="attachment",
+                item=id
+            )
 
         return attachment
 
@@ -46,10 +50,7 @@ class AttachmentService:
         return db_attachments
 
     def delete(self, id: int):
-        attachment = self.attachment_repository.show(id)
-
-        if not attachment:
-            raise LookupError("attachment não encontrado para esse ID")
+        attachment = self.show(id)
 
         self.attachment_repository.delete(attachment)
 
