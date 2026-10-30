@@ -93,9 +93,10 @@ async def create_completion(
         errors.MessagesEmptyError, 
         errors.InvalidModelIDError,
         errors.SpendingLimitReachedError,
-        errors.HackClubBaseError
+        errors.HackClubBaseError,
+        LookupError,
+        ValueError
     ) as err:
-        print(err)
         yield ServerSentEvent(
             data=err,
             event="error"
