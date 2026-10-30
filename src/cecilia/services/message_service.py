@@ -1,5 +1,6 @@
 from cecilia.repositories import MessageRepository, ChatRepository
 from cecilia.models.message_model import MessageCreate, MessagePublic
+from cecilia.core.exceptions import NotFoundError
 from cecilia.models.tables import Message
 
 from collections.abc import Sequence
@@ -17,7 +18,10 @@ class MessageService:
         db_message = self.message_repository.show(id)
 
         if not db_message:
-            raise LookupError('menssage not found for the given message_id')
+            raise NotFoundError(
+                resource="message",
+                item=id
+            )
 
         return db_message
 
