@@ -15,6 +15,21 @@ app.include_router(api_router)
 def on_startup():
     database.create_db_and_tables()
 
+@app.exception_handler(exceptions.ValueError)
+def value_error_handler(_, exception: exceptions.NotFoundError):
+    error = schemas.ErrorDetails(
+        title="Value Error",
+        status_code=400,
+        detail=exception.message,
+        type=exception.error_code,
+        extra_info=exception.values
+    )
+
+    return JSONResponse(
+        status_code=error.status_code,
+        content=error.model_dump(exclude_unset=True)
+    )
+
 @app.exception_handler(exceptions.NotFoundError)
 def not_found_error_handler(request: Request, exception: exceptions.NotFoundError):
     error = schemas.ErrorDetails(
@@ -44,15 +59,6 @@ def internal_error_handler(request: Request, exception: exceptions.InternalError
         status_code=error.status_code,
         content=error.model_dump(exclude_unset=True)
     )
-
-# @app.exception_handler(ValueError)
-# async def value_error_handler(request: Request, exception: ValueError):
-#     return JSONResponse(
-#         status_code=400,
-#         content={
-#             "detail": str(exception)
-#         }
-#     )
 
 @app.exception_handler(TimeoutException)
 async def read_timeout_handler(request: Request, exception: TimeoutException):

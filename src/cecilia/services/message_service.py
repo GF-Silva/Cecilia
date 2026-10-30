@@ -1,6 +1,6 @@
 from cecilia.repositories import MessageRepository, ChatRepository
 from cecilia.models.message_model import MessageCreate, MessagePublic
-from cecilia.core.exceptions import NotFoundError
+from cecilia.core.exceptions import NotFoundError, ValueError
 from cecilia.models.tables import Message
 
 from collections.abc import Sequence
@@ -30,7 +30,12 @@ class MessageService:
         db_chat = self.chat_repository.show(chat_id)
 
         if not db_chat:
-            raise ValueError("chat not found")
+            raise ValueError(
+                message="chat not found",
+                values={
+                    "chat_id": chat_id
+                }
+            )
 
         return self.message_repository.get_all_by_chat_id(
             chat_id=chat_id,
@@ -45,7 +50,12 @@ class MessageService:
         db_chat = self.chat_repository.show(message_data.chat_id)
 
         if not db_chat:
-            raise ValueError("chat not found for the given chat_id")
+            raise ValueError(
+                message="chat not found",
+                values={
+                    "chat_id": message_data.chat_id
+                }
+            )
 
         db_message = self.message_repository.create(message_data)
 

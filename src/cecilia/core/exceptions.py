@@ -46,7 +46,7 @@ class ValueError(BaseError):
         self,
         message: str,
         error_code: str = "VALUE_ERROR",
-        values: dict | None = None
+        values: dict[str, Any] | None = None
     ):
         self.message = message
         self.error_code=error_code

@@ -2,7 +2,7 @@ from cecilia.repositories import AttachmentRepository, MessageRepository
 from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic
 from cecilia.models.tables import Attachment
 from collections.abc import Sequence
-from cecilia.core.exceptions import NotFoundError
+from cecilia.core.exceptions import NotFoundError, ValueError
 
 class AttachmentService:
     def __init__(
@@ -31,7 +31,12 @@ class AttachmentService:
         db_message = self.message_repository.show(attachment.message_id)
 
         if not db_message:
-            raise ValueError("message not found for the given message_id")
+            raise ValueError(
+                message="message not found for the given message_id",
+                values={
+                    "message_id": attachment.message_id
+                }
+            )
             
         return self.attachment_repository.create(attachment)
 
@@ -39,7 +44,12 @@ class AttachmentService:
         db_message = self.message_repository.show(message_id)
 
         if not db_message:
-            raise ValueError("message not found for the given message_id")
+            raise ValueError(
+                    message="message not found for the given message_id",
+                    values={
+                        "message_id": message_id
+                    }
+                )
 
         db_attachments = []
 
