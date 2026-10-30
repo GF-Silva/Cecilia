@@ -31,7 +31,7 @@ class MessageService:
 
         if not db_chat:
             raise ValueError(
-                message="chat not found",
+                message="{chat_id} id not a valid chat ID",
                 values={
                     "chat_id": chat_id
                 }
@@ -51,7 +51,7 @@ class MessageService:
 
         if not db_chat:
             raise ValueError(
-                message="chat not found",
+                message=f"{message_data.chat_id} is not a valid chat id",
                 values={
                     "chat_id": message_data.chat_id
                 }

@@ -32,7 +32,7 @@ class AttachmentService:
 
         if not db_message:
             raise ValueError(
-                message="message not found for the given message_id",
+                message=f"{attachment.message_id} is not a valid message id",
                 values={
                     "message_id": attachment.message_id
                 }
@@ -45,7 +45,7 @@ class AttachmentService:
 
         if not db_message:
             raise ValueError(
-                    message="message not found for the given message_id",
+                    message=f"{message_id} is not a valid message ID",
                     values={
                         "message_id": message_id
                     }
