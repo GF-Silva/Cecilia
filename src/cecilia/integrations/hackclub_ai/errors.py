@@ -1,50 +1,44 @@
-class HackClubBaseError(Exception):
-    def __init__(self, message: str, code: str | None = None, values: dict | None = None):
-        super().__init__({
-            "message": message,
-            "code": code,
-            "values": values
-        })
+from cecilia.core.exceptions import BaseError, ValueError
 
-class MessagesEmptyError(HackClubBaseError):
-    def __init__(self, messages, code: str | None = None):
+class MessagesEmptyError(BaseError):
+    def __init__(self, messages, error_code: str = "MESSAGES_EMPTY"):
         self.messages = messages
-        self.code = code
+        self.error_code = error_code
 
         super().__init__(
             message="The messages are empty",
-            code=code,
+            error_code=error_code,
             values={
                 "messages": messages
             }
         )
 
-class InvalidModelIDError(HackClubBaseError):
-    def __init__(self, model_id: str, code: str | None = None):
+class InvalidModelIDError(ValueError):
+    def __init__(self, model_id: str, error_code: str = "INVALID_MODEL_ID"):
         self.model_id = model_id
-        self.code=code
+        self.error_code=error_code
 
         super().__init__(
-            message = "Invalid model ID",
-            code = code,
+            message = f"{model_id} is not a valid model id",
+            error_code = error_code,
             values = {
                 "model_id": model_id
             }
         )
 
-class SpendingLimitReachedError(HackClubBaseError):
-    def __init__(self, code: str | None = None):
+class SpendingLimitReachedError(BaseError):
+    def __init__(self, error_code: str = "INTERNAL_SPENDING_LIMIT_REACHED"):
         super().__init__(
             message = "We are out of AI credits for now, try again later",
-            code = code
+            error_code = error_code
         )
 
-class UnsuportedModelForEndpointError(HackClubBaseError):
-    def __init__(self, model: str, code: str | None = None):
+class UnsuportedModelForEndpointError(ValueError):
+    def __init__(self, model: str, error_code: str = "UNSUPORTED_MODEL_FOR_ENDPOINT"):
         self.model = model
         super().__init__(
             message = f'This route does not support the model {model}',
-            code=code,
+            error_code=error_code,
             values={
                 "model": model
             }
