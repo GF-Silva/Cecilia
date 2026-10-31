@@ -19,16 +19,14 @@ def get_chat_service(chat_repository: ChatRepository = Depends(get_chat_reposito
     yield ChatService(chat_repository)
 
 def get_message_service(
-        message_repository: MessageRepository = Depends(get_message_repository),
-        chat_repository: ChatRepository = Depends(get_chat_repository)
+        message_repository: MessageRepository = Depends(get_message_repository)
     ):
-    yield MessageService(message_repository, chat_repository)
+    yield MessageService(message_repository)
 
 def get_attachment_service(
-    attachment_repository: AttachmentRepository = Depends(get_attachment_repository),
-    message_repository: MessageRepository = Depends(get_message_repository)
+    attachment_repository: AttachmentRepository = Depends(get_attachment_repository)
 ):
-    yield AttachmentService(attachment_repository, message_repository)
+    yield AttachmentService(attachment_repository)
 
 def get_hcai_completion_integration():
     yield Completions()
