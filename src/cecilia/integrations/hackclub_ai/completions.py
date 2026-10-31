@@ -4,6 +4,7 @@ from .types.payload import CompletionEvent
 from .types.responses import SSEResponse, Data
 from .types.messages import Message
 import difflib
+from cecilia.core.exceptions import BaseError
 from . import errors
 
 class Completions:
@@ -54,18 +55,18 @@ class Completions:
 
                 if not error:
                     print("error not found")
-                    raise errors.HackClubBaseError(
+                    raise BaseError(
                         message="unexpected error",
-                        code="internal_server_error"
+                        error_code="internal_server_error"
                     )
 
                 error_message = error.get("message") if isinstance(error, dict) else error
 
                 if not error_message:
                     print("error message not found, crash")
-                    raise errors.HackClubBaseError(
+                    raise BaseError(
                         message="unexpected error",
-                        code="internal_server_error"
+                        error_code="internal_server_error"
                     )
 
                 status_code = event_source.response.status_code
@@ -75,38 +76,38 @@ class Completions:
         
                 if not matches:
                     print("matches not found")
-                    raise errors.HackClubBaseError(
+                    raise BaseError(
                         message="unexpected error",
-                        code="internal_server_error"
+                        error_code="internal_server_error"
                     )
 
                 match self.ERROR_MAP[status_code][matches[0]]:
                     case "messages_empty":
                         raise errors.MessagesEmptyError(
                             messages=messages,
-                            code="messages_empty"
+                            error_code="messages_empty"
                         )
 
                     case "invalid_model_id":
                         raise errors.InvalidModelIDError(
                             model_id=model,
-                            code="invalid_model_id"
+                            error_code="invalid_model_id"
                         )
 
                     case "spending_limit_reached":
-                        raise errors.SpendingLimitReachedError(code="spending_limit_reached")
+                        raise errors.SpendingLimitReachedError(error_code="spending_limit_reached")
 
                     case "unsuported_model_for_endpoint":
                         raise errors.UnsuportedModelForEndpointError(
                             model=model,
-                            code="unsuported_model_for_endpoint"
+                            error_code="unsuported_model_for_endpoint"
                         )
 
                     case _:
-                        print("default error code")
-                        raise errors.HackClubBaseError(
+                        print("default error error_code")
+                        raise BaseError(
                             message="unexpected error",
-                            code="internal_server_error"
+                            error_code="internal_server_error"
                         )
                 
             elif "text/event-stream" in content_type:

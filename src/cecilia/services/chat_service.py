@@ -1,6 +1,7 @@
 from cecilia.repositories import ChatRepository
 from cecilia.models.chat_model import ChatCreate, ChatUpdate, ChatPublic
 from cecilia.models.tables import Chat
+from cecilia.core.exceptions import NotFoundError
 from collections.abc import Sequence
 from pydantic import TypeAdapter
 
@@ -15,7 +16,10 @@ class ChatService:
         db_chat = self.chat_repository.show(id)
 
         if not db_chat:
-            raise LookupError('chat not found for the given chat_id')
+            raise NotFoundError(
+                resource="chat",
+                item=id
+            )
 
         return self._to_public_chat(db_chat)
 
@@ -30,7 +34,10 @@ class ChatService:
         db_chat = self.chat_repository.show(id)
 
         if not db_chat:
-            raise LookupError('chat não encontrado')
+            raise NotFoundError(
+                resource="chat",
+                item=id
+            )
 
         db_chat_updated = self.chat_repository.update(db_chat, chat_update)
 

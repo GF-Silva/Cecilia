@@ -1,7 +1,8 @@
 # Junta as versoes v1 e etc
 from fastapi import APIRouter
 from .v1 import router as router_v1
+from cecilia.core.responses import COMMON_ERRORS
 
-api_router = APIRouter()
+api_router = APIRouter(responses={**COMMON_ERRORS})
 
 api_router.include_router(router_v1, prefix='/v1')

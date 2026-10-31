@@ -1,9 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import httpx
-class OpenRouterSettings(BaseSettings):
-    api_key: str
-    server_url: str = "https://ai.hackclub.com/proxy/v1"
-    system_prompt: str = "Seu nome é Cecilia"
 
 class HackclubAISettings(BaseSettings):
     api_key: str
@@ -11,7 +7,6 @@ class HackclubAISettings(BaseSettings):
     completions_url: str = f"{server_url}/chat/completions"
 
 class Settings(BaseSettings):
-    open_router: OpenRouterSettings
     hackclub_ai: HackclubAISettings
     api_client: httpx.AsyncClient = httpx.AsyncClient(
         timeout=httpx.Timeout(

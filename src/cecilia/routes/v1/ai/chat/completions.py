@@ -15,6 +15,7 @@ from cecilia.integrations.hackclub_ai.types.messages import (
     Audio
 )
 
+from cecilia.core.exceptions import BaseError
 from cecilia.integrations.hackclub_ai import errors
 
 router = APIRouter(prefix="/{chat_id}/completions")
@@ -89,13 +90,7 @@ async def create_completion(
             text=response
         ))
 
-    except (
-        errors.MessagesEmptyError, 
-        errors.InvalidModelIDError,
-        errors.SpendingLimitReachedError,
-        errors.HackClubBaseError
-    ) as err:
-        print(err)
+    except BaseError as err:
         yield ServerSentEvent(
             data=err,
             event="error"
@@ -111,5 +106,5 @@ async def create_completion(
         )
 
     except Exception as err:
-        print("uncaught exception: ", type(err))
+        print("uncaught exception: ", err)
         print("How this happened? Oh man, we are doomed")

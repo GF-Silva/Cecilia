@@ -2,6 +2,7 @@ from cecilia.repositories import AttachmentRepository, MessageRepository
 from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic
 from cecilia.models.tables import Attachment
 from collections.abc import Sequence
+from cecilia.core.exceptions import NotFoundError, ValueError
 
 class AttachmentService:
     def __init__(
@@ -16,7 +17,10 @@ class AttachmentService:
         attachment = self.attachment_repository.show(id)
 
         if not attachment:
-            raise LookupError("attachment not found for the given attachment_id")
+            raise NotFoundError(
+                resource="attachment",
+                item=id
+            )
 
         return attachment
 
@@ -27,7 +31,12 @@ class AttachmentService:
         db_message = self.message_repository.show(attachment.message_id)
 
         if not db_message:
-            raise ValueError("message not found for the given message_id")
+            raise ValueError(
+                message=f"{attachment.message_id} is not a valid message id",
+                values={
+                    "message_id": attachment.message_id
+                }
+            )
             
         return self.attachment_repository.create(attachment)
 
@@ -35,7 +44,12 @@ class AttachmentService:
         db_message = self.message_repository.show(message_id)
 
         if not db_message:
-            raise ValueError("message not found for the given message_id")
+            raise ValueError(
+                    message=f"{message_id} is not a valid message ID",
+                    values={
+                        "message_id": message_id
+                    }
+                )
 
         db_attachments = []
 
@@ -46,10 +60,7 @@ class AttachmentService:
         return db_attachments
 
     def delete(self, id: int):
-        attachment = self.attachment_repository.show(id)
-
-        if not attachment:
-            raise LookupError("attachment não encontrado para esse ID")
+        attachment = self.show(id)
 
         self.attachment_repository.delete(attachment)
 
