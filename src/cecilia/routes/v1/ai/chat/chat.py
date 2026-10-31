@@ -5,7 +5,6 @@ from .dependencies import (
 )
 
 from cecilia.models.chat_model import ChatCreate, ChatPublic
-from cecilia.models.message_model import MessageCreate
 
 router = APIRouter(prefix="/chats")
 

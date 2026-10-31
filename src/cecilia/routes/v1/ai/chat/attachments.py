@@ -3,7 +3,7 @@ from .dependencies import AttachmentServiceDep
 from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic
 from .schemas import AttachmentCreatePayload
 
-router = APIRouter(prefix="/{message_id}/attachments")
+router = APIRouter(prefix="/attachments")
 
 @router.post("", response_model=list[AttachmentPublic])
 def create_attachment(
@@ -19,7 +19,6 @@ def create_attachment(
     ]
 
     db_attachments = attachment_service.create_list(
-        message_id=message_id,
         attachments=db_attachments_create
     )
 
