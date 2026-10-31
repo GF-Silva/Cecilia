@@ -57,7 +57,7 @@ async def create_completion(
                         print("ignorando imagem")
 
             message = Message(
-                role=db_message.role,
+                role="user" if db_message.is_user else "assistant",
                 content=content
             )
 
@@ -85,8 +85,8 @@ async def create_completion(
         )
 
         message_service.create(MessageCreate(
-            role="assistant",
             chat_id=chat_id,
+            is_user=False,
             text=response
         ))
 
