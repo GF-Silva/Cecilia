@@ -2,16 +2,14 @@ from cecilia.repositories import AttachmentRepository, MessageRepository
 from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic
 from cecilia.models.tables import Attachment
 from collections.abc import Sequence
-from cecilia.core.exceptions import NotFoundError, ValueError
+from cecilia.core.exceptions import NotFoundError
 
 class AttachmentService:
     def __init__(
             self, 
-            attachment_repository: AttachmentRepository, 
-            message_repository: MessageRepository
+            attachment_repository: AttachmentRepository
         ):
         self.attachment_repository = attachment_repository
-        self.message_repository = message_repository
 
     def show(self, id: int) -> Attachment:
         attachment = self.attachment_repository.show(id)

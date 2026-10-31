@@ -8,11 +8,9 @@ from collections.abc import Sequence
 class MessageService:
     def __init__(
         self, 
-        message_repository: MessageRepository,
-        chat_repository: ChatRepository
+        message_repository: MessageRepository
     ):
         self.message_repository = message_repository
-        self.chat_repository = chat_repository
 
     def show(self, id: int) -> Message:
         db_message = self.message_repository.show(id)
