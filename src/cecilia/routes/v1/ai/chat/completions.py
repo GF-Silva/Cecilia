@@ -18,7 +18,7 @@ from cecilia.integrations.hackclub_ai.types.messages import (
 from cecilia.core.exceptions import BaseError
 from cecilia.integrations.hackclub_ai import errors
 
-router = APIRouter(prefix="/{chat_id}/completions")
+router = APIRouter(prefix="/completions")
 
 @router.post("", response_class=EventSourceResponse)
 async def create_completion(

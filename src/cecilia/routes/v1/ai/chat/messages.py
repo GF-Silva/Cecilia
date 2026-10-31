@@ -3,7 +3,7 @@ from .dependencies import MessageServiceDep
 from cecilia.models.message_model import MessageCreate, MessagePublic
 from .schemas import MessageCreatePayload
 
-router = APIRouter(prefix="/{chat_id}/messages")
+router = APIRouter(prefix="/messages")
 
 @router.post("", response_model=MessagePublic)
 def create_message(
