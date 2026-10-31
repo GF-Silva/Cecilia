@@ -27,30 +27,10 @@ class AttachmentService:
     def index(self, offset: int = 0, limit: int = 100) -> Sequence[Attachment]:
         return self.attachment_repository.index(offset, limit)
 
-    def create(self, attachment: AttachmentCreate) -> Attachment:
-        db_message = self.message_repository.show(attachment.message_id)
-
-        if not db_message:
-            raise ValueError(
-                message=f"{attachment.message_id} is not a valid message id",
-                values={
-                    "message_id": attachment.message_id
-                }
-            )
-            
+    def create(self, attachment: AttachmentCreate) -> Attachment:            
         return self.attachment_repository.create(attachment)
 
-    def create_list(self, message_id: int, attachments: list[AttachmentCreate]) -> list[Attachment]:
-        db_message = self.message_repository.show(message_id)
-
-        if not db_message:
-            raise ValueError(
-                    message=f"{message_id} is not a valid message ID",
-                    values={
-                        "message_id": message_id
-                    }
-                )
-
+    def create_list(self, attachments: list[AttachmentCreate]) -> list[Attachment]:
         db_attachments = []
 
         for attachment in attachments:

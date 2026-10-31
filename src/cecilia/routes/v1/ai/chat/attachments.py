@@ -19,7 +19,6 @@ def create_attachment(
     ]
 
     db_attachments = attachment_service.create_list(
-        message_id=message_id,
         attachments=db_attachments_create
     )
 

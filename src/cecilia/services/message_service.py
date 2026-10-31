@@ -26,17 +26,6 @@ class MessageService:
         return db_message
 
     def get_all_by_chat_id(self, chat_id: int, offset: int = 0, limit: int = 100) -> Sequence[Message]:
-        # Verifica se o chat existe
-        db_chat = self.chat_repository.show(chat_id)
-
-        if not db_chat:
-            raise ValueError(
-                message="{chat_id} id not a valid chat ID",
-                values={
-                    "chat_id": chat_id
-                }
-            )
-
         return self.message_repository.get_all_by_chat_id(
             chat_id=chat_id,
             offset=offset,
@@ -47,16 +36,6 @@ class MessageService:
         return self.message_repository.index(offset, limit)
 
     def create(self, message_data: MessageCreate) -> MessagePublic:
-        db_chat = self.chat_repository.show(message_data.chat_id)
-
-        if not db_chat:
-            raise ValueError(
-                message=f"{message_data.chat_id} is not a valid chat id",
-                values={
-                    "chat_id": message_data.chat_id
-                }
-            )
-
         db_message = self.message_repository.create(message_data)
 
         return self._to_message_public(db_message)
