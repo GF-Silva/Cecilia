@@ -2,6 +2,7 @@ from cecilia.core.database import SessionDep
 from cecilia.repositories import ChatRepository, MessageRepository, AttachmentRepository
 from cecilia.services import ChatService, MessageService, AttachmentService
 from cecilia.integrations.hackclub_ai.completions import Completions
+from cecilia.core.settings import settings
 
 from fastapi import Depends
 from typing import Annotated
@@ -29,7 +30,11 @@ def get_attachment_service(
     yield AttachmentService(attachment_repository)
 
 def get_hcai_completion_integration():
-    yield Completions()
+    yield Completions(
+        api_key=settings.hackclub_ai.api_key,
+        completions_url=settings.hackclub_ai.completions_url,
+        api_client=settings.api_client
+    )
 
 MessageServiceDep = Annotated[MessageService, Depends(get_message_service)]
 ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]

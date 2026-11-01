@@ -1,4 +1,3 @@
-from cecilia.core.settings import settings
 from httpx_sse import aconnect_sse, EventSource
 from .types.payload import CompletionEvent
 from .types.responses import SSEResponse, Data
@@ -6,6 +5,7 @@ from .types.messages import Message
 import difflib
 from cecilia.core.exceptions import BaseError
 from . import errors
+from httpx import AsyncClient
 
 class Completions:
     ERROR_MAP = {
@@ -20,10 +20,20 @@ class Completions:
             'cannot be used with the chat/completions endpoint': 'unsuported_model_for_endpoint'
         }
     }
+
+    def __init__(
+        self, 
+        api_key: str,
+        api_client: AsyncClient,
+        completions_url: str
+    ):
+        self.api_key = api_key
+        self.api_client = api_client
+        self.completions_url = completions_url
     
     async def create(self, model: str, messages: list[Message]):
         headers = {
-            "Authorization": f"Bearer {settings.hackclub_ai.api_key}",
+            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
 
@@ -34,9 +44,9 @@ class Completions:
         }
 
         async with aconnect_sse(
-            client=settings.api_client,
+            client=self.api_client,
             method='POST',
-            url=settings.hackclub_ai.completions_url,
+            url=self.completions_url,
             headers=headers,
             json=payload
         ) as event_source:

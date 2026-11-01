@@ -6,6 +6,13 @@ class HackclubAISettings(BaseSettings):
     server_url: str = "https://ai.hackclub.com/proxy/v1"
     completions_url: str = f"{server_url}/chat/completions"
 
+class R2Settings(BaseSettings):
+    access_key: str
+    secret_access_key: str
+    bucket: str
+    region: str
+    account_id: str
+
 class Settings(BaseSettings):
     hackclub_ai: HackclubAISettings
     api_client: httpx.AsyncClient = httpx.AsyncClient(
