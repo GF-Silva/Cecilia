@@ -99,8 +99,39 @@ class CreateAttachmentsUseCase:
             print(mime_type)
 
             self.attachment_service.validate_mime_type(mime_type)
+            
+            if mime_type.startswith('audio/'):
+                await self._validate_audio(file)
+            elif mime_type.startswith('image/'):
+                await self._validate_image(file)
+            else:
+                raise UnsupportedFileFormatError(
+                    message="Unsuported file format",
+                    values = {
+                        "format": mime_type,
+                        "filename": file.filename
+                    }
+                )
 
             new_headers = dict(file.headers)
             new_headers["content-type"] = mime_type
 
             file.headers = Headers(new_headers)
+
+    async def _validate_audio(self, file: UploadFile):
+        pass
+
+    async def _validate_image(self, file: UploadFile):
+        try:
+            with Image.open(file.file, formats=list(self.attachment_service.ACCEPTED_IMAGE_TYPES)) as img:
+                await asyncio.to_thread(img.verify)
+
+        except UnidentifiedImageError:
+            raise InvalidFileError()
+
+        except Image.DecompressionBombError:
+            raise FileTooBigError()
+
+        except Exception as err:
+            print("unexpected err: ", str(err))
+            raise InternalError()
