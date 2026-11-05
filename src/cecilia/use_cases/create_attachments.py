@@ -82,7 +82,7 @@ class CreateAttachmentsUseCase:
                     values = {
                         "size": file.size,
                         "filename": file.filename,
-                        "max_file_file": self.r2_integration.MAX_FILE_SIZE
+                        "max_file_size": self.r2_integration.MAX_FILE_SIZE
                     }
                 )
 
