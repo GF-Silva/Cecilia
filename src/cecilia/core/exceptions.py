@@ -57,3 +57,20 @@ class ValueError(BaseError):
             error_code=error_code,
             values=values
         )
+
+class UnsupportedFileFormatError(BaseError):
+    def __init__(
+        self,
+        message: str,
+        error_code: str = "UNSUPORTED_FILE_FORMAT",
+        values: dict[str, Any] | None = None
+    ):
+        self.message = message
+        self.error_code = error_code
+        self.values = values
+
+        super().__init__(
+            message=message,
+            error_code=error_code,
+            values=values
+        )

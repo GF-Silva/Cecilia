@@ -15,6 +15,7 @@ class R2Settings(BaseSettings):
 
 class Settings(BaseSettings):
     hackclub_ai: HackclubAISettings
+    r2: R2Settings
     api_client: httpx.AsyncClient = httpx.AsyncClient(
         timeout=httpx.Timeout(
             connect=5,

@@ -6,6 +6,11 @@ An AI powered tool to talk and work with you! (Inspired by jarvis btw)
 
 Access the route /scalar or /docs for the complete routes, where you can test or see what something do.
 
+## Requirements
+
+- Python 3.14
+- libmagic
+
 ## Instalation
 
 - Install the repo with: `git clone https://github.com/GF-Silva/Cecilia`
