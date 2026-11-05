@@ -31,6 +31,10 @@ class R2Manager:
         await self.exit_stack.aclose()
 
 class R2:
+    MAX_IMAGE_SIZE = 10 * 1024 # 10 MB
+    MAX_AUDIO_SIZE = 100 * 1024 # 100 MB
+    MAX_FILE_SIZE = 100 * 1024 # 150 MB
+
     def __init__(self, client: S3Client):
         self.client = client
 

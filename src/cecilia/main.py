@@ -88,6 +88,36 @@ def unsupported_file_format_error_handler(request: Request, exception: exception
         content=error.model_dump(exclude_unset=True)
     )
 
+@app.exception_handler(exceptions.InvalidFileError)
+def invalid_file_error_handler(request: Request, exception: exceptions.InvalidFileError):
+    error = schemas.ErrorDetails(
+        title="Invalid file data",
+        status_code=422,
+        detail=exception.message,
+        type=exception.error_code,
+        extra_info=exception.values
+    )
+
+    return JSONResponse(
+        status_code=error.status_code,
+        content=error.model_dump(exclude_unset=True)
+    )
+
+@app.exception_handler(exceptions.FileTooBigError)
+def file_too_big_error_handler(request: Request, exception: exceptions.FileTooBigError):
+    error = schemas.ErrorDetails(
+        title="File too big",
+        status_code=413,
+        detail=exception.message,
+        type=exception.error_code,
+        extra_info=exception.values
+    )
+
+    return JSONResponse(
+        status_code=error.status_code,
+        content=error.model_dump(exclude_unset=True)
+    )
+
 @app.exception_handler(TimeoutException)
 async def read_timeout_handler(request: Request, exception: TimeoutException):
     return JSONResponse(

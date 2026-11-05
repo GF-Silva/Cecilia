@@ -17,7 +17,7 @@ class InternalError(BaseError):
         self, 
         message: str = "internal server error", 
         error_code: str = "INTERNAL_ERROR",
-        values: dict | None = None
+        values: dict[str, Any] | None = None
     ):
         self.message = message
         self.error_code = error_code
@@ -63,6 +63,40 @@ class UnsupportedFileFormatError(BaseError):
         self,
         message: str,
         error_code: str = "UNSUPORTED_FILE_FORMAT",
+        values: dict[str, Any] | None = None
+    ):
+        self.message = message
+        self.error_code = error_code
+        self.values = values
+
+        super().__init__(
+            message=message,
+            error_code=error_code,
+            values=values
+        )
+
+class InvalidFileError(BaseError):
+    def __init__(
+        self,
+        message: str = "The file content is invalid",
+        error_code: str = "INVALID_FILE",
+        values: dict[str, Any] | None = None
+    ):
+        self.message = message
+        self.error_code = error_code
+        self.values = values
+
+        super().__init__(
+            message=message,
+            error_code=error_code,
+            values=values
+        )
+
+class FileTooBigError(BaseError):
+    def __init__(
+        self,
+        message: str = "The given file is big to proccess",
+        error_code: str = "FILE_TOO_BIG",
         values: dict[str, Any] | None = None
     ):
         self.message = message
