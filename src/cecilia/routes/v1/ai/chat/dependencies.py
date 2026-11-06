@@ -5,6 +5,7 @@ from cecilia.core.exceptions import InternalError
 from cecilia.integrations.hackclub_ai.completions import Completions
 from cecilia.integrations.cloudflare import clients, r2
 from cecilia.use_cases.create_attachments import CreateAttachmentsUseCase
+from cecilia.adapters.ffprobe.ffprobe_adapter import FFProbeAdapter
 from cecilia.core.settings import settings
 
 from fastapi import Depends
@@ -45,12 +46,15 @@ def get_r2_integration():
     
     yield r2.R2(clients.r2_manager.client)
 
+def get_ffprobe_adapter():
+    yield FFProbeAdapter()
+
 def get_create_attachments_use_case(
     attachment_service: AttachmentServiceDep,
-    r2_integration: R2IntegrationDep
+    r2_integration: R2IntegrationDep,
+    ffprobe_adapter: FFProbeAdapter = Depends(get_ffprobe_adapter)
 ):
-    yield CreateAttachmentsUseCase(attachment_service, r2_integration)
-
+    yield CreateAttachmentsUseCase(attachment_service, r2_integration, ffprobe_adapter)
 
 MessageServiceDep = Annotated[MessageService, Depends(get_message_service)]
 ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]
