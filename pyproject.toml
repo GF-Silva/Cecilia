@@ -15,6 +15,7 @@ dependencies = [
     "pillow>=13.0.0",
     "pydantic-settings>=2.15.0",
     "python-magic>=0.4.27",
+    "python-multipart>=0.0.32",
     "scalar-fastapi>=1.9.1",
     "sqlmodel>=0.0.48",
     "types-aiobotocore[essential]>=3.10.0",

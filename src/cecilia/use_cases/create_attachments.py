@@ -74,8 +74,7 @@ class CreateAttachmentsUseCase:
         for file in files:
             # Valida a extensao do arquivo
             self.attachment_service.validate_mime_type(file.headers['content-type'])
-            file.file.seek(0, 2)
-            file.size = file.file.tell()
+            file.size = file.size or 0
 
             # Valida o tamanho do arquivo
             if file.size > self.r2_integration.MAX_FILE_SIZE:
@@ -97,7 +96,10 @@ class CreateAttachmentsUseCase:
                 )
 
             mime_type = mime.from_buffer(file_data)
-            file.content_type = mime_type
+
+            new_headers = dict(file.headers)
+            new_headers['content-type'] = mime_type
+            file.headers = Headers(new_headers)
             
             if mime_type.startswith('audio/'):
                 await self._process_audio(file.size, file_data, file.filename)
