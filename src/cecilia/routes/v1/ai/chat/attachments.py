@@ -1,28 +1,16 @@
-from fastapi import APIRouter
-from .dependencies import AttachmentServiceDep
-from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic
-from .schemas import AttachmentCreatePayload
+from fastapi import APIRouter, UploadFile, File
+from .dependencies import AttachmentServiceDep, CreateAttachmentsUseCaseDep
+from cecilia.models.attachment_model import AttachmentPublic
 
 router = APIRouter(prefix="/attachments")
 
 @router.post("", response_model=list[AttachmentPublic])
-def create_attachment(
+async def create_attachment(
     message_id: int,
-    attachment_service: AttachmentServiceDep,
-    attachments_create: list[AttachmentCreatePayload]
+    create_attachments_use_case: CreateAttachmentsUseCaseDep,
+    files: list[UploadFile] = File(...)
 ):
-    db_attachments_create = [
-        AttachmentCreate(
-            message_id=message_id,
-            **attachment.model_dump()
-        ) for attachment in attachments_create
-    ]
-
-    db_attachments = attachment_service.create_list(
-        attachments=db_attachments_create
-    )
-
-    return db_attachments
+    return await create_attachments_use_case(message_id, files)
 
 @router.get("/{attachment_id}", response_model=AttachmentPublic)
 def get_attachment_data(

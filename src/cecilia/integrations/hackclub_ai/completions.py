@@ -85,7 +85,8 @@ class Completions:
                 matches = difflib.get_close_matches(error_message, error_cases, n=1, cutoff=0.4)
         
                 if not matches:
-                    print("matches not found")
+                    print("HackClub AI (Completions): matches not found")
+                    print("Err: ", error_message, status_code)
                     raise BaseError(
                         message="unexpected error",
                         error_code="internal_server_error"

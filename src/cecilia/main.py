@@ -1,19 +1,27 @@
 from fastapi import FastAPI, Request
+from contextlib import asynccontextmanager
 from scalar_fastapi import add_scalar_reference
 from fastapi.responses import JSONResponse
 from httpx import TimeoutException
 
 from .routes import api_router
-from cecilia.core import database, exceptions, schemas
+from cecilia.core import database, exceptions, schemas, settings
+from cecilia.integrations.cloudflare.clients import r2_manager
 
-app = FastAPI(title="Cecília API")
+@asynccontextmanager
+async def lyfespan(app: FastAPI):
+    database.create_db_and_tables()
+
+    await r2_manager.startup()
+
+    yield
+
+    await r2_manager.shutdown()
+
+app = FastAPI(title="Cecília API", lifespan=lyfespan)
 
 add_scalar_reference(app)
 app.include_router(api_router)
-
-@app.on_event("startup")
-def on_startup():
-    database.create_db_and_tables()
 
 @app.exception_handler(exceptions.ValueError)
 def value_error_handler(_, exception: exceptions.NotFoundError):
@@ -50,6 +58,51 @@ def internal_error_handler(request: Request, exception: exceptions.InternalError
     error = schemas.ErrorDetails(
         title="Internal server error",
         status_code=500,
+        detail=exception.message,
+        type=exception.error_code,
+        extra_info=exception.values
+    )
+
+    return JSONResponse(
+        status_code=error.status_code,
+        content=error.model_dump(exclude_unset=True)
+    )
+
+@app.exception_handler(exceptions.UnsupportedFileFormatError)
+def unsupported_file_format_error_handler(request: Request, exception: exceptions.UnsupportedFileFormatError):
+    error = schemas.ErrorDetails(
+        title="Unsupported file format",
+        status_code=415,
+        detail=exception.message,
+        type=exception.error_code,
+        extra_info=exception.values
+    )
+
+    return JSONResponse(
+        status_code=error.status_code,
+        content=error.model_dump(exclude_unset=True)
+    )
+
+@app.exception_handler(exceptions.InvalidFileError)
+def invalid_file_error_handler(request: Request, exception: exceptions.InvalidFileError):
+    error = schemas.ErrorDetails(
+        title="Invalid file data",
+        status_code=422,
+        detail=exception.message,
+        type=exception.error_code,
+        extra_info=exception.values
+    )
+
+    return JSONResponse(
+        status_code=error.status_code,
+        content=error.model_dump(exclude_unset=True)
+    )
+
+@app.exception_handler(exceptions.FileTooBigError)
+def file_too_big_error_handler(request: Request, exception: exceptions.FileTooBigError):
+    error = schemas.ErrorDetails(
+        title="File too big",
+        status_code=413,
         detail=exception.message,
         type=exception.error_code,
         extra_info=exception.values

@@ -8,12 +8,16 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "aiobotocore>=3.10.0",
     "fastapi[standard]>=0.143.0",
     "httpx>=0.28.1",
     "httpx-sse>=0.4.3",
+    "pillow>=13.0.0",
     "pydantic-settings>=2.15.0",
+    "python-magic>=0.4.27",
     "scalar-fastapi>=1.9.1",
     "sqlmodel>=0.0.48",
+    "types-aiobotocore[essential]>=3.10.0",
     "uv>=0.13.1",
 ]
 

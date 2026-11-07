@@ -16,6 +16,20 @@ class AttachmentRepository:
 
         return db_attachment
 
+    def create_list(self, attachments: list[AttachmentCreate]) -> list[Attachment]:
+        db_attachments: list[Attachment] = [
+            Attachment.model_validate(attachment)
+            for attachment in attachments
+        ]
+        
+        self.session.add_all(db_attachments)
+        self.session.commit()
+
+        for i in db_attachments:
+            self.session.refresh(i)
+
+        return db_attachments
+
     def show(self, id: int) -> Attachment | None:
         return self.session.get(Attachment, id)
 

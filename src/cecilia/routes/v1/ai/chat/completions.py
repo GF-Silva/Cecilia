@@ -1,18 +1,20 @@
-from fastapi import APIRouter
+from httpx import ReadTimeout, WriteTimeout, ConnectTimeout, PoolTimeout
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from collections.abc import AsyncIterable
 from dataclasses import asdict
-from .schemas import ChatPayload
+from fastapi import APIRouter
 
-from httpx import ReadTimeout, WriteTimeout, ConnectTimeout, PoolTimeout
+from .schemas import ChatPayload
 from cecilia.models.message_model import MessageCreate
-from .dependencies import MessageServiceDep, HCAICompletionIntegrationDep
+from .dependencies import MessageServiceDep, HCAICompletionIntegrationDep, R2IntegrationDep
 from cecilia.integrations.hackclub_ai.types.messages import (
     Message, 
     TextContent, 
     AudioContent,
     Content,
-    Audio
+    Audio,
+    ImageUrl,
+    ImageContent
 )
 
 from cecilia.core.exceptions import BaseError
@@ -25,7 +27,8 @@ async def create_completion(
     chat_id: int,
     completions: HCAICompletionIntegrationDep,
     message_service: MessageServiceDep,
-    chat_payload: ChatPayload
+    chat_payload: ChatPayload,
+    r2_integration: R2IntegrationDep
 ) -> AsyncIterable[ServerSentEvent]:
     try:
         db_messages = message_service.get_all_by_chat_id(chat_id)
@@ -45,16 +48,22 @@ async def create_completion(
 
             if db_message.attachments:
                 for attachment in db_message.attachments:
-                    if attachment.type == "audio":
-                        content.append(AudioContent(
-                            input_audio=Audio(
-                                format=attachment.format,
-                                data=attachment.data
-                            )
-                        ))
+                    # if attachment.mime_type.startswith("audio/"):
+                    #     content.append(AudioContent(
+                    #         input_audio=Audio(
+                    #             format="audio",
+                    #             data=attachment.data
+                    #         )
+                    #     ))
 
-                    if attachment.type == "image":
-                        print("ignorando imagem")
+                    if attachment.mime_type.startswith("image/"):
+                        presigned_url = await r2_integration.generate_presigned_get_url(
+                            key=attachment.path
+                        )
+
+                        content.append(ImageContent(
+                            image_url=ImageUrl(url=presigned_url)
+                        ))
 
             message = Message(
                 role="user" if db_message.is_user else "assistant",
