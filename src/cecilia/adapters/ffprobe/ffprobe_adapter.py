@@ -1,9 +1,10 @@
 import asyncio
 import json
 from .types import FFProbeResponse
+from cecilia.core.exceptions import InvalidFileError, InternalError
 
 class FFProbeAdapter:
-    async def validate_file_from_buffer(self, file_data: bytes):
+    async def validate_file_from_buffer(self, file_data: bytes) -> FFProbeResponse:
         command = [
             'ffprobe',
             '-v', 'error',
@@ -20,15 +21,13 @@ class FFProbeAdapter:
             stderr=asyncio.subprocess.PIPE
         )
 
-        stdout, stderr = await process.communicate(input=file_data)
+        stdout, _ = await process.communicate(input=file_data)
 
         if process.returncode != 0:
-            error_msg = stderr.decode('utf-8').strip()
-            print(error_msg)
-            return
+            raise InternalError()
 
         try:
-            data: FFProbeResponse = FFProbeResponse.model_validate(json.loads(stdout.decode('utf-8')))
+            data = FFProbeResponse.model_validate(json.loads(stdout.decode('utf-8')))
 
             streams = data.streams
             audio_streams = [
@@ -36,14 +35,9 @@ class FFProbeAdapter:
             ]
 
             if not audio_streams:
-                print("not a single audio stream")
-                return
-
-            format = data.format
-
-            print(format)
-            print(format.format_name)
-            print(format.tags)
+                raise InvalidFileError()
+            
+            return data
 
         except json.JSONDecodeError as err:
-            print(str(err))
+            raise InternalError()
