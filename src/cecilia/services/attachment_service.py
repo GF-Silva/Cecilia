@@ -5,11 +5,24 @@ from collections.abc import Sequence
 from cecilia.core.exceptions import NotFoundError, UnsupportedFileFormatError
 
 class AttachmentService:
-    ACCEPTED_MIME_TYPES = frozenset(['audio/mpeg', 'audio/x-aiff', 'audio/aac', 'audio/ogg', 'image/jpeg', 'image/png', 'image/webp', 'images/avif'])
+    ACCEPTED_FILE_TYPES = {
+        "mp3": 'audio/mpeg',
+        'aiff': 'audio/x-aiff',
+        'aac': 'audio/aac',
+        'ogg': 'audio/ogg',
+        'jpg': 'image/jpeg', 
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'webp': 'image/webp',
+        'avif': 'image/avif'
+    }
+
+    ACCEPTED_MIME_TYPES = ACCEPTED_FILE_TYPES.values()
+    
     ACCEPTED_IMAGE_TYPES = frozenset([
-        mime_type.split('/')[1].upper()
-        for mime_type in ACCEPTED_MIME_TYPES
-        if mime_type.startswith('image')
+        i.upper()
+        for i, v in ACCEPTED_FILE_TYPES.items()
+        if v.startswith('image/')
     ])
 
     def __init__(
@@ -55,6 +68,16 @@ class AttachmentService:
                 values={
                     "supported_types": list(self.ACCEPTED_MIME_TYPES),
                     "mime_type": mime_type
+                }
+            )
+
+    def validate_file_type(self, type: str):
+        if not type in self.ACCEPTED_FILE_TYPES:
+            raise UnsupportedFileFormatError(
+                message=f"{type} is not supported",
+                values={
+                    "supported_types": list(self.ACCEPTED_MIME_TYPES),
+                    "file_type": type
                 }
             )
 

@@ -1,7 +1,6 @@
 from cecilia.models.attachment_model import AttachmentCreate
 from cecilia.integrations.cloudflare.r2 import R2
 from cecilia.core.exceptions import (
-    ValueError, 
     UnsupportedFileFormatError, 
     FileTooBigError,
     InvalidFileError,
@@ -9,22 +8,26 @@ from cecilia.core.exceptions import (
 )
 
 from starlette.datastructures import Headers
-from cecilia.services import AttachmentService
-from cecilia.core.settings import settings
 from PIL import Image, UnidentifiedImageError
 from fastapi import UploadFile
 from uuid import uuid7
 import asyncio
 import magic
 
+from cecilia.services import AttachmentService
+from cecilia.core.settings import settings
+from cecilia.adapters.ffprobe.ffprobe_adapter import FFProbeAdapter
+
 class CreateAttachmentsUseCase:
     def __init__(
         self,
         attachment_service: AttachmentService,
         r2_integration: R2,
+        ffprobe_adapter: FFProbeAdapter
     ):
         self.attachment_service = attachment_service
         self.r2_integration = r2_integration
+        self.ffprobe_adapter = ffprobe_adapter
 
     async def __call__(
         self,
@@ -96,14 +99,14 @@ class CreateAttachmentsUseCase:
                 )
         
             mime_type = mime.from_buffer(file_data)
-            print(mime_type)
-
-            self.attachment_service.validate_mime_type(mime_type)
             
             if mime_type.startswith('audio/'):
-                await self._validate_audio(file)
+                file_metadata = await self.ffprobe_adapter.validate_file_from_buffer(file_data)
+                self.attachment_service.validate_file_type(file_metadata.format.format_name)
+            
             elif mime_type.startswith('image/'):
                 await self._validate_image(file)
+
             else:
                 raise UnsupportedFileFormatError(
                     message="Unsuported file format",
@@ -118,12 +121,9 @@ class CreateAttachmentsUseCase:
 
             file.headers = Headers(new_headers)
 
-    async def _validate_audio(self, file: UploadFile):
-        pass
-
     async def _validate_image(self, file: UploadFile):
         try:
-            with Image.open(file.file, formats=list(self.attachment_service.ACCEPTED_IMAGE_TYPES)) as img:
+            with Image.open(file.file) as img:
                 await asyncio.to_thread(img.verify)
 
         except UnidentifiedImageError:
@@ -133,5 +133,5 @@ class CreateAttachmentsUseCase:
             raise FileTooBigError()
 
         except Exception as err:
-            print("unexpected err: ", str(err))
+            print("Attachments (CreateUseCase) - err: ", err)
             raise InternalError()
