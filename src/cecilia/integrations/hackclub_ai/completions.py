@@ -1,9 +1,9 @@
-from httpx_sse import aconnect_sse, EventSource
+from httpx_sse import aconnect_sse
 from .types.payload import CompletionEvent
-from .types.responses import SSEResponse, Data
+from .types.responses import SSEResponse
 from .types.messages import Message
 import difflib
-from cecilia.core.exceptions import BaseError
+from cecilia.core.exceptions import InternalError
 from . import errors
 from httpx import AsyncClient
 
@@ -55,7 +55,6 @@ class Completions:
 
             if "application/json" in content_type:
                 if event_source.response.is_success:
-                    print("success response, why this is even here?")
                     return
         
                 await event_source.response.aread()
@@ -65,19 +64,13 @@ class Completions:
 
                 if not error:
                     print("error not found")
-                    raise BaseError(
-                        message="unexpected error",
-                        error_code="internal_server_error"
-                    )
+                    raise InternalError()
 
                 error_message = error.get("message") if isinstance(error, dict) else error
 
                 if not error_message:
                     print("error message not found, crash")
-                    raise BaseError(
-                        message="unexpected error",
-                        error_code="internal_server_error"
-                    )
+                    raise InternalError()
 
                 status_code = event_source.response.status_code
                 error_cases = list(self.ERROR_MAP[status_code].keys())
@@ -87,54 +80,44 @@ class Completions:
                 if not matches:
                     print("HackClub AI (Completions): matches not found")
                     print("Err: ", error_message, status_code)
-                    raise BaseError(
-                        message="unexpected error",
-                        error_code="internal_server_error"
-                    )
+                    raise InternalError()
 
                 match self.ERROR_MAP[status_code][matches[0]]:
                     case "messages_empty":
                         raise errors.MessagesEmptyError(
-                            messages=messages,
-                            error_code="messages_empty"
+                            messages=messages
                         )
 
                     case "invalid_model_id":
                         raise errors.InvalidModelIDError(
-                            model_id=model,
-                            error_code="invalid_model_id"
+                            model_id=model
                         )
 
                     case "spending_limit_reached":
-                        raise errors.SpendingLimitReachedError(error_code="spending_limit_reached")
+                        raise errors.SpendingLimitReachedError()
 
                     case "unsuported_model_for_endpoint":
                         raise errors.UnsuportedModelForEndpointError(
-                            model=model,
-                            error_code="unsuported_model_for_endpoint"
+                            model=model
                         )
 
                     case _:
-                        print("default error error_code")
-                        raise BaseError(
-                            message="unexpected error",
-                            error_code="internal_server_error"
-                        )
+                        raise InternalError()
                 
             elif "text/event-stream" in content_type:
-                
+
+                response = ""
                 async for sse in event_source.aiter_sse():
                     if sse.data == "[DONE]":
                         yield SSEResponse(
-                            event="finished"
+                            event="finished",
+                            full_response=response
                         )
                         break
         
                     data = CompletionEvent.from_json(sse.data)
-        
+                    response += data.choices[0].delta.content
                     yield SSEResponse(
                         event="message",
-                        data=Data(
-                            chunk=data.choices[0].delta.content
-                        )
+                        chunk=data.choices[0].delta.content
                     )
