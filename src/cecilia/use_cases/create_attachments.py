@@ -75,10 +75,10 @@ class CreateAttachmentsUseCase:
             # Valida a extensao do arquivo
             self.attachment_service.validate_mime_type(file.headers['content-type'])
             file.file.seek(0, 2)
-            file_size = file.file.tell()
+            file.size = file.file.tell()
 
             # Valida o tamanho do arquivo
-            if file_size > self.r2_integration.MAX_FILE_SIZE:
+            if file.size > self.r2_integration.MAX_FILE_SIZE:
                 raise FileTooBigError(
                     values = {
                         "size": file.size,
@@ -95,13 +95,13 @@ class CreateAttachmentsUseCase:
                 raise InvalidFileError(
                     message = "Empty file"
                 )
-        
+
             mime_type = mime.from_buffer(file_data)
+            file.content_type = mime_type
             
             if mime_type.startswith('audio/'):
-                file_metadata = await self.ffprobe_adapter.validate_file_from_buffer(file_data)
-                self.attachment_service.validate_file_type(file_metadata.format.format_name)
-            
+                await self._proccess_audio(file.size, file_data, file.filename)
+
             elif mime_type.startswith('image/'):
                 await self._validate_image(file)
 
@@ -114,12 +114,34 @@ class CreateAttachmentsUseCase:
                     }
                 )
 
-            new_headers = dict(file.headers)
-            new_headers["content-type"] = mime_type
-
-            file.headers = Headers(new_headers)
-
+    async def _proccess_audio(self, file_size: int, file_data: bytes, filename: str | None = None):
+        if file_size > self.r2_integration.MAX_AUDIO_SIZE:
+            raise FileTooBigError(
+                values = {
+                    "size": file_size,
+                    "filename": filename,
+                    "max_file_size": self.r2_integration.MAX_AUDIO_SIZE
+                }
+            )
+        
+        file_metadata = await self.ffprobe_adapter.validate_file_from_buffer(file_data)
+        self.attachment_service.validate_file_type(file_metadata.format.format_name)
+    
     async def _validate_image(self, file: UploadFile):
+        if not file.size:
+            raise InvalidFileError(
+                message = "Empty file"
+            )
+        
+        if file.size > self.r2_integration.MAX_IMAGE_SIZE:
+            raise FileTooBigError(
+                values = {
+                    "size": file.size,
+                    "filename": file.filename,
+                    "max_file_size": self.r2_integration.MAX_FILE_SIZE
+                }
+            )
+        
         try:
             with Image.open(file.file) as img:
                 await asyncio.to_thread(img.verify)
