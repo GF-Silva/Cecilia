@@ -1,24 +1,44 @@
 from cecilia.core.exceptions import BaseError, ValueError
 
 class MessagesEmptyError(BaseError):
-    def __init__(self, messages, error_code: str = "MESSAGES_EMPTY"):
+    def __init__(
+        self, 
+        messages, 
+        error_code: str = "MESSAGES_EMPTY",
+        title: str = "Messages Empty",
+        status_code: int = 400
+    ):
         self.messages = messages
         self.error_code = error_code
+        self.title = title
+        self.status_code = status_code
 
         super().__init__(
             message="The messages are empty",
             error_code=error_code,
             values={
                 "messages": messages
-            }
+            },
+            status_code=status_code,
+            title=title
         )
 
 class InvalidModelIDError(ValueError):
-    def __init__(self, model_id: str, error_code: str = "INVALID_MODEL_ID"):
+    def __init__(
+        self, 
+        model_id: str, 
+        error_code: str = "INVALID_MODEL_ID",
+        title: str = "Invalid model ID",
+        status_code: int = 400,
+    ):
+        self.title = title
+        self.status_code = status_code
         self.model_id = model_id
-        self.error_code=error_code
+        self.status_code=status_code
 
         super().__init__(
+            title=title,
+            status_code=status_code,
             message = f"{model_id} is not a valid model id",
             error_code = error_code,
             values = {
@@ -27,19 +47,34 @@ class InvalidModelIDError(ValueError):
         )
 
 class SpendingLimitReachedError(BaseError):
-    def __init__(self, error_code: str = "INTERNAL_SPENDING_LIMIT_REACHED"):
+    def __init__(
+        self, 
+        error_code: str = "INTERNAL_SPENDING_LIMIT_REACHED",
+        status_code: int = 503,
+        title: str = "Internal spending limit reached"
+    ):
         super().__init__(
             message = "We are out of AI credits for now, try again later",
-            error_code = error_code
+            error_code = error_code,
+            title=title,
+            status_code=status_code
         )
 
 class UnsuportedModelForEndpointError(ValueError):
-    def __init__(self, model: str, error_code: str = "UNSUPORTED_MODEL_FOR_ENDPOINT"):
+    def __init__(
+        self, 
+        model: str, 
+        error_code: str = "UNSUPORTED_MODEL_FOR_ENDPOINT",
+        title: str = "Unsuported model for endpoint",
+        status_code: int = 400
+    ):
         self.model = model
         super().__init__(
             message = f'This route does not support the model {model}',
             error_code=error_code,
             values={
                 "model": model
-            }
+            },
+            title=title,
+            status_code=status_code
         )
