@@ -100,7 +100,7 @@ class CreateAttachmentsUseCase:
             file.content_type = mime_type
             
             if mime_type.startswith('audio/'):
-                await self._proccess_audio(file.size, file_data, file.filename)
+                await self._process_audio(file.size, file_data, file.filename)
 
             elif mime_type.startswith('image/'):
                 await self._validate_image(file)
@@ -114,7 +114,7 @@ class CreateAttachmentsUseCase:
                     }
                 )
 
-    async def _proccess_audio(self, file_size: int, file_data: bytes, filename: str | None = None):
+    async def _process_audio(self, file_size: int, file_data: bytes, filename: str | None = None):
         if file_size > self.r2_integration.MAX_AUDIO_SIZE:
             raise FileTooBigError(
                 values = {

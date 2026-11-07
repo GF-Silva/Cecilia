@@ -144,7 +144,7 @@ class FileTooBigError(BaseError):
         self,
         title: str = "File too big",
         status_code: int = 413,
-        message: str = "The given file is big to proccess",
+        message: str = "The given file is big to process",
         error_code: str = "FILE_TOO_BIG",
         values: dict[str, Any] | None = None
     ):
