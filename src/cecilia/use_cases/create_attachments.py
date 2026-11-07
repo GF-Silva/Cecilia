@@ -40,10 +40,8 @@ class CreateAttachmentsUseCase:
     
         for file in files:
             mime_type = file.headers["content-type"]
-            print(mime_type)
 
             await file.seek(0)  
-
             file_data = await file.read()
     
             internal_filename = uuid7()

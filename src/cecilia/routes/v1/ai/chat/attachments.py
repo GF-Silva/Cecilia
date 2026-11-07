@@ -10,7 +10,7 @@ async def create_attachment(
     create_attachments_use_case: CreateAttachmentsUseCaseDep,
     files: list[UploadFile] = File(...)
 ):
-    return await create_attachments_use_case.execute(message_id, files)
+    return await create_attachments_use_case(message_id, files)
 
 @router.get("/{attachment_id}", response_model=AttachmentPublic)
 def get_attachment_data(
