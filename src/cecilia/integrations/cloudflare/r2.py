@@ -1,6 +1,7 @@
 from types_aiobotocore_s3 import S3Client
 from aiobotocore.session import get_session
 from contextlib import AsyncExitStack
+from cecilia.core.settings import settings
 
 class R2Manager:
     def __init__(self):
@@ -9,10 +10,10 @@ class R2Manager:
 
     async def startup(
         self,
-        account_id: str,
-        access_key: str,
-        secret_key: str,
-        region_name: str
+        account_id: str = settings.r2.account_id,
+        access_key: str = settings.r2.access_key,
+        secret_key: str = settings.r2.secret_access_key,
+        region_name: str = settings.r2.region
     ):
         session = get_session()
         endpoint_url = f"https://{account_id}.r2.cloudflarestorage.com"
@@ -38,7 +39,7 @@ class R2:
     def __init__(self, client: S3Client):
         self.client = client
 
-    async def list_files(self, bucket: str):
+    async def list_files(self, bucket: str = settings.r2.bucket):
         files = await self.client.list_objects_v2(Bucket=bucket)
 
         if not files:
@@ -50,7 +51,7 @@ class R2:
         self, 
         data: bytes,
         path: str,
-        bucket: str
+        bucket: str = settings.r2.bucket
     ):
         try:
             await self.client.put_object(
@@ -60,4 +61,19 @@ class R2:
             )
         
         except Exception as err:
-            print("Erro: ", type(err))
+            print("R2 Integration - error: ", type(err))
+
+    async def generate_presigned_get_url(
+        self,
+        key: str,
+        bucket: str = settings.r2.bucket,
+        expireTime: int = 3600
+    ) -> str:
+        return await self.client.generate_presigned_url(
+            ClientMethod="get_object",
+            Params={
+                "Bucket": bucket,
+                "Key": key
+            },
+            ExpiresIn=expireTime
+        )

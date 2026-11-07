@@ -12,12 +12,7 @@ from cecilia.integrations.cloudflare.clients import r2_manager
 async def lyfespan(app: FastAPI):
     database.create_db_and_tables()
 
-    await r2_manager.startup(
-        account_id = settings.settings.r2.account_id,
-        access_key = settings.settings.r2.access_key,
-        secret_key = settings.settings.r2.secret_access_key,
-        region_name = settings.settings.r2.region
-    )
+    await r2_manager.startup()
 
     yield
 

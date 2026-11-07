@@ -1,12 +1,12 @@
-from fastapi import APIRouter
+from httpx import ReadTimeout, WriteTimeout, ConnectTimeout, PoolTimeout
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from collections.abc import AsyncIterable
 from dataclasses import asdict
-from .schemas import ChatPayload
+from fastapi import APIRouter
 
-from httpx import ReadTimeout, WriteTimeout, ConnectTimeout, PoolTimeout
+from .schemas import ChatPayload
 from cecilia.models.message_model import MessageCreate
-from .dependencies import MessageServiceDep, HCAICompletionIntegrationDep
+from .dependencies import MessageServiceDep, HCAICompletionIntegrationDep, R2IntegrationDep
 from cecilia.integrations.hackclub_ai.types.messages import (
     Message, 
     TextContent, 
@@ -27,7 +27,8 @@ async def create_completion(
     chat_id: int,
     completions: HCAICompletionIntegrationDep,
     message_service: MessageServiceDep,
-    chat_payload: ChatPayload
+    chat_payload: ChatPayload,
+    r2_integration: R2IntegrationDep
 ) -> AsyncIterable[ServerSentEvent]:
     try:
         db_messages = message_service.get_all_by_chat_id(chat_id)
@@ -56,11 +57,12 @@ async def create_completion(
                     #     ))
 
                     if attachment.mime_type.startswith("image/"):
+                        presigned_url = await r2_integration.generate_presigned_get_url(
+                            key=attachment.path
+                        )
+
                         content.append(ImageContent(
-                            image_url=ImageUrl(
-                                # TODO: Aq eu dev obter a URL temporaria, e usar apenas ela
-                                url=f"https://storage.cecilia-ai.com/{attachment.path}"
-                            )
+                            image_url=ImageUrl(url=presigned_url)
                         ))
 
             message = Message(
