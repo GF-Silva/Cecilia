@@ -4,6 +4,7 @@ from cecilia.models.tables import Chat
 from cecilia.core.exceptions import NotFoundError
 from collections.abc import Sequence
 from pydantic import TypeAdapter
+from uuid import UUID
 
 class ChatService:
     def __init__(self, chat_repository: ChatRepository):
@@ -12,7 +13,7 @@ class ChatService:
     def index(self) -> Sequence[Chat]:
         return self.chat_repository.index()
 
-    def show(self, id: int) -> ChatPublic:
+    def show(self, id: UUID) -> ChatPublic:
         db_chat = self.chat_repository.show(id)
 
         if not db_chat:
@@ -30,7 +31,7 @@ class ChatService:
         return self._to_public_chat(db_chat)
 
     # Tenho q validar se o user existe usando o user service
-    def update(self, id: int, chat_update: ChatUpdate) -> ChatPublic:
+    def update(self, id: UUID, chat_update: ChatUpdate) -> ChatPublic:
         db_chat = self.chat_repository.show(id)
 
         if not db_chat:

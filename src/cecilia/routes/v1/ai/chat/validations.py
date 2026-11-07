@@ -2,9 +2,10 @@ from .dependencies import ChatServiceDep, MessageServiceDep
 from pydantic import AfterValidator
 import re
 from typing import Annotated
+from uuid import UUID
 
 def validate_chat_id(
-    chat_id: int,
+    chat_id: UUID,
     chat_service: ChatServiceDep
 ):
     chat = chat_service.show(chat_id)
