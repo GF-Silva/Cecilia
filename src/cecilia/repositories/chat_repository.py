@@ -2,6 +2,7 @@ from cecilia.models.chat_model import ChatCreate, ChatUpdate
 from cecilia.models.tables import Chat
 from collections.abc import Sequence
 from sqlmodel import select, Session
+from uuid import UUID
 
 class ChatRepository:
     def __init__(self, session: Session):
@@ -10,7 +11,7 @@ class ChatRepository:
     def index(self, offset: int = 0, limit: int = 100) -> Sequence[Chat]:
         return self.session.exec(select(Chat).offset(offset).limit(limit)).all()
 
-    def show(self, id: int) -> Chat | None:
+    def show(self, id: UUID) -> Chat | None:
         return self.session.get(Chat, id)
 
     def create(self, chat: ChatCreate) -> Chat:

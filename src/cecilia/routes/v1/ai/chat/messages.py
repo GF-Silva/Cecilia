@@ -2,12 +2,13 @@ from fastapi import APIRouter
 from .dependencies import MessageServiceDep
 from cecilia.models.message_model import MessageCreate, MessagePublic
 from .schemas import MessageCreatePayload
+from uuid import UUID
 
 router = APIRouter(prefix="/messages")
 
 @router.post("", response_model=MessagePublic)
 def create_message(
-    chat_id: int,
+    chat_id: UUID,
     message_service: MessageServiceDep,
     message_create: MessageCreatePayload
 ):
@@ -22,7 +23,7 @@ def create_message(
 
 @router.get("", response_model=list[MessagePublic])
 def get_messages(
-    chat_id: int,
+    chat_id: UUID,
     message_service: MessageServiceDep,
     limit: int = 100,
     offset: int = 0
