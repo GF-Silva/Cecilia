@@ -15,7 +15,16 @@ class AudioContent:
     input_audio: Audio
     type: str = "input_audio"
 
-Content = TextContent | AudioContent
+@dataclass
+class ImageUrl:
+    url: str
+
+@dataclass
+class ImageContent:
+    image_url: ImageUrl
+    type: str = "image_url"
+
+Content = TextContent | AudioContent | ImageContent
 
 @dataclass
 class Message:

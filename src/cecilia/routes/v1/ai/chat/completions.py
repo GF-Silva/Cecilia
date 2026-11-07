@@ -12,7 +12,9 @@ from cecilia.integrations.hackclub_ai.types.messages import (
     TextContent, 
     AudioContent,
     Content,
-    Audio
+    Audio,
+    ImageUrl,
+    ImageContent
 )
 
 from cecilia.core.exceptions import BaseError
@@ -45,16 +47,21 @@ async def create_completion(
 
             if db_message.attachments:
                 for attachment in db_message.attachments:
-                    if attachment.type == "audio":
-                        content.append(AudioContent(
-                            input_audio=Audio(
-                                format=attachment.format,
-                                data=attachment.data
+                    # if attachment.mime_type.startswith("audio/"):
+                    #     content.append(AudioContent(
+                    #         input_audio=Audio(
+                    #             format="audio",
+                    #             data=attachment.data
+                    #         )
+                    #     ))
+
+                    if attachment.mime_type.startswith("image/"):
+                        content.append(ImageContent(
+                            image_url=ImageUrl(
+                                # TODO: Aq eu dev obter a URL temporaria, e usar apenas ela
+                                url=f"https://storage.cecilia-ai.com/{attachment.path}"
                             )
                         ))
-
-                    if attachment.type == "image":
-                        print("ignorando imagem")
 
             message = Message(
                 role="user" if db_message.is_user else "assistant",
