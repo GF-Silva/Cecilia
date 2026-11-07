@@ -2,6 +2,7 @@ from httpx import ReadTimeout, WriteTimeout, ConnectTimeout, PoolTimeout
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from collections.abc import AsyncIterable
 from fastapi import APIRouter
+from uuid import UUID
 
 from .schemas import ChatPayload
 from .dependencies import SendChatMessagesUseCaseDep
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/completions")
 
 @router.post("", response_class=EventSourceResponse)
 async def create_completion(
-    chat_id: int,
+    chat_id: UUID,
     send_chat_messages_use_case: SendChatMessagesUseCaseDep,
     chat_payload: ChatPayload,
 ) -> AsyncIterable[ServerSentEvent]:

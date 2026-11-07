@@ -1,8 +1,8 @@
-from cecilia.repositories import MessageRepository, ChatRepository
+from cecilia.repositories import MessageRepository
 from cecilia.models.message_model import MessageCreate, MessagePublic
-from cecilia.core.exceptions import NotFoundError, ValueError
+from cecilia.core.exceptions import NotFoundError
 from cecilia.models.tables import Message
-
+from uuid import UUID
 from collections.abc import Sequence
 
 class MessageService:
@@ -23,7 +23,7 @@ class MessageService:
 
         return db_message
 
-    def get_all_by_chat_id(self, chat_id: int, offset: int = 0, limit: int = 100) -> Sequence[Message]:
+    def get_all_by_chat_id(self, chat_id: UUID, offset: int = 0, limit: int = 100) -> Sequence[Message]:
         return self.message_repository.get_all_by_chat_id(
             chat_id=chat_id,
             offset=offset,

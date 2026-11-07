@@ -1,12 +1,9 @@
-from fastapi.sse import ServerSentEvent
-from httpx import ReadTimeout, WriteTimeout, ConnectTimeout, PoolTimeout
 from dataclasses import asdict
 
 from cecilia.services import MessageService
 from cecilia.integrations import Completions, R2
 from cecilia.integrations.hackclub_ai import errors as hcai_errors
 from cecilia.models.message_model import MessageCreate
-from cecilia.core.exceptions import BaseError
 from cecilia.integrations.hackclub_ai.types.messages import (
     Message, 
     TextContent, 
@@ -16,6 +13,7 @@ from cecilia.integrations.hackclub_ai.types.messages import (
     ImageUrl,
     ImageContent
 )
+from uuid import UUID
 
 class SendChatMessagesUseCase:
     def __init__(
@@ -28,7 +26,7 @@ class SendChatMessagesUseCase:
         self.completions_integration = completions_integration
         self.r2_integration = r2_integration
 
-    async def __call__(self, chat_id: int, model: str):
+    async def __call__(self, chat_id: UUID, model: str):
         db_messages = self.message_service.get_all_by_chat_id(chat_id)
 
         if not db_messages:
