@@ -42,10 +42,16 @@ class R2:
     async def list_files(self, bucket: str = settings.r2.bucket):
         files = await self.client.list_objects_v2(Bucket=bucket)
 
-        if not files:
-            raise ValueError("sla")
-
         return files
+
+    async def get_file_data(self, path: str, bucket: str = settings.r2.bucket, max: int | None = None) -> bytes:
+        file = await self.client.get_object(
+            Bucket=bucket,
+            Key=path
+        )
+
+        async with file['Body'] as stream:
+            return await stream.read(max)
 
     async def create_file(
         self, 

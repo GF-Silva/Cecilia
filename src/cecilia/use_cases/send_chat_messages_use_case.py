@@ -14,6 +14,7 @@ from cecilia.integrations.hackclub_ai.types.messages import (
     ImageContent
 )
 from uuid import UUID
+import fastpybase64 as base64
 
 class SendChatMessagesUseCase:
     def __init__(
@@ -44,13 +45,15 @@ class SendChatMessagesUseCase:
 
             if db_message.attachments:
                 for attachment in db_message.attachments:
-                    # if attachment.mime_type.startswith("audio/"):
-                    #     content.append(AudioContent(
-                    #         input_audio=Audio(
-                    #             format="audio",
-                    #             data=attachment.data
-                    #         )
-                    #     ))
+                    if attachment.mime_type.startswith("audio/"):
+                        file_data = await self.r2_integration.get_file_data(attachment.path)
+                        base64_file = base64.b64encode(file_data).decode('utf-8')
+                        content.append(AudioContent(
+                            input_audio=Audio(
+                                format="mp3",
+                                data=base64_file
+                            )
+                        ))
 
                     if attachment.mime_type.startswith("image/"):
                         presigned_url = await self.r2_integration.generate_presigned_get_url(
