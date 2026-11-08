@@ -4,6 +4,7 @@ from .types.responses import SSEResponse
 from .types.messages import Message
 import difflib
 from cecilia.core.exceptions import InternalError
+import json
 from . import errors
 from httpx import AsyncClient
 
@@ -17,7 +18,9 @@ class Completions:
             'Spending limit reached. Needs higher limit? hey@mahadk.com': 'spending_limit_reached'
         },
         404: {
-            'cannot be used with the chat/completions endpoint': 'unsuported_model_for_endpoint'
+            'cannot be used with the chat/completions endpoint': 'unsuported_model_for_endpoint',
+            'No endpoints found that support input audio': 'model_not_support_audio',
+            'No endpoints found that support image input': 'model_not_support_image'
         }
     }
 
@@ -68,6 +71,8 @@ class Completions:
 
                 error_message = error.get("message") if isinstance(error, dict) else error
 
+                print(error_message)
+
                 if not error_message:
                     print("error message not found, crash")
                     raise InternalError()
@@ -100,6 +105,14 @@ class Completions:
                         raise errors.UnsuportedModelForEndpointError(
                             model=model
                         )
+
+                    case 'model_not_support_audio':
+                        raise errors.ModelNotSupportAudioError(
+                            model=model
+                        )
+
+                    case 'model_not_support_image':
+                        raise errors.ModelNotSupportImageError(model)
 
                     case _:
                         raise InternalError()

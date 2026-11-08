@@ -78,3 +78,41 @@ class UnsuportedModelForEndpointError(ValueError):
             title=title,
             status_code=status_code
         )
+
+class ModelNotSupportAudioError(ValueError):
+    def __init__(
+        self, 
+        model: str, 
+        error_code: str = "MODEL_NOT_SUPPORT_AUDIO",
+        title: str = "This model does not support audio",
+        status_code: int = 400
+    ):
+        self.model = model
+        super().__init__(
+            message = f'The model {model} does not support audio input',
+            error_code=error_code,
+            values={
+                "model": model
+            },
+            title=title,
+            status_code=status_code
+        )
+
+class ModelNotSupportImageError(ValueError):
+    def __init__(
+        self, 
+        model: str, 
+        error_code: str = "MODEL_NOT_SUPPORT_IMAGE",
+        title: str = "This model does not support image",
+        status_code: int = 400
+    ):
+        self.model = model
+        super().__init__(
+            message = f'The model {model} does not support image input',
+            error_code=error_code,
+            values={
+                "model": model
+            },
+            title=title,
+            status_code=status_code
+        )
