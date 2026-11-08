@@ -1,13 +1,15 @@
+# External libs
 from httpx_sse import aconnect_sse
+from httpx import AsyncClient
+import difflib
+import json
+
+# Own libs / modules
+from cecilia.core.exceptions import InternalError
 from .types.payload import CompletionEvent, ReasoningDetails, TextReasoning, SummaryReasoning, EncryptedReasoning
 from .types.responses import SSEResponse, Reasoning
-from .types.messages import Message
-import difflib
-from cecilia.core.exceptions import InternalError
-import json
+from .types.messages import Message, Effort
 from . import errors
-from typing import Literal
-from httpx import AsyncClient
 
 class Completions:
     ERROR_MAP = {
@@ -39,6 +41,7 @@ class Completions:
         self, 
         model: str, 
         messages: list[Message], 
+        effort: Effort = Effort.NONE
     ):
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -50,7 +53,7 @@ class Completions:
             "messages": messages,
             "stream": True,
             "reasoning": {
-                "effort": 'medium'
+                "effort": effort
             }
         }
 

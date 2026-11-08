@@ -6,7 +6,6 @@ from uuid import UUID
 
 from .schemas import ChatPayload
 from .dependencies import SendChatMessagesUseCaseDep
-
 from cecilia.core.exceptions import BaseError
 
 router = APIRouter(prefix="/completions")
@@ -20,7 +19,8 @@ async def create_completion(
     try:
         response_stream = send_chat_messages_use_case(
             chat_id=chat_id,
-            model=chat_payload.model
+            model=chat_payload.model,
+            effort=chat_payload.effort
         )
 
         async for stream in response_stream:

@@ -11,11 +11,11 @@ from cecilia.integrations.hackclub_ai.types.messages import (
     Content,
     Audio,
     ImageUrl,
-    ImageContent
+    ImageContent,
+    Effort
 )
 from uuid import UUID
 import fastpybase64 as base64
-from typing import Literal
 
 class SendChatMessagesUseCase:
     def __init__(
@@ -28,7 +28,12 @@ class SendChatMessagesUseCase:
         self.completions_integration = completions_integration
         self.r2_integration = r2_integration
 
-    async def __call__(self, chat_id: UUID, model: str):
+    async def __call__(
+        self, 
+        chat_id: UUID, 
+        model: str,
+        effort: Effort = Effort.NONE
+    ):
         db_messages = self.message_service.get_all_by_chat_id(chat_id)
 
         if not db_messages:
@@ -74,7 +79,8 @@ class SendChatMessagesUseCase:
 
         stream = self.completions_integration.create(
             messages=messages,
-            model=model
+            model=model,
+            effort=effort
         )
 
         async for stream_event in stream:
