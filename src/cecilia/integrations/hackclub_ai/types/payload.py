@@ -1,28 +1,24 @@
-from dataclasses import dataclass
-import json
 from enum import StrEnum
+from typing import Literal, Annotated
+from pydantic import BaseModel, Field
 
-@dataclass
-class CompletionTokensDetails:
+class CompletionTokensDetails(BaseModel):
     reasoning_tokens: int
     image_tokens: int
     audio_tokens: int
 
-@dataclass
-class CostDetails:
+class CostDetails(BaseModel):
     upstream_inference_cost: float
     upstream_inference_prompt_cost: float
     upstream_inference_completions_cost: float
 
-@dataclass
-class PromptTokensDetails:
+class PromptTokensDetails(BaseModel):
     cached_tokens: int
     cache_write_tokens: int
     audio_tokens: int
     video_tokens: int
 
-@dataclass
-class Usage:
+class Usage(BaseModel):
     prompt_tokens: int
     completion_tokens: int
     total_tokens: int
@@ -32,17 +28,34 @@ class Usage:
     cost_details: CostDetails
     completion_tokens_details: CompletionTokensDetails
 
-@dataclass
-class Delta:
+class BaseReasoningDetails(BaseModel):
+    id: str | None = None
+    index: int | None = None
+    format: str
+
+class SummaryReasoning(BaseReasoningDetails):
+    type: Literal['reasoning.summary'] = 'reasoning.summary'
+    summary: str
+
+class EncryptedReasoning(BaseReasoningDetails):
+    type: Literal["reasoning.encrypted"] = "reasoning.encrypted"
+    data: str
+
+class TextReasoning(BaseReasoningDetails):
+    type: Literal['reasoning.text'] = 'reasoning.text'
+    text: str | None = None
+    signature: str | None = None
+
+ReasoningDetails = Annotated[
+    TextReasoning | EncryptedReasoning | SummaryReasoning,
+    Field(discriminator='type')
+]
+
+class Delta(BaseModel):
     content: str
     role: str
-
-    @classmethod
-    def from_json(cls, json):
-        return cls(
-            content=json.get('content'),
-            role=json.get('role')
-        )
+    reasoning: str | None = None
+    reasoning_details: list[ReasoningDetails] | None = None
 
 class FinishReason(StrEnum):
     TOOL_CALLS = "tool_calls"
@@ -51,24 +64,13 @@ class FinishReason(StrEnum):
     CONTENT_FILTER = "content_filter"
     ERROR = "error"
 
-@dataclass
-class Choice:
+class Choice(BaseModel):
     index: int
     delta: Delta
-    finish_reason: FinishReason
+    finish_reason: FinishReason | None = None
     native_finish_reason: str | None = None
 
-    @classmethod
-    def from_json(cls, json):
-        return cls(
-            index=json.get('index'),
-            delta=Delta.from_json(json.get('delta')),
-            finish_reason=json.get('finish_reason'),
-            native_finish_reason=json.get('native_finish_reason')
-        )
-
-@dataclass
-class CompletionEvent:
+class CompletionEvent(BaseModel):
     id: str
     object: str
     created: int
@@ -77,21 +79,3 @@ class CompletionEvent:
     choices: list[Choice]
     service_tier: str | None = None
     usage: Usage | None = None
-
-    @classmethod
-    def from_json(cls, json_str: str):
-        data = json.loads(json_str)
-
-        return cls(
-            id=data.get("id"),
-            object=data.get("object"),
-            created=data.get("created"),
-            model=data.get("model"),
-            provider=data.get("provider"),
-            choices=[
-                Choice.from_json(choice)
-                for choice in data.get("choices")
-            ],
-            service_tier=data.get("service_tier"),
-            usage=data.get("usage")
-        )

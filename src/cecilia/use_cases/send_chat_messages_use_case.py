@@ -15,6 +15,7 @@ from cecilia.integrations.hackclub_ai.types.messages import (
 )
 from uuid import UUID
 import fastpybase64 as base64
+from typing import Literal
 
 class SendChatMessagesUseCase:
     def __init__(

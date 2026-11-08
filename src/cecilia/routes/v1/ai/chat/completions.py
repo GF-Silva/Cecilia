@@ -25,7 +25,7 @@ async def create_completion(
 
         async for stream in response_stream:
             yield ServerSentEvent(
-                data=stream.chunk,
+                data=stream if not stream.full_response else None,
                 raw_data=stream.full_response,
                 event=stream.event
             )
