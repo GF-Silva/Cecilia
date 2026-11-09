@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from typing import Literal
+from enum import StrEnum
 
 @dataclass
 class Audio:
@@ -26,7 +28,16 @@ class ImageContent:
 
 Content = TextContent | AudioContent | ImageContent
 
+class Effort(StrEnum):
+    NONE='none'
+    MINIMAL='minimal'
+    LOW='low'
+    MEDIUM='medium'
+    HIGH='high'
+    XHIGH='xhigh'
+    MAX='max'
+
 @dataclass
 class Message:
-    role: str
+    role: Literal['user', 'assistant', 'system']
     content: list[Content]

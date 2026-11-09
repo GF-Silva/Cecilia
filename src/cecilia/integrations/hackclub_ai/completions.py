@@ -1,12 +1,15 @@
+# External libs
 from httpx_sse import aconnect_sse
-from .types.payload import CompletionEvent
-from .types.responses import SSEResponse
-from .types.messages import Message
-import difflib
-from cecilia.core.exceptions import InternalError
-import json
-from . import errors
 from httpx import AsyncClient
+import difflib
+import json
+
+# Own libs / modules
+from cecilia.core.exceptions import InternalError
+from .types.payload import CompletionEvent, ReasoningDetails
+from .types.responses import SSEResponse, Reasoning
+from .types.messages import Message, Effort
+from . import errors
 
 class Completions:
     ERROR_MAP = {
@@ -34,7 +37,12 @@ class Completions:
         self.api_client = api_client
         self.completions_url = completions_url
     
-    async def create(self, model: str, messages: list[Message]):
+    async def create(
+        self, 
+        model: str, 
+        messages: list[Message], 
+        effort: Effort = Effort.NONE
+    ):
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
@@ -43,7 +51,10 @@ class Completions:
         payload = {
             "model": model,
             "messages": messages,
-            "stream": True
+            "stream": True,
+            "reasoning": {
+                "effort": effort
+            }
         }
 
         async with aconnect_sse(
@@ -70,8 +81,6 @@ class Completions:
                     raise InternalError()
 
                 error_message = error.get("message") if isinstance(error, dict) else error
-
-                print(error_message)
 
                 if not error_message:
                     print("error message not found, crash")
@@ -118,7 +127,6 @@ class Completions:
                         raise InternalError()
                 
             elif "text/event-stream" in content_type:
-
                 response = ""
                 async for sse in event_source.aiter_sse():
                     if sse.data == "[DONE]":
@@ -128,9 +136,19 @@ class Completions:
                         )
                         break
         
-                    data = CompletionEvent.from_json(sse.data)
+                    data = CompletionEvent.model_validate(json.loads(sse.data))
                     response += data.choices[0].delta.content
+
                     yield SSEResponse(
                         event="message",
-                        chunk=data.choices[0].delta.content
+                        chunk=data.choices[0].delta.content,
+                        reasoning=[
+                            Reasoning.model_validate({
+                                **reasoning.model_dump(),
+                                "type": reasoning.type.split('reasoning.')[1],
+                                "text": reasoning.summary or reasoning.text,
+                                "encrypted_data": reasoning.data
+                            })
+                            for reasoning in data.choices[0].delta.reasoning_details
+                        ] if data.choices[0].delta.reasoning_details else None
                     )

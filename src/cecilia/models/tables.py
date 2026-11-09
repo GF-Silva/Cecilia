@@ -5,6 +5,7 @@ import uuid
 from .attachment_model import AttachmentBase
 from .message_model import MessageBase
 from .chat_model import ChatBase
+from .reasoning_model import ReasoningBase
 
 class Attachment(AttachmentBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -13,10 +14,16 @@ class Attachment(AttachmentBase, table=True):
     message_id: int = Field(foreign_key="message.id", index=True)
     message: Message = Relationship(back_populates="attachments")
 
+class Reasoning(ReasoningBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    message_id: int = Field(foreign_key='message.id', index=True)
+    message: Message = Relationship(back_populates='reasonings')
+
 class Message(MessageBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     chat_id: uuid.UUID = Field(foreign_key="chat.id", index=True)
-    attachments: list[Attachment] = Relationship(back_populates="message")
+    attachments: list[Attachment] | None = Relationship(back_populates="message", cascade_delete=True)
+    reasonings: list[Reasoning] | None = Relationship(back_populates='message', cascade_delete=True)
 
 class Chat(ChatBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid7, primary_key=True)

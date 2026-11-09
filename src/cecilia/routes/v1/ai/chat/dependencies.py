@@ -4,10 +4,10 @@ from cecilia.core.settings import settings
 from cecilia.core.exceptions import InternalError
 
 # Repositories
-from cecilia.repositories import ChatRepository, MessageRepository, AttachmentRepository
+from cecilia.repositories import ChatRepository, MessageRepository, AttachmentRepository, ReasoningRepository
 
 # Services
-from cecilia.services import ChatService, MessageService, AttachmentService
+from cecilia.services import ChatService, MessageService, AttachmentService, ReasoningService
 
 # Integrations
 from cecilia.integrations import Completions, R2, r2_manager
@@ -30,6 +30,9 @@ def get_message_repository(session: SessionDep):
 
 def get_attachment_repository(session: SessionDep):
     yield AttachmentRepository(session)
+
+def get_reasoning_repository(session: SessionDep):
+    yield ReasoningRepository(session)
 
 def get_chat_service(chat_repository: ChatRepository = Depends(get_chat_repository)):
     yield ChatService(chat_repository)
@@ -67,15 +70,20 @@ def get_create_attachments_use_case(
 ):
     yield CreateAttachmentsUseCase(attachment_service, r2_integration, ffprobe_adapter)
 
+def get_reasoning_service(reasoning_repository: ReasoningRepository = Depends(get_reasoning_repository)):
+    yield ReasoningService(reasoning_repository)
+
 def get_send_chat_messages_use_case(
     completions_integration: HCAICompletionIntegrationDep,
     message_service: MessageServiceDep,
-    r2_integration: R2IntegrationDep
+    r2_integration: R2IntegrationDep,
+    reasoning_service: ReasoningService = Depends(get_reasoning_service)
 ):
     yield SendChatMessagesUseCase(
         completions_integration=completions_integration,
         message_service=message_service,
-        r2_integration=r2_integration
+        r2_integration=r2_integration,
+        reasoning_service=reasoning_service
     )
 
 MessageServiceDep = Annotated[MessageService, Depends(get_message_service)]
