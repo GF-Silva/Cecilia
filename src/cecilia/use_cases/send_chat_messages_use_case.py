@@ -51,19 +51,27 @@ class SendChatMessagesUseCase:
             messages=messages,
             model=model,
             effort=effort
-        ) 
+        )
+
+        reasonings: list[ReasoningDetails] = []
 
         async for stream_event in stream:
             if stream_event.event == "finished":
                 response = stream_event.full_response
-                 
+
+            if stream_event.reasoning:
+                reasonings.append(*stream_event.reasoning)
+ 
             yield stream_event
 
-        self.message_service.create(MessageCreate(
+        db_assistant_message = self.message_service.create(MessageCreate(
             chat_id=chat_id,
             is_user=False,
             text=response
         ))
+
+        db_reasonings = self._handle_reasonings(reasonings, db_assistant_message.id)
+        self.reasoning_service.create_list(db_reasonings)
 
     async def _db_to_hcai_messages(self, db_messages: Sequence[DBMessage]) -> list[HcaiMessage]:
         messages = []
@@ -105,3 +113,41 @@ class SendChatMessagesUseCase:
             messages.append(asdict(message))
 
         return messages
+    
+    def _handle_reasonings(self, reasonings: list[ReasoningDetails], message_id: int):
+        db_reasonings = []
+
+        for reasoning in reasonings:
+            reasoning_type = reasoning.type.split('reasoning.')[1]
+            reasoning_signature = reasoning.signature if isinstance(reasoning, TextReasoning) else None
+            reasoning_encrypted_data = reasoning.data if isinstance(reasoning, EncryptedReasoning) else None
+            reasoning_text = reasoning.text if isinstance(reasoning, TextReasoning) else reasoning.summary if isinstance(reasoning, SummaryReasoning) else None
+
+            last_el = db_reasonings[-1] if db_reasonings else None
+            should_merge = last_el is not None and (
+                last_el.type == reasoning_type
+                and last_el.format == reasoning.format 
+                and last_el.encrypted_data == reasoning_encrypted_data
+                and last_el.signature == reasoning_signature
+                or last_el.signature is None
+                and last_el.reasoning_id == reasoning.id
+                and last_el.index == reasoning.index
+            )
+
+            if not should_merge or not last_el:
+                db_reasonings.append(ReasoningCreate(
+                    type=reasoning_type,
+                    text=reasoning_text,
+                    format=reasoning.format,
+                    index=reasoning.index,
+                    reasoning_id=reasoning.id,
+                    signature=reasoning_signature,
+                    message_id=message_id,
+                    encrypted_data=reasoning_encrypted_data
+                ))
+                continue
+                
+            last_el.text = last_el.text + reasoning_text if reasoning_text and last_el.text else last_el.text
+            last_el.signature = reasoning.signature if isinstance(reasoning, TextReasoning) else last_el.signature
+            
+        return db_reasonings
