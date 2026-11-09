@@ -28,28 +28,15 @@ class Usage(BaseModel):
     cost_details: CostDetails
     completion_tokens_details: CompletionTokensDetails
 
-class BaseReasoningDetails(BaseModel):
+class ReasoningDetails(BaseModel):
+    type: Literal['reasoning.text', 'reasoning.summary', 'reasoning.encrypted']
+    format: str
     id: str | None = None
     index: int | None = None
-    format: str
-
-class SummaryReasoning(BaseReasoningDetails):
-    type: Literal['reasoning.summary'] = 'reasoning.summary'
-    summary: str
-
-class EncryptedReasoning(BaseReasoningDetails):
-    type: Literal["reasoning.encrypted"] = "reasoning.encrypted"
-    data: str
-
-class TextReasoning(BaseReasoningDetails):
-    type: Literal['reasoning.text'] = 'reasoning.text'
     text: str | None = None
     signature: str | None = None
-
-ReasoningDetails = Annotated[
-    TextReasoning | EncryptedReasoning | SummaryReasoning,
-    Field(discriminator='type')
-]
+    data: str | None = None
+    summary: str | None = None
 
 class Delta(BaseModel):
     content: str

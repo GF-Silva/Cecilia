@@ -4,7 +4,8 @@ from typing import Sequence
 from cecilia.services import MessageService, ReasoningService
 from cecilia.integrations import Completions, R2
 from cecilia.integrations.hackclub_ai import errors as hcai_errors
-from cecilia.integrations.hackclub_ai.types.payload import EncryptedReasoning, SummaryReasoning, TextReasoning, ReasoningDetails
+from cecilia.integrations.hackclub_ai.types.payload import ReasoningDetails
+from cecilia.integrations.hackclub_ai.types.responses import Reasoning
 from cecilia.models.message_model import MessageCreate
 from cecilia.models.tables import Message as DBMessage
 from cecilia.models.reasoning_model import ReasoningCreate
@@ -53,7 +54,7 @@ class SendChatMessagesUseCase:
             effort=effort
         )
 
-        reasonings: list[ReasoningDetails] = []
+        reasonings: list[Reasoning] = []
 
         async for stream_event in stream:
             if stream_event.event == "finished":
@@ -114,21 +115,17 @@ class SendChatMessagesUseCase:
 
         return messages
     
-    def _handle_reasonings(self, reasonings: list[ReasoningDetails], message_id: int):
+    def _handle_reasonings(self, reasonings: list[Reasoning], message_id: int):
         db_reasonings = []
 
         for reasoning in reasonings:
-            reasoning_type = reasoning.type.split('reasoning.')[1]
-            reasoning_signature = reasoning.signature if isinstance(reasoning, TextReasoning) else None
-            reasoning_encrypted_data = reasoning.data if isinstance(reasoning, EncryptedReasoning) else None
-            reasoning_text = reasoning.text if isinstance(reasoning, TextReasoning) else reasoning.summary if isinstance(reasoning, SummaryReasoning) else None
 
             last_el = db_reasonings[-1] if db_reasonings else None
             should_merge = last_el is not None and (
-                last_el.type == reasoning_type
+                last_el.type == reasoning.type
                 and last_el.format == reasoning.format 
-                and last_el.encrypted_data == reasoning_encrypted_data
-                and last_el.signature == reasoning_signature
+                and last_el.encrypted_data == reasoning.encrypted_data
+                and last_el.signature == reasoning.signature
                 or last_el.signature is None
                 and last_el.reasoning_id == reasoning.id
                 and last_el.index == reasoning.index
@@ -136,18 +133,18 @@ class SendChatMessagesUseCase:
 
             if not should_merge or not last_el:
                 db_reasonings.append(ReasoningCreate(
-                    type=reasoning_type,
-                    text=reasoning_text,
+                    type=reasoning.type,
+                    text=reasoning.text,
                     format=reasoning.format,
                     index=reasoning.index,
                     reasoning_id=reasoning.id,
-                    signature=reasoning_signature,
+                    signature=reasoning.signature,
                     message_id=message_id,
-                    encrypted_data=reasoning_encrypted_data
+                    encrypted_data=reasoning.encrypted_data
                 ))
                 continue
                 
-            last_el.text = last_el.text + reasoning_text if reasoning_text and last_el.text else last_el.text
-            last_el.signature = reasoning.signature if isinstance(reasoning, TextReasoning) else last_el.signature
+            last_el.text = last_el.text + reasoning.text if reasoning.text and last_el.text else last_el.text
+            last_el.signature = reasoning.signature
             
         return db_reasonings

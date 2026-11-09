@@ -6,8 +6,8 @@ import json
 
 # Own libs / modules
 from cecilia.core.exceptions import InternalError
-from .types.payload import CompletionEvent, ReasoningDetails, TextReasoning, SummaryReasoning, EncryptedReasoning
-from .types.responses import SSEResponse
+from .types.payload import CompletionEvent, ReasoningDetails
+from .types.responses import SSEResponse, Reasoning
 from .types.messages import Message, Effort
 from . import errors
 
@@ -143,7 +143,12 @@ class Completions:
                         event="message",
                         chunk=data.choices[0].delta.content,
                         reasoning=[
-                            reasoning
-                            for reasoning in data.choices[0].delta.reasoning_details or []
-                        ]
+                            Reasoning.model_validate({
+                                **reasoning.model_dump(),
+                                "type": reasoning.type.split('reasoning.')[1],
+                                "text": reasoning.summary or reasoning.text,
+                                "encrypted_data": reasoning.data
+                            })
+                            for reasoning in data.choices[0].delta.reasoning_details
+                        ] if data.choices[0].delta.reasoning_details else None
                     )
