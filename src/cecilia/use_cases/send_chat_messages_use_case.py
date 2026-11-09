@@ -54,7 +54,7 @@ class SendChatMessagesUseCase:
         )
 
         reasonings: list[Reasoning] = []
-
+        response = ""
         async for stream_event in stream:
             if stream_event.event == "finished":
                 response = stream_event.full_response
