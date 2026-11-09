@@ -3,10 +3,6 @@ from typing import Literal
 from .payload import ReasoningDetails
 
 @dataclass
-class Reasoning:
-    content: str | None = None
-
-@dataclass
 class SSEResponse:
     event: Literal["finished", "error", "message", "reasoning"]
     chunk: str | None = None

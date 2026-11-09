@@ -1,11 +1,15 @@
 from dataclasses import asdict
+from typing import Sequence
 
-from cecilia.services import MessageService
+from cecilia.services import MessageService, ReasoningService
 from cecilia.integrations import Completions, R2
 from cecilia.integrations.hackclub_ai import errors as hcai_errors
+from cecilia.integrations.hackclub_ai.types.payload import EncryptedReasoning, SummaryReasoning, TextReasoning, ReasoningDetails
 from cecilia.models.message_model import MessageCreate
+from cecilia.models.tables import Message as DBMessage
+from cecilia.models.reasoning_model import ReasoningCreate
 from cecilia.integrations.hackclub_ai.types.messages import (
-    Message, 
+    Message as HcaiMessage, 
     TextContent, 
     AudioContent,
     Content,
@@ -22,14 +26,16 @@ class SendChatMessagesUseCase:
         self,
         completions_integration: Completions,
         message_service: MessageService,
-        r2_integration: R2
+        r2_integration: R2,
+        reasoning_service: ReasoningService
     ):
         self.message_service = message_service
         self.completions_integration = completions_integration
         self.r2_integration = r2_integration
+        self.reasoning_service = reasoning_service
 
     async def __call__(
-        self, 
+        self,
         chat_id: UUID, 
         model: str,
         effort: Effort = Effort.NONE
@@ -39,10 +45,31 @@ class SendChatMessagesUseCase:
         if not db_messages:
             raise hcai_errors.MessagesEmptyError(db_messages)
 
-        messages: list = []
+        messages = await self._db_to_hcai_messages(db_messages)
+
+        stream = self.completions_integration.create(
+            messages=messages,
+            model=model,
+            effort=effort
+        ) 
+
+        async for stream_event in stream:
+            if stream_event.event == "finished":
+                response = stream_event.full_response
+                 
+            yield stream_event
+
+        self.message_service.create(MessageCreate(
+            chat_id=chat_id,
+            is_user=False,
+            text=response
+        ))
+
+    async def _db_to_hcai_messages(self, db_messages: Sequence[DBMessage]) -> list[HcaiMessage]:
+        messages = []
 
         for db_message in db_messages:
-            content: list = []
+            content: list[Content] = []
 
             if db_message.text:
                 content.append(TextContent(
@@ -69,28 +96,12 @@ class SendChatMessagesUseCase:
                         content.append(ImageContent(
                             image_url=ImageUrl(url=presigned_url)
                         ))
-
-            message = Message(
+ 
+            message = HcaiMessage(
                 role="user" if db_message.is_user else "assistant",
                 content=content
-            )
+            ) 
 
             messages.append(asdict(message))
 
-        stream = self.completions_integration.create(
-            messages=messages,
-            model=model,
-            effort=effort
-        )
-
-        async for stream_event in stream:
-            if stream_event.event == "finished":
-                response = stream_event.full_response
-                
-            yield stream_event
-
-        self.message_service.create(MessageCreate(
-            chat_id=chat_id,
-            is_user=False,
-            text=response
-        ))
+        return messages
