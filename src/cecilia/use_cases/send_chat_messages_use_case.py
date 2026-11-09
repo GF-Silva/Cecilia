@@ -1,11 +1,10 @@
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from typing import Sequence
 
 from cecilia.services import MessageService, ReasoningService
 from cecilia.integrations import Completions, R2
 from cecilia.integrations.hackclub_ai import errors as hcai_errors
-from cecilia.integrations.hackclub_ai.types.payload import ReasoningDetails
-from cecilia.integrations.hackclub_ai.types.responses import Reasoning
+from cecilia.integrations.hackclub_ai.types.responses import Reasoning, SSEResponse
 from cecilia.models.message_model import MessageCreate
 from cecilia.models.tables import Message as DBMessage
 from cecilia.models.reasoning_model import ReasoningCreate
@@ -63,7 +62,13 @@ class SendChatMessagesUseCase:
             if stream_event.reasoning:
                 reasonings.append(*stream_event.reasoning)
  
-            yield stream_event
+            yield replace(stream_event, reasoning=[
+                Reasoning.model_validate({
+                    **reasoning.model_dump(),
+                    "encrypted_data": "[REDACTED]" if reasoning.encrypted_data else None
+                })
+                for reasoning in stream_event.reasoning
+            ] if stream_event.reasoning else None)
 
         db_assistant_message = self.message_service.create(MessageCreate(
             chat_id=chat_id,
