@@ -4,7 +4,7 @@ from typing import Sequence
 from cecilia.services import MessageService, ReasoningService
 from cecilia.integrations import Completions, R2
 from cecilia.integrations.hackclub_ai import errors as hcai_errors
-from cecilia.integrations.hackclub_ai.types.responses import Reasoning, SSEResponse
+from cecilia.integrations.hackclub_ai.types.responses import Reasoning
 from cecilia.models.message_model import MessageCreate
 from cecilia.models.tables import Message as DBMessage
 from cecilia.models.reasoning_model import ReasoningCreate
@@ -58,9 +58,10 @@ class SendChatMessagesUseCase:
 
         reasonings: list[Reasoning] = []
         response = ""
-        async for stream_event in stream:
+        # TODO: This full response field is temporary and should / will be removed
+        async for stream_event, full_response in stream:
             if stream_event.event == "finished":
-                response = stream_event.full_response
+                response = full_response
 
             if stream_event.reasoning:
                 reasonings.append(*stream_event.reasoning)
@@ -71,7 +72,7 @@ class SendChatMessagesUseCase:
                     "encrypted_data": "[REDACTED]" if reasoning.encrypted_data else None
                 })
                 for reasoning in stream_event.reasoning
-            ] if stream_event.reasoning else None)
+            ] if stream_event.reasoning else None), response
 
         db_assistant_message = self.message_service.create(MessageCreate(
             chat_id=chat_id,
@@ -141,15 +142,13 @@ class SendChatMessagesUseCase:
                 if reasoning.type in ['encrypted', 'summary', 'text']
             ] if db_message.reasonings else None
 
-            print(reasonings)
-
             message = HcaiMessage(
                 role="user" if db_message.is_user else "assistant",
                 content=content,
                 reasoning_details=reasonings
             ) 
 
-            messages.append(message.model_dump())
+            messages.append(message)
 
         return messages
     
