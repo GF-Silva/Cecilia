@@ -16,7 +16,9 @@ class Completions:
     ERROR_MAP = {
         400: {
             'input required: specify "prompt" or  "messages"': 'messages_empty',
-            'is not a valid model ID': 'invalid_model_id'
+            'is not a valid model ID': 'invalid_model_id',
+            'Reasoning is mandatory for this endpoint and cannot be disabled.': 'reasoning_should_be_set',
+            'Provider returned error': 'provider_error'
         },
         402: {
             'Spending limit reached. Needs higher limit? hey@mahadk.com': 'spending_limit_reached'
@@ -124,6 +126,12 @@ class Completions:
 
                     case 'model_not_support_image':
                         raise errors.ModelNotSupportImageError(model)
+
+                    case 'reasoning_should_be_set':
+                        raise errors.ShouldSetReasoningForModelError(model, effort)
+
+                    case 'provider_error':
+                        raise InternalError()
 
                     case _:
                         raise InternalError()

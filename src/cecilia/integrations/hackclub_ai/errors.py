@@ -1,4 +1,4 @@
-from cecilia.core.exceptions import BaseError, ValueError
+from cecilia.core.exceptions import BaseError, ValueError, InternalError
 
 class MessagesEmptyError(BaseError):
     def __init__(
@@ -115,4 +115,28 @@ class ModelNotSupportImageError(ValueError):
             },
             title=title,
             status_code=status_code
+        )
+
+class ShouldSetReasoningForModelError(BaseError):
+    def __init__(
+        self,
+        model: str,
+        reasoning_level: str,
+        status_code: int = 422,
+        error_code: str = 'REASONING_SHOULD_BE_SET_FOR_THIS_MODEL',
+        title: str = 'Reasoning should be enabled with this model'
+    ):
+        self.reasoning_level = reasoning_level
+        self.status_code = status_code
+        self.error_code = error_code
+
+        super().__init__(
+            title=title,
+            status_code=status_code,
+            message=f'The reasoning should be set for the model {model}',
+            error_code=error_code,
+            values={
+                "model": model,
+                "reasoning_effort": reasoning_level
+            }
         )
