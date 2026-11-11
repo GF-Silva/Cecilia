@@ -7,6 +7,8 @@ from pydantic import TypeAdapter
 from uuid import UUID
 
 class ChatService:
+    _CHAT_LIST_ADAPTER = TypeAdapter(list[ChatPublic])
+
     def __init__(self, chat_repository: ChatRepository):
         self.chat_repository = chat_repository
 
@@ -48,6 +50,4 @@ class ChatService:
         return ChatPublic.model_validate(chat)
 
     def _to_multi_public_chat(self, chats: Sequence[Chat]) -> Sequence[ChatPublic]:
-        adapter = TypeAdapter(list[ChatPublic])
-
-        return adapter.validate_python(chats)
+        return self._CHAT_LIST_ADAPTER.validate_python(chats)

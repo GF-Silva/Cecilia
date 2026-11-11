@@ -15,6 +15,5 @@ class Reasoning(BaseModel):
 class SSEResponse:
     event: Literal["finished", "error", "message", "reasoning"]
     chunk: str | None = None
-    full_response: str | None = None
     reasoning: list[Reasoning] | None = None
     raw_reasoning: str | None = None

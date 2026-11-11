@@ -2,11 +2,12 @@
 from httpx_sse import aconnect_sse
 from httpx import AsyncClient
 import difflib
+from pydantic import TypeAdapter
 import json
 
 # Own libs / modules
 from cecilia.core.exceptions import InternalError
-from .types.payload import CompletionEvent, ReasoningDetails, TextReasoning, EncryptedReasoning, SummaryReasoning
+from .types.payload import CompletionEvent, TextReasoning, EncryptedReasoning, SummaryReasoning
 from .types.responses import SSEResponse, Reasoning
 from .types.messages import Message, Effort
 from . import errors
@@ -26,6 +27,7 @@ class Completions:
             'No endpoints found that support image input': 'model_not_support_image'
         }
     }
+    _MESSAGES_ADAPTER = TypeAdapter(list[Message])
 
     def __init__(
         self, 
@@ -50,7 +52,7 @@ class Completions:
 
         payload = {
             "model": model,
-            "messages": messages,
+            "messages": self._MESSAGES_ADAPTER.dump_python(messages),
             "stream": True,
             "reasoning": {
                 "effort": effort
@@ -64,7 +66,6 @@ class Completions:
             headers=headers,
             json=payload
         ) as event_source:
-
             content_type = event_source.response.headers.get("content-type", "")
 
             if "application/json" in content_type:
@@ -129,11 +130,11 @@ class Completions:
             elif "text/event-stream" in content_type:
                 response = ""
                 async for sse in event_source.aiter_sse():
+                    # TODO: This full response field is temporary and should / will be removed
                     if sse.data == "[DONE]":
                         yield SSEResponse(
-                            event="finished",
-                            full_response=response
-                        )
+                            event="finished"
+                        ), response
                         break
         
                     data = CompletionEvent.model_validate(json.loads(sse.data))
@@ -155,4 +156,4 @@ class Completions:
                             for reasoning in data.choices[0].delta.reasoning_details
                         ] if data.choices[0].delta.reasoning_details else None,
                         raw_reasoning = data.choices[0].delta.reasoning if data.choices[0].delta.reasoning else None
-                    )
+                    ), None
