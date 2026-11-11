@@ -160,9 +160,6 @@ class SendChatMessagesUseCase:
             should_merge = last_el is not None and (
                 last_el.type == reasoning.type
                 and last_el.format == reasoning.format 
-                and last_el.encrypted_data == reasoning.encrypted_data
-                and last_el.signature == reasoning.signature
-                or last_el.signature is None
                 and last_el.reasoning_id == reasoning.id
                 and last_el.index == reasoning.index
             )
@@ -181,6 +178,7 @@ class SendChatMessagesUseCase:
                 continue
                 
             last_el.text = last_el.text + reasoning.text if reasoning.text and last_el.text else last_el.text
-            last_el.signature = reasoning.signature
+            last_el.signature = reasoning.signature if not last_el.signature else last_el.signature
+            last_el.encrypted_data = reasoning.encrypted_data if not last_el.encrypted_data else last_el.encrypted_data
             
         return db_reasonings_create
