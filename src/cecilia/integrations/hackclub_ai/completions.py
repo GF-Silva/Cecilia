@@ -55,7 +55,8 @@ class Completions:
             "messages": self._MESSAGES_ADAPTER.dump_python(messages),
             "stream": True,
             "reasoning": {
-                "effort": effort
+                "effort": effort,
+                'context': 'all_turns'
             }
         }
 
