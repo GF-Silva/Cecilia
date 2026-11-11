@@ -16,7 +16,10 @@ from cecilia.integrations.hackclub_ai.types.messages import (
     Audio,
     ImageUrl,
     ImageContent,
-    Effort
+    Effort,
+    TextReasoning,
+    EncryptedReasoning,
+    SummaryReasoning
 )
 from uuid import UUID
 import fastpybase64 as base64
@@ -76,7 +79,7 @@ class SendChatMessagesUseCase:
             text=response
         ))
 
-        db_reasonings = self._handle_reasonings(reasonings, db_assistant_message.id)
+        db_reasonings = self._save_reasonings(reasonings, db_assistant_message.id)
         self.reasoning_service.create_list(db_reasonings)
 
     async def _db_to_hcai_messages(self, db_messages: Sequence[DBMessage]) -> list[HcaiMessage]:
@@ -110,22 +113,51 @@ class SendChatMessagesUseCase:
                         content.append(ImageContent(
                             image_url=ImageUrl(url=presigned_url)
                         ))
- 
+
+            reasonings = [
+                TextReasoning(
+                    format=reasoning.format,
+                    id=reasoning.reasoning_id,
+                    index=reasoning.index,
+                    text=reasoning.text,
+                    signature=reasoning.signature
+                ) if reasoning.type == 'text' 
+
+                else SummaryReasoning(
+                    format=reasoning.format,
+                    id=reasoning.reasoning_id,
+                    index=reasoning.index,
+                    summary=reasoning.text or ''
+                ) if reasoning.type == 'summary'
+
+                else EncryptedReasoning(
+                    format=reasoning.format,
+                    id=reasoning.reasoning_id,
+                    index=reasoning.index,
+                    data=reasoning.encrypted_data or ''
+                )
+
+                for reasoning in db_message.reasonings
+                if reasoning.type in ['encrypted', 'summary', 'text']
+            ] if db_message.reasonings else None
+
+            print(reasonings)
+
             message = HcaiMessage(
                 role="user" if db_message.is_user else "assistant",
-                content=content
+                content=content,
+                reasoning_details=reasonings
             ) 
 
-            messages.append(asdict(message))
+            messages.append(message.model_dump())
 
         return messages
     
-    def _handle_reasonings(self, reasonings: list[Reasoning], message_id: int):
-        db_reasonings = []
+    def _save_reasonings(self, reasonings: list[Reasoning], message_id: int):
+        db_reasonings_create = []
 
         for reasoning in reasonings:
-
-            last_el = db_reasonings[-1] if db_reasonings else None
+            last_el = db_reasonings_create[-1] if db_reasonings_create else None
             should_merge = last_el is not None and (
                 last_el.type == reasoning.type
                 and last_el.format == reasoning.format 
@@ -137,7 +169,7 @@ class SendChatMessagesUseCase:
             )
 
             if not should_merge or not last_el:
-                db_reasonings.append(ReasoningCreate(
+                db_reasonings_create.append(ReasoningCreate(
                     type=reasoning.type,
                     text=reasoning.text,
                     format=reasoning.format,
@@ -152,4 +184,4 @@ class SendChatMessagesUseCase:
             last_el.text = last_el.text + reasoning.text if reasoning.text and last_el.text else last_el.text
             last_el.signature = reasoning.signature
             
-        return db_reasonings
+        return db_reasonings_create
