@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, Annotated
 from enum import StrEnum
+from pydantic import BaseModel, Field
 
 @dataclass
 class Audio:
@@ -37,7 +38,30 @@ class Effort(StrEnum):
     XHIGH='xhigh'
     MAX='max'
 
-@dataclass
-class Message:
+class BaseReasoningDetails(BaseModel):
+    format: str
+    id: str | None = None
+    index: int | None = None
+
+class SummaryReasoning(BaseReasoningDetails):
+    summary: str
+    type: Literal['reasoning.summary'] = 'reasoning.summary'
+
+class EncryptedReasoning(BaseReasoningDetails):
+    type: Literal['reasoning.encrypted'] = 'reasoning.encrypted'
+    data: str
+
+class TextReasoning(BaseReasoningDetails):
+    type: Literal['reasoning.text'] = 'reasoning.text'
+    text: str | None = None
+    signature: str | None = None
+
+Reasoning = Annotated[
+    TextReasoning | EncryptedReasoning | SummaryReasoning,
+    Field(discriminator='type')
+]
+
+class Message(BaseModel):
     role: Literal['user', 'assistant', 'system']
     content: list[Content]
+    reasoning_details: list[Reasoning] | None = None
