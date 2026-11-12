@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel
-from .attachment_model import AttachmentBase
-from .reasoning_model import ReasoningBase
+from .attachment_model import AttachmentPublic
+from .reasoning_model import ReasoningPublic
 from uuid import UUID
 
 class MessageBase(SQLModel):
@@ -10,8 +10,8 @@ class MessageBase(SQLModel):
 
 class MessagePublic(MessageBase):
     id: int
-    attachments: list[AttachmentBase]
-    reasonings: list[ReasoningBase]
+    attachments: list[AttachmentPublic]
+    reasonings: list[ReasoningPublic]
 
 class MessageCreate(MessageBase):
     pass
