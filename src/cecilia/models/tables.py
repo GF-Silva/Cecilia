@@ -18,6 +18,12 @@ class Reasoning(ReasoningBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     message_id: int = Field(foreign_key='message.id', index=True)
     message: Message = Relationship(back_populates='reasonings')
+    type: str # summary, text, encrypted
+    format: str
+    encrypted_data: str | None = None  
+    reasoning_id: str | None = None
+    signature: str | None = None
+    index: int | None = None
 
 class Message(MessageBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
