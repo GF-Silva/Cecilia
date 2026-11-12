@@ -1,3 +1,6 @@
+from cecilia.services import AttachmentService
+from cecilia.core.settings import settings
+from cecilia.adapters.ffprobe.ffprobe_adapter import FFProbeAdapter
 from cecilia.models.attachment_model import AttachmentCreate
 from cecilia.models.tables import Message
 from cecilia.integrations.cloudflare.r2 import R2
@@ -8,18 +11,22 @@ from cecilia.core.exceptions import (
     InternalError
 )
 
-from starlette.datastructures import Headers
+from dataclasses import dataclass
 from PIL import Image, UnidentifiedImageError
 from fastapi import UploadFile
-from uuid import uuid7
 import asyncio
 import magic
 
-from cecilia.services import AttachmentService
-from cecilia.core.settings import settings
-from cecilia.adapters.ffprobe.ffprobe_adapter import FFProbeAdapter
+@dataclass
+class FileData:
+    file: UploadFile
+    mime_type: str
+    size: int
+    filename: str | None = None
 
 class CreateAttachmentsUseCase:
+    MIME_VALIDATOR = magic.Magic(mime=True)
+
     def __init__(
         self,
         attachment_service: AttachmentService,
@@ -36,33 +43,23 @@ class CreateAttachmentsUseCase:
         message: Message,
         files: list[UploadFile],
     ):     
-        attachments_create: list = []
-
-        await self._validate_files(files)
         self.attachment_service.validate_message_role(message)
+        files_data = await self._validate_files(files)
     
-        for file in files:
-            mime_type = file.headers["content-type"]
-
-            await file.seek(0)  
-            file_data = await file.read()
-    
-            internal_filename = uuid7()
-            path = f"{mime_type}/{internal_filename}"
-    
-            await self.r2_integration.create_file(
-                data=file_data,
-                path=path,
-                bucket=settings.r2.bucket
-            )
-    
+        attachments_create: list = []
+        for file in files_data:
+            await file.file.seek(0)
             attachment = AttachmentCreate(
-                mime_type = mime_type,
+                mime_type = file.mime_type,
                 public_filename = file.filename,
                 size = file.size,
-                message_id = message_id,
-                filename=internal_filename,
-                path=path
+                message_id = message_id
+            )
+
+            await self.r2_integration.create_file(
+                data=await file.file.read(),
+                path=attachment.path,
+                bucket=settings.r2.bucket
             )
     
             attachments_create.append(attachment)
@@ -74,8 +71,8 @@ class CreateAttachmentsUseCase:
     
         return db_attachments
 
-    async def _validate_files(self, files: list[UploadFile]):
-        mime = magic.Magic(mime=True)
+    async def _validate_files(self, files: list[UploadFile]) -> list[FileData]:
+        files_data: list[FileData] = []
 
         for file in files:
             # Valida a extensao do arquivo
@@ -101,12 +98,16 @@ class CreateAttachmentsUseCase:
                     message = "Empty file"
                 )
 
-            mime_type = mime.from_buffer(file_data)
+            mime_type = self.MIME_VALIDATOR.from_buffer(file_data)
 
-            new_headers = dict(file.headers)
-            new_headers['content-type'] = mime_type
-            file.headers = Headers(new_headers)
+            files_data.append(FileData(
+                file=file,
+                mime_type=mime_type,
+                size=file.size,
+                filename=file.filename
+            ))
             
+            # TODO: Adicionar yield aq pra processar em paralelo
             if mime_type.startswith('audio/'):
                 await self._process_audio(file.size, file_data, file.filename)
 
@@ -121,6 +122,8 @@ class CreateAttachmentsUseCase:
                         "filename": file.filename
                     }
                 )
+
+        return files_data
 
     async def _process_audio(self, file_size: int, file_data: bytes, filename: str | None = None):
         if file_size > self.r2_integration.MAX_AUDIO_SIZE:
