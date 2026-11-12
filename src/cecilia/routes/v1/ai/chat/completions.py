@@ -31,6 +31,7 @@ async def create_completion(
             )
 
     except BaseError as err:
+        print("base error: ", err)
         yield ServerSentEvent(
             data=err,
             event="error"
@@ -48,3 +49,12 @@ async def create_completion(
     except Exception as err:
         print("uncaught exception: ", err)
         print("How this happened? Oh man, we are doomed")
+        yield ServerSentEvent(
+            event='error',
+            data={
+                "message": "something unexpected happened, maybe try again after a while?", 
+                "error_code": "INTERNAL_ERROR", 
+                "status_code": 500, 
+                "title": "Internal Server Error"
+            }
+        )
