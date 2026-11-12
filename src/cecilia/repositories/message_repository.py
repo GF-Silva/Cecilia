@@ -20,7 +20,7 @@ class MessageRepository:
     def show(self, id: int, chat_id: UUID) -> Message | None:
         return self.session.exec(
             select(Message)
-            .where(Message.id == id and Message.chat_id == chat_id)
+            .where(Message.id == id, Message.chat_id == chat_id)
         ).one_or_none()
 
     def get_all_by_chat_id(self, chat_id: UUID, limit: int = 100, offset: int = 0) -> Sequence[Message]:

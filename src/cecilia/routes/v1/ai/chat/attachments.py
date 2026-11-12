@@ -15,8 +15,9 @@ async def create_attachment(
 @router.get("/{attachment_id}", response_model=AttachmentPublic)
 def get_attachment_data(
     attachment_id: int,
+    message_id: int,
     attachment_service: AttachmentServiceDep
 ):
-    db_attachment = attachment_service.show(attachment_id)
+    db_attachment = attachment_service.show(attachment_id, message_id)
 
     return db_attachment
