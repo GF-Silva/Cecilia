@@ -12,14 +12,10 @@ from cecilia.core.exceptions import (
 )
 
 from dataclasses import dataclass
-from starlette.datastructures import Headers
 from PIL import Image, UnidentifiedImageError
 from fastapi import UploadFile
-from uuid import uuid7
 import asyncio
 import magic
-
-
 
 @dataclass
 class FileData:
@@ -47,31 +43,23 @@ class CreateAttachmentsUseCase:
         message: Message,
         files: list[UploadFile],
     ):     
-        attachments_create: list = []
-
-        files_data = await self._validate_files(files)
         self.attachment_service.validate_message_role(message)
+        files_data = await self._validate_files(files)
     
+        attachments_create: list = []
         for file in files_data:
-            await file.file.seek(0)  
-            file_data = await file.file.read()
-    
-            internal_filename = uuid7()
-            path = f"{file.mime_type}/{internal_filename}"
-    
-            await self.r2_integration.create_file(
-                data=file_data,
-                path=path,
-                bucket=settings.r2.bucket
-            )
-    
+            await file.file.seek(0)
             attachment = AttachmentCreate(
                 mime_type = file.mime_type,
                 public_filename = file.filename,
                 size = file.size,
-                message_id = message_id,
-                filename=internal_filename,
-                path=path
+                message_id = message_id
+            )
+
+            await self.r2_integration.create_file(
+                data=await file.file.read(),
+                path=attachment.path,
+                bucket=settings.r2.bucket
             )
     
             attachments_create.append(attachment)
