@@ -12,12 +12,12 @@ class MessageService:
     ):
         self.message_repository = message_repository
 
-    def show(self, id: int) -> Message:
-        db_message = self.message_repository.show(id)
+    def show(self, id: int, chat_id: UUID) -> Message:
+        db_message = self.message_repository.show(id, chat_id)
 
         if not db_message:
             raise NotFoundError(
-                resource="message",
+                resource="chats messages",
                 item=id
             )
 

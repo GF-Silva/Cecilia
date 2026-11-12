@@ -12,9 +12,10 @@ def validate_chat_id(
 
 def validate_message_id(
     message_id: int,
+    chat_id: UUID,
     message_service: MessageServiceDep
 ):
-    message = message_service.show(message_id)
+    message = message_service.show(message_id, chat_id)
 
 def validate_ai_model_name(name: str) -> AIModelName:
     regex = r'^[A-Za-z0-9~._:@+-]+/[A-Za-z0-9~._:@+-]+$'
