@@ -1,7 +1,7 @@
-from dataclasses import asdict, replace
 from typing import Sequence
 from uuid import UUID
 import fastpybase64 as base64
+import mimetypes
 
 # Services
 from cecilia.services import MessageService, ReasoningService
@@ -106,12 +106,16 @@ class SendChatMessagesUseCase:
 
             if db_message.attachments:
                 for attachment in db_message.attachments:
+                    file_extension = mimetypes.guess_extension(attachment.mime_type)
+                    if not file_extension: continue
+
                     if attachment.mime_type.startswith("audio/"):
                         file_data = await self.r2_integration.get_file_data(attachment.path)
                         base64_file = base64.b64encode(file_data).decode('utf-8')
+
                         content.append(AudioContent(
                             input_audio=Audio(
-                                format="mp3",
+                                format=file_extension.lstrip('.'),
                                 data=base64_file
                             )
                         ))
