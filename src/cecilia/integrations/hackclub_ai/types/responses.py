@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pydantic import BaseModel
 from typing import Literal
+from enum import StrEnum
 
 class Reasoning(BaseModel):
     type: Literal['summary', 'encrypted', 'text']
@@ -11,9 +12,15 @@ class Reasoning(BaseModel):
     id: str | None = None
     index: int | None = None
 
+class Event(StrEnum):
+    FINISHED = 'finished'
+    ERROR = 'error'
+    MESSAGE = 'message'
+    REASONING = 'reasoning'
+
 @dataclass
 class SSEResponse:
-    event: Literal["finished", "error", "message", "reasoning"]
+    event: Event
     chunk: str | None = None
     reasoning: list[Reasoning] | None = None
     raw_reasoning: str | None = None

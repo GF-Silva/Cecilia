@@ -1,13 +1,15 @@
 from dataclasses import asdict, replace
 from typing import Sequence
+from uuid import UUID
+import fastpybase64 as base64
 
+# Services
 from cecilia.services import MessageService, ReasoningService
+
+# Integrations
 from cecilia.integrations import Completions, R2
 from cecilia.integrations.hackclub_ai import errors as hcai_errors
 from cecilia.integrations.hackclub_ai.types.responses import Reasoning
-from cecilia.models.message_model import MessageCreate
-from cecilia.models.tables import Message as DBMessage
-from cecilia.models.reasoning_model import ReasoningCreate
 from cecilia.integrations.hackclub_ai.types.messages import (
     Message as HcaiMessage, 
     TextContent, 
@@ -21,8 +23,14 @@ from cecilia.integrations.hackclub_ai.types.messages import (
     EncryptedReasoning,
     SummaryReasoning
 )
-from uuid import UUID
-import fastpybase64 as base64
+
+# Models
+from cecilia.models.message_model import MessageCreate
+from cecilia.models.tables import Message as DBMessage
+from cecilia.models.reasoning_model import ReasoningCreate
+
+# Others
+from .types import Response
 
 class SendChatMessagesUseCase:
     def __init__(
@@ -65,14 +73,16 @@ class SendChatMessagesUseCase:
 
             if stream_event.reasoning:
                 reasonings.append(*stream_event.reasoning)
- 
-            yield replace(stream_event, reasoning=[
-                Reasoning.model_validate({
-                    **reasoning.model_dump(),
-                    "encrypted_data": "[REDACTED]" if reasoning.encrypted_data else None
-                })
-                for reasoning in stream_event.reasoning
-            ] if stream_event.reasoning else None), response
+
+            yield Response(
+                event=stream_event.event,
+                chunk=stream_event.chunk,
+                reasoning=[
+                    reasoning.text
+                    for reasoning in stream_event.reasoning
+                    if reasoning.text
+                ] if stream_event.reasoning else None
+            ), response
 
         db_assistant_message = self.message_service.create(MessageCreate(
             chat_id=chat_id,
