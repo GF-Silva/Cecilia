@@ -8,7 +8,7 @@ import json
 # Own libs / modules
 from cecilia.core.exceptions import InternalError
 from .types.payload import CompletionEvent, TextReasoning, EncryptedReasoning, SummaryReasoning
-from .types.responses import SSEResponse, Reasoning
+from .types.responses import SSEResponse, Reasoning, Event
 from .types.messages import Message, Effort
 from . import errors
 
@@ -142,7 +142,7 @@ class Completions:
                     # TODO: This full response field is temporary and should / will be removed
                     if sse.data == "[DONE]":
                         yield SSEResponse(
-                            event="finished"
+                            event=Event.FINISHED
                         ), response
                         break
         
@@ -150,7 +150,7 @@ class Completions:
                     response += data.choices[0].delta.content
 
                     yield SSEResponse(
-                        event="message",
+                        event=Event.REASONING if data.choices[0].delta.reasoning else Event.MESSAGE,
                         chunk=data.choices[0].delta.content,
                         reasoning=[
                             Reasoning.model_validate({
