@@ -30,8 +30,11 @@ class AttachmentRepository:
 
         return db_attachments
 
-    def show(self, id: int) -> Attachment | None:
-        return self.session.get(Attachment, id)
+    def show(self, id: int, message_id: int) -> Attachment | None:
+        return self.session.exec(
+            select(Attachment)
+            .where(Attachment.id == id, Attachment.message_id == message_id)
+        ).one_or_none()
 
     def index(self, offset: int = 0, limit: int = 100) -> Sequence[Attachment]:
         return self.session.exec(select(Attachment).offset(offset).limit(limit)).all()

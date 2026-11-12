@@ -31,8 +31,8 @@ class AttachmentService:
         ):
         self.attachment_repository = attachment_repository
 
-    def show(self, id: int) -> Attachment:
-        attachment = self.attachment_repository.show(id)
+    def show(self, id: int, message_id: int) -> Attachment:
+        attachment = self.attachment_repository.show(id, message_id)
 
         if not attachment:
             raise NotFoundError(
@@ -81,8 +81,8 @@ class AttachmentService:
                 }
             )
 
-    def delete(self, id: int):
-        attachment = self.show(id)
+    def delete(self, id: int, message_id: int):
+        attachment = self.show(id, message_id)
 
         self.attachment_repository.delete(attachment)
 
