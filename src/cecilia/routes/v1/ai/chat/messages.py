@@ -39,8 +39,9 @@ def get_messages(
 @router.get("/{message_id}", response_model=MessagePublic)
 def get_message_data(
     message_id: int,
+    chat_id: UUID,
     message_service: MessageServiceDep,
 ):
-    db_message = message_service.show(message_id)
+    db_message = message_service.show(message_id, chat_id)
 
     return db_message

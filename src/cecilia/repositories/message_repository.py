@@ -17,8 +17,11 @@ class MessageRepository:
             .limit(limit)
         ).all()
 
-    def show(self, id: int) -> Message | None:
-        return self.session.get(Message, id)
+    def show(self, id: int, chat_id: UUID) -> Message | None:
+        return self.session.get(Message, {
+            "chat_id": chat_id,
+            "id": id
+        })
 
     def get_all_by_chat_id(self, chat_id: UUID, limit: int = 100, offset: int = 0) -> Sequence[Message]:
         return self.session.exec(
