@@ -10,14 +10,9 @@ from .reasoning_model import ReasoningBase
 class Attachment(AttachmentBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     size: int | None = Field(default=None, index=True)
-    filename: uuid.UUID = Field(default_factory=uuid.uuid7)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     message_id: int = Field(foreign_key="message.id", index=True)
     message: Message = Relationship(back_populates="attachments")
-
-    @property
-    def path(self) -> str:
-        return f"{self.mime_type}/{self.filename}"
 
 class Reasoning(ReasoningBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
