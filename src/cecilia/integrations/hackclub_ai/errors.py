@@ -121,7 +121,7 @@ class ShouldSetReasoningForModelError(BaseError):
     def __init__(
         self,
         model: str,
-        reasoning_level: str,
+        reasoning_level: str | None = None,
         status_code: int = 422,
         error_code: str = 'REASONING_SHOULD_BE_SET_FOR_THIS_MODEL',
         title: str = 'Reasoning should be enabled with this model'

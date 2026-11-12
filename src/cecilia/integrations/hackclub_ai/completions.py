@@ -45,7 +45,7 @@ class Completions:
         self, 
         model: str, 
         messages: list[Message], 
-        effort: Effort = Effort.NONE
+        effort: Effort | None = None
     ):
         headers = {
             "Authorization": f"Bearer {self.api_key}",

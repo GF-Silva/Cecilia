@@ -41,7 +41,7 @@ class SendChatMessagesUseCase:
         self,
         chat_id: UUID, 
         model: str,
-        effort: Effort = Effort.NONE
+        effort: Effort | None = None
     ):
         db_messages = self.message_service.get_all_by_chat_id(chat_id)
 
