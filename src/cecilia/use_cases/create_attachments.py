@@ -1,4 +1,5 @@
 from cecilia.models.attachment_model import AttachmentCreate
+from cecilia.models.tables import Message
 from cecilia.integrations.cloudflare.r2 import R2
 from cecilia.core.exceptions import (
     UnsupportedFileFormatError, 
@@ -32,11 +33,13 @@ class CreateAttachmentsUseCase:
     async def __call__(
         self,
         message_id: int,
+        message: Message,
         files: list[UploadFile],
     ):     
         attachments_create: list = []
 
         await self._validate_files(files)
+        self.attachment_service.validate_message_role(message)
     
         for file in files:
             mime_type = file.headers["content-type"]
@@ -64,7 +67,10 @@ class CreateAttachmentsUseCase:
     
             attachments_create.append(attachment)
     
-        db_attachments = self.attachment_service.create_list(attachments_create)
+        db_attachments = self.attachment_service.create_list(
+            attachments=attachments_create,
+            message=message
+        )
     
         return db_attachments
 

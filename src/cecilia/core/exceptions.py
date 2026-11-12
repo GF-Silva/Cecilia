@@ -92,6 +92,23 @@ class ValueError(BaseError):
             values=values
         )
 
+class RuleError(BaseError):
+    def __init__(
+        self,
+        message: str,
+        title: str = 'Rule error',
+        status_code: int = 422,
+        error_code: str = 'RULE_ERROR',
+        values: dict[str, Any] | None = None
+    ):
+        super().__init__(
+            message=message,
+            title=title,
+            status_code=status_code,
+            error_code=error_code,
+            values=values
+        )
+
 class UnsupportedFileFormatError(BaseError):
     def __init__(
         self,

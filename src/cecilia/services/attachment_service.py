@@ -1,8 +1,8 @@
 from cecilia.repositories import AttachmentRepository
 from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic
-from cecilia.models.tables import Attachment
+from cecilia.models.tables import Attachment, Message
 from collections.abc import Sequence
-from cecilia.core.exceptions import NotFoundError, UnsupportedFileFormatError
+from cecilia.core.exceptions import NotFoundError, UnsupportedFileFormatError, RuleError
 
 class AttachmentService:
     ACCEPTED_FILE_TYPES = {
@@ -45,14 +45,22 @@ class AttachmentService:
     def index(self, offset: int = 0, limit: int = 100) -> Sequence[Attachment]:
         return self.attachment_repository.index(offset, limit)
 
-    def create(self, attachment: AttachmentCreate) -> AttachmentPublic:
-        self.validate_mime_type(attachment.mime_type)
-        
-        db_attachment = self.attachment_repository.create(attachment)
+    def create(self, attachment: AttachmentCreate, message: Message) -> AttachmentPublic:
+        if not message.is_user:
+            raise RuleError(
+                message = 'Attachments can only be added to user messages',
+                values={
+                    "message_role": 'user' if message.is_user else 'assistant'
+                }
+            )
 
+        self.validate_mime_type(attachment.mime_type)
+        db_attachment = self.attachment_repository.create(attachment)
         return self._to_attachment_public(db_attachment)
 
-    def create_list(self, attachments: list[AttachmentCreate]) -> list[Attachment]:
+    def create_list(self, attachments: list[AttachmentCreate], message: Message) -> list[Attachment]:
+        self.validate_message_role(message)
+
         # Validate the file
         for attachment in attachments:
             self.validate_mime_type(attachment.mime_type)
@@ -60,6 +68,15 @@ class AttachmentService:
         db_attachments = self.attachment_repository.create_list(attachments)
             
         return db_attachments
+
+    def validate_message_role(self, message: Message):
+        if not message.is_user:
+            raise RuleError(
+                message = 'Attachments can only be added to user messages',
+                values={
+                    "message_role": 'user' if message.is_user else 'assistant'
+                }
+            )
 
     def validate_mime_type(self, mime_type: str):
         if not mime_type in self.ACCEPTED_MIME_TYPES:
