@@ -13,5 +13,4 @@ class AttachmentPublic(AttachmentBase):
     created_at: datetime
 
 class AttachmentCreate(AttachmentBase):
-    filename: uuid.UUID
-    path: str
+    pass
