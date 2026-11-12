@@ -18,7 +18,6 @@ def create_message(
     )
 
     db_message = message_service.create(db_message_create)
-
     return db_message
 
 @router.get("", response_model=list[MessagePublic])

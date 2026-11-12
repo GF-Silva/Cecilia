@@ -18,10 +18,10 @@ class MessageRepository:
         ).all()
 
     def show(self, id: int, chat_id: UUID) -> Message | None:
-        return self.session.get(Message, {
-            "chat_id": chat_id,
-            "id": id
-        })
+        return self.session.exec(
+            select(Message)
+            .where(Message.id == id and Message.chat_id == chat_id)
+        ).one_or_none()
 
     def get_all_by_chat_id(self, chat_id: UUID, limit: int = 100, offset: int = 0) -> Sequence[Message]:
         return self.session.exec(

@@ -29,7 +29,7 @@ class Reasoning(ReasoningBase, table=True):
 
 class Message(MessageBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    chat_id: uuid.UUID = Field(foreign_key="chat.id", primary_key=True)
+    chat_id: uuid.UUID = Field(foreign_key="chat.id")
     attachments: list[Attachment] | None = Relationship(back_populates="message", cascade_delete=True)
     reasonings: list[Reasoning] | None = Relationship(back_populates='message', cascade_delete=True)
 
