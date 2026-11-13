@@ -15,12 +15,20 @@ from cecilia.integrations import Completions, R2, r2_manager
 # Use cases
 from cecilia.use_cases import CreateAttachmentsUseCase, SendChatMessagesUseCase
 
+# Collectors
+from cecilia.collectors import CompletionCollector
+
+# Builders
+from cecilia.builders import DBToOpenrouterMessageBuilder
+
 # Adapters
 from cecilia.adapters.ffprobe.ffprobe_adapter import FFProbeAdapter
 
 # Python libs
 from fastapi import Depends
 from typing import Annotated
+
+# TODO: Separar as dependencies em diversos arquivos de alto nivel nas suas respectivas classes
 
 def get_chat_repository(session: SessionDep):
     yield ChatRepository(session)
@@ -73,20 +81,32 @@ def get_create_attachments_use_case(
 def get_reasoning_service(reasoning_repository: ReasoningRepository = Depends(get_reasoning_repository)):
     yield ReasoningService(reasoning_repository)
 
+def get_completion_collector(
+    message_service: MessageServiceDep,
+    reasoning_service: ReasoningServiceDep
+):
+    yield CompletionCollector(message_service=message_service, reasoning_service=reasoning_service)
+
+def get_db_to_openrouter_message_builder(
+    r2_integration: R2IntegrationDep
+):
+    yield DBToOpenrouterMessageBuilder(r2_integration=r2_integration)
+
 def get_send_chat_messages_use_case(
     completions_integration: HCAICompletionIntegrationDep,
     message_service: MessageServiceDep,
-    r2_integration: R2IntegrationDep,
-    reasoning_service: ReasoningService = Depends(get_reasoning_service)
+    completion_collector: CompletionCollector = Depends(get_completion_collector),
+    db_to_openrouter_message_builder: DBToOpenrouterMessageBuilder = Depends(get_db_to_openrouter_message_builder)
 ):
     yield SendChatMessagesUseCase(
         completions_integration=completions_integration,
         message_service=message_service,
-        r2_integration=r2_integration,
-        reasoning_service=reasoning_service
+        db_to_openrouter_message_builder=db_to_openrouter_message_builder,
+        completion_collector=completion_collector
     )
 
 MessageServiceDep = Annotated[MessageService, Depends(get_message_service)]
+ReasoningServiceDep = Annotated[ReasoningService, Depends(get_reasoning_service)]
 ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]
 AttachmentServiceDep = Annotated[AttachmentService, Depends(get_attachment_service)]
 HCAICompletionIntegrationDep = Annotated[Completions, Depends(get_hcai_completion_integration)]

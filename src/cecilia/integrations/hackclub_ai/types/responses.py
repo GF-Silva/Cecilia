@@ -19,6 +19,11 @@ class Event(StrEnum):
     REASONING = 'reasoning'
 
 @dataclass
+class Response:
+    text: str | None = None
+    reasonings: list[Reasoning] | None = None
+
+@dataclass
 class SSEResponse:
     event: Event
     chunk: str | None = None
