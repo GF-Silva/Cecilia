@@ -9,7 +9,7 @@ from cecilia.services import MessageService, ReasoningService
 # Integrations
 from cecilia.integrations import Completions, R2
 from cecilia.integrations.hackclub_ai import errors as hcai_errors
-from cecilia.integrations.hackclub_ai.types.responses import Reasoning
+from cecilia.integrations.hackclub_ai.types.responses import Reasoning as HcaiReasoning
 from cecilia.integrations.hackclub_ai.types.messages import (
     Message as HcaiMessage, 
     TextContent, 
@@ -28,6 +28,11 @@ from cecilia.integrations.hackclub_ai.types.messages import (
 from cecilia.models.message_model import MessageCreate
 from cecilia.models.tables import Message as DBMessage
 from cecilia.models.reasoning_model import ReasoningCreate
+from cecilia.models.tables import (
+    Reasoning, 
+    Attachment as DBAttachment,
+    Message as DBMessage
+)
 
 # Others
 from .types import Response
@@ -57,9 +62,10 @@ class SendChatMessagesUseCase:
         if not db_messages:
             raise hcai_errors.MessagesEmptyError(db_messages)
 
-        messages = await self._db_to_hcai_messages(db_messages)
-
-        return
+        messages = [
+            await self._build_message(message)
+            for message in db_messages
+        ]
 
         stream = self.completions_integration.create(
             messages=messages,
@@ -67,7 +73,7 @@ class SendChatMessagesUseCase:
             effort=effort
         )
 
-        reasonings: list[Reasoning] = []
+        reasonings: list[HcaiReasoning] = []
         response = ""
         # TODO: This full response field is temporary and should / will be removed
         async for stream_event, full_response in stream:
@@ -96,91 +102,89 @@ class SendChatMessagesUseCase:
         db_reasonings = self._save_reasonings(reasonings, db_assistant_message.id)
         self.reasoning_service.create_list(db_reasonings)
 
-    async def _db_to_hcai_messages(self, db_messages: Sequence[DBMessage]) -> list[HcaiMessage]:
-        messages = []
+    async def _build_message(self, db_message: DBMessage):
+        reasonings = [
+            self._build_reasoning(reasoning)
+            for reasoning in db_message.reasonings
+            if reasoning.type in ['encrypted', 'summary', 'text']
+        ] if db_message.reasonings else None
 
-        for db_message in db_messages:
-            content: list[Content] = []
+        message = HcaiMessage(
+            role="user" if db_message.is_user else "assistant",
+            content=await self._build_content(db_message),
+            reasoning_details=reasonings
+        ) 
 
-            if db_message.text:
-                content.append(TextContent(
-                    text=db_message.text
-                ))
+        return message
 
-            if db_message.attachments:
-                for attachment in db_message.attachments:
-                    file_extension = mimetypes.guess_extension(attachment.mime_type)
-                    if not file_extension: continue
+    async def _build_content(self, db_message: DBMessage):
+        content: list[Content] = []
 
-                    if attachment.mime_type.startswith("audio/"):
-                        try:
-                            file_data = await self.r2_integration.get_file_data(attachment.path)
-                        except FileNotFoundError:
-                            # TODO: Aplicar a regra de negocio de invalidar o arquivo
-                            continue
+        if db_message.text:
+            content.append(TextContent(
+                text=db_message.text
+            ))
 
-                        base64_file = base64.b64encode(file_data).decode('utf-8')
+        attachments = [
+            attachment
+            for db_attachment in db_message.attachments
+            if (attachment := await self._build_attachment(db_attachment)) is not None
+        ] if db_message.attachments else None
+        if attachments: content += attachments
 
-                        content.append(AudioContent(
-                            input_audio=Audio(
-                                format=file_extension.lstrip('.'),
-                                data=base64_file
-                            )
-                        ))
+        return content
 
-                    if attachment.mime_type.startswith("image/"):
-                        try:
-                            presigned_url = await self.r2_integration.generate_presigned_get_url(
-                                path=attachment.path
-                            )
-                        except FileNotFoundError:
-                            # TODO: Aplicar a regra de negocio de invalidar o arquivo
-                            continue
+    async def _build_attachment(self, db_attachment: DBAttachment) -> Content | None:
+        file_extension = mimetypes.guess_extension(db_attachment.mime_type)
 
-                        if not presigned_url: continue # TODO: Must invalidate the file into db
+        if not file_extension: print("mime"); return
 
-                        content.append(ImageContent(
-                            image_url=ImageUrl(url=presigned_url)
-                        ))
+        if db_attachment.mime_type.startswith("audio/"):
+            try:
+                file_data = await self.r2_integration.get_file_data(db_attachment.path)
+            except FileNotFoundError:
+                # TODO: Aplicar a regra de negocio de invalidar o arquivo
+                return
 
-            reasonings = [
-                TextReasoning(
-                    format=reasoning.format,
-                    id=reasoning.reasoning_id,
-                    index=reasoning.index,
-                    text=reasoning.text,
-                    signature=reasoning.signature
-                ) if reasoning.type == 'text' 
+            base64_file = base64.b64encode(file_data).decode('utf-8')
 
-                else SummaryReasoning(
-                    format=reasoning.format,
-                    id=reasoning.reasoning_id,
-                    index=reasoning.index,
-                    summary=reasoning.text or ''
-                ) if reasoning.type == 'summary'
-
-                else EncryptedReasoning(
-                    format=reasoning.format,
-                    id=reasoning.reasoning_id,
-                    index=reasoning.index,
-                    data=reasoning.encrypted_data or ''
+            return AudioContent(
+                input_audio=Audio(
+                    format=file_extension.lstrip('.'),
+                    data=base64_file
                 )
+            )
 
-                for reasoning in db_message.reasonings
-                if reasoning.type in ['encrypted', 'summary', 'text']
-            ] if db_message.reasonings else None
+        if db_attachment.mime_type.startswith("image/"):
+            try:
+                presigned_url = await self.r2_integration.generate_presigned_get_url(
+                    path=db_attachment.path
+                )
+            except FileNotFoundError:
+                # TODO: Aplicar a regra de negocio de invalidar o arquivo
+                return
 
-            message = HcaiMessage(
-                role="user" if db_message.is_user else "assistant",
-                content=content,
-                reasoning_details=reasonings
-            ) 
+            if not presigned_url: return # TODO: Must invalidate the file into db
 
-            messages.append(message)
+            return ImageContent(
+                image_url=ImageUrl(url=presigned_url)
+            )
 
-        return messages
+    def _build_reasoning(self, reasoning: Reasoning):
+        reasoning_data = {
+            "format": reasoning.format,
+            "id": reasoning.reasoning_id,
+            "index": reasoning.index
+        }
+
+        if reasoning.type == 'text':
+            return TextReasoning(**reasoning_data, text=reasoning.text, signature=reasoning.signature)
+        elif reasoning.type == 'summary':
+            return SummaryReasoning(**reasoning_data, summary=reasoning.text or '')
+        else:
+            return EncryptedReasoning(**reasoning_data, data=reasoning.encrypted_data or '')
     
-    def _save_reasonings(self, reasonings: list[Reasoning], message_id: int):
+    def _save_reasonings(self, reasonings: list[HcaiReasoning], message_id: int):
         db_reasonings_create = []
 
         for reasoning in reasonings:
