@@ -18,7 +18,6 @@ class SaveAssistantAnswerUseCase:
         self.message_service = message_service
         self.reasoning_service = reasoning_service
         self.response: Response = Response()
-        self.response.reasonings = []
 
     def send_chunk(self, chunk: SSEResponse):
         if chunk.chunk:
@@ -28,38 +27,40 @@ class SaveAssistantAnswerUseCase:
                 self.response.text += chunk.chunk
 
         if chunk.reasoning:
-            # if not self.response.reasonings:
-            #     self.response.reasonings = chunk.reasoning
-            # else
-            #     self.response.reasonings.append(*chunk.reasoning)    
+            for reasoning in chunk.reasoning: self._handle_reasoning(reasoning)
 
-            for reasoning in chunk.reasoning:
-                last_el = self.response.reasonings[-1] if self.response.reasonings else None
+    def _handle_reasoning(self, reasoning: HcaiReasoning):
+        last_el = self.response.reasonings[-1] if self.response.reasonings else None
 
-                should_merge = last_el is not None and (
-                    last_el.type == reasoning.type
-                    and last_el.format == reasoning.format 
-                    and last_el.id == reasoning.id
-                    and last_el.index == reasoning.index
-                )
+        should_merge = last_el is not None and (
+            last_el.type == reasoning.type
+            and last_el.format == reasoning.format 
+            and last_el.id == reasoning.id
+            and last_el.index == reasoning.index
+        )
 
-                print(f"Should merge {should_merge}")
+        print(f"Should merge {should_merge}")
 
-                if not should_merge or not last_el:
-                    self.response.reasonings.append(HcaiReasoning(
-                        type=reasoning.type,
-                        text=reasoning.text,
-                        format=reasoning.format,
-                        index=reasoning.index,
-                        id=reasoning.id,
-                        signature=reasoning.signature,
-                        encrypted_data=reasoning.encrypted_data
-                    ))
-                    continue
-                    
-                last_el.text = last_el.text + reasoning.text if reasoning.text and last_el.text else last_el.text
-                last_el.signature = reasoning.signature if not last_el.signature else last_el.signature
-                last_el.encrypted_data = reasoning.encrypted_data if not last_el.encrypted_data else last_el.encrypted_data
+        if not should_merge or not last_el:
+            hcai_reasoning = HcaiReasoning(
+                type=reasoning.type,
+                text=reasoning.text,
+                format=reasoning.format,
+                index=reasoning.index,
+                id=reasoning.id,
+                signature=reasoning.signature,
+                encrypted_data=reasoning.encrypted_data
+            )
+
+            if self.response.reasonings is None:
+                self.response.reasonings = []
+
+            self.response.reasonings.append(hcai_reasoning)
+            return
+            
+        last_el.text = last_el.text + reasoning.text if reasoning.text and last_el.text else last_el.text
+        last_el.signature = reasoning.signature if not last_el.signature else last_el.signature
+        last_el.encrypted_data = reasoning.encrypted_data if not last_el.encrypted_data else last_el.encrypted_data
 
     def save(
         self,
