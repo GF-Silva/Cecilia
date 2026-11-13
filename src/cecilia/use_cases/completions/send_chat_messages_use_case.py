@@ -28,7 +28,11 @@ from cecilia.integrations.hackclub_ai.types.messages import (
 from cecilia.models.message_model import MessageCreate
 from cecilia.models.tables import Message as DBMessage
 from cecilia.models.reasoning_model import ReasoningCreate
-from cecilia.models.tables import Reasoning, Attachment as DBAttachment
+from cecilia.models.tables import (
+    Reasoning, 
+    Attachment as DBAttachment,
+    Message as DBMessage
+)
 
 # Others
 from .types import Response
@@ -58,7 +62,10 @@ class SendChatMessagesUseCase:
         if not db_messages:
             raise hcai_errors.MessagesEmptyError(db_messages)
 
-        messages = await self._db_to_hcai_messages(db_messages)
+        messages = [
+            await self._build_message(message)
+            for message in db_messages
+        ]
 
         stream = self.completions_integration.create(
             messages=messages,
@@ -95,39 +102,33 @@ class SendChatMessagesUseCase:
         db_reasonings = self._save_reasonings(reasonings, db_assistant_message.id)
         self.reasoning_service.create_list(db_reasonings)
 
-    async def _db_to_hcai_messages(self, db_messages: Sequence[DBMessage]) -> list[HcaiMessage]:
-        messages = []
+    async def _build_message(self, db_message: DBMessage):
+        content: list[Content] = []
+        if db_message.text:
+            content.append(TextContent(
+                text=db_message.text
+            ))
 
-        for db_message in db_messages:
-            content: list[Content] = []
+        attachments = [
+            attachment
+            for db_attachment in db_message.attachments
+            if (attachment := await self._build_attachment(db_attachment)) is not None
+        ] if db_message.attachments else None
+        if attachments: content += attachments
 
-            if db_message.text:
-                content.append(TextContent(
-                    text=db_message.text
-                ))
+        reasonings = [
+            self._build_reasoning(reasoning)
+            for reasoning in db_message.reasonings
+            if reasoning.type in ['encrypted', 'summary', 'text']
+        ] if db_message.reasonings else None
 
-            attachments = [
-                attachment
-                for db_attachment in db_message.attachments
-                if (attachment := await self._build_attachment(db_attachment)) is not None
-            ] if db_message.attachments else None
-            if attachments: content += attachments
+        message = HcaiMessage(
+            role="user" if db_message.is_user else "assistant",
+            content=content,
+            reasoning_details=reasonings
+        ) 
 
-            reasonings = [
-                self._build_reasoning(reasoning)
-                for reasoning in db_message.reasonings
-                if reasoning.type in ['encrypted', 'summary', 'text']
-            ] if db_message.reasonings else None
-
-            message = HcaiMessage(
-                role="user" if db_message.is_user else "assistant",
-                content=content,
-                reasoning_details=reasonings
-            ) 
-
-            messages.append(message)
-
-        return messages
+        return message
 
     async def _build_attachment(self, db_attachment: DBAttachment) -> Content | None:
         file_extension = mimetypes.guess_extension(db_attachment.mime_type)
