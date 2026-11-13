@@ -38,6 +38,20 @@ def error_handler(_, exception: exceptions.BaseError):
         content=error.model_dump(exclude_unset=True)
     )
 
+@app.exception_handler(Exception)
+def internal_error_handler(_, exception: Exception):
+    error = schemas.ErrorDetails(
+        title='Internal server Error',
+        status_code=500,
+        detail='Something unexpected happened, maybe try again after a while?',
+        type='INTERNAL_ERROR'
+    )
+
+    return JSONResponse(
+        status_code=error.status_code,
+        content=error.model_dump(exclude_unset=True)
+    )
+
 
 @app.exception_handler(TimeoutException)
 async def read_timeout_handler(request: Request, exception: TimeoutException):
