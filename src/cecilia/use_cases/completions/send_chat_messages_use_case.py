@@ -28,7 +28,7 @@ from cecilia.integrations.hackclub_ai.types.messages import (
 from cecilia.models.message_model import MessageCreate
 from cecilia.models.tables import Message as DBMessage
 from cecilia.models.reasoning_model import ReasoningCreate
-from cecilia.models.tables import Reasoning
+from cecilia.models.tables import Reasoning, Attachment as DBAttachment
 
 # Others
 from .types import Response
@@ -106,41 +106,12 @@ class SendChatMessagesUseCase:
                     text=db_message.text
                 ))
 
-            if db_message.attachments:
-                for attachment in db_message.attachments:
-                    file_extension = mimetypes.guess_extension(attachment.mime_type)
-                    if not file_extension: continue
-
-                    if attachment.mime_type.startswith("audio/"):
-                        try:
-                            file_data = await self.r2_integration.get_file_data(attachment.path)
-                        except FileNotFoundError:
-                            # TODO: Aplicar a regra de negocio de invalidar o arquivo
-                            continue
-
-                        base64_file = base64.b64encode(file_data).decode('utf-8')
-
-                        content.append(AudioContent(
-                            input_audio=Audio(
-                                format=file_extension.lstrip('.'),
-                                data=base64_file
-                            )
-                        ))
-
-                    if attachment.mime_type.startswith("image/"):
-                        try:
-                            presigned_url = await self.r2_integration.generate_presigned_get_url(
-                                path=attachment.path
-                            )
-                        except FileNotFoundError:
-                            # TODO: Aplicar a regra de negocio de invalidar o arquivo
-                            continue
-
-                        if not presigned_url: continue # TODO: Must invalidate the file into db
-
-                        content.append(ImageContent(
-                            image_url=ImageUrl(url=presigned_url)
-                        ))
+            attachments = [
+                attachment
+                for db_attachment in db_message.attachments
+                if (attachment := await self._build_attachment(db_attachment)) is not None
+            ] if db_message.attachments else None
+            if attachments: content += attachments
 
             reasonings = [
                 self._build_reasoning(reasoning)
@@ -157,6 +128,42 @@ class SendChatMessagesUseCase:
             messages.append(message)
 
         return messages
+
+    async def _build_attachment(self, db_attachment: DBAttachment) -> Content | None:
+        file_extension = mimetypes.guess_extension(db_attachment.mime_type)
+
+        if not file_extension: print("mime"); return
+
+        if db_attachment.mime_type.startswith("audio/"):
+            try:
+                file_data = await self.r2_integration.get_file_data(db_attachment.path)
+            except FileNotFoundError:
+                # TODO: Aplicar a regra de negocio de invalidar o arquivo
+                return
+
+            base64_file = base64.b64encode(file_data).decode('utf-8')
+
+            return AudioContent(
+                input_audio=Audio(
+                    format=file_extension.lstrip('.'),
+                    data=base64_file
+                )
+            )
+
+        if db_attachment.mime_type.startswith("image/"):
+            try:
+                presigned_url = await self.r2_integration.generate_presigned_get_url(
+                    path=db_attachment.path
+                )
+            except FileNotFoundError:
+                # TODO: Aplicar a regra de negocio de invalidar o arquivo
+                return
+
+            if not presigned_url: return # TODO: Must invalidate the file into db
+
+            return ImageContent(
+                image_url=ImageUrl(url=presigned_url)
+            )
 
     def _build_reasoning(self, reasoning: Reasoning):
         reasoning_data = {
