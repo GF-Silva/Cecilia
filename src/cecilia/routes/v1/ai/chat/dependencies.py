@@ -13,7 +13,7 @@ from cecilia.services import ChatService, MessageService, AttachmentService, Rea
 from cecilia.integrations import Completions, R2, r2_manager
 
 # Use cases
-from cecilia.use_cases import CreateAttachmentsUseCase, SendChatMessagesUseCase
+from cecilia.use_cases import CreateAttachmentsUseCase, SendChatMessagesUseCase, SaveAssistantAnswerUseCase
 
 # Adapters
 from cecilia.adapters.ffprobe.ffprobe_adapter import FFProbeAdapter
@@ -21,6 +21,8 @@ from cecilia.adapters.ffprobe.ffprobe_adapter import FFProbeAdapter
 # Python libs
 from fastapi import Depends
 from typing import Annotated
+
+# TODO: Separar as dependencies em diversos arquivos de alto nivel nas suas respectivas classes
 
 def get_chat_repository(session: SessionDep):
     yield ChatRepository(session)
@@ -73,20 +75,27 @@ def get_create_attachments_use_case(
 def get_reasoning_service(reasoning_repository: ReasoningRepository = Depends(get_reasoning_repository)):
     yield ReasoningService(reasoning_repository)
 
+def get_save_assistant_answer_use_case(
+    message_service: MessageServiceDep,
+    reasoning_service: ReasoningServiceDep
+):
+    yield SaveAssistantAnswerUseCase(message_service=message_service, reasoning_service=reasoning_service)
+
 def get_send_chat_messages_use_case(
     completions_integration: HCAICompletionIntegrationDep,
     message_service: MessageServiceDep,
     r2_integration: R2IntegrationDep,
-    reasoning_service: ReasoningService = Depends(get_reasoning_service)
+    save_assistant_answer_use_case: SaveAssistantAnswerUseCase = Depends(get_save_assistant_answer_use_case)
 ):
     yield SendChatMessagesUseCase(
         completions_integration=completions_integration,
         message_service=message_service,
         r2_integration=r2_integration,
-        reasoning_service=reasoning_service
+        save_assistant_answer_use_case=save_assistant_answer_use_case
     )
 
 MessageServiceDep = Annotated[MessageService, Depends(get_message_service)]
+ReasoningServiceDep = Annotated[ReasoningService, Depends(get_reasoning_service)]
 ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]
 AttachmentServiceDep = Annotated[AttachmentService, Depends(get_attachment_service)]
 HCAICompletionIntegrationDep = Annotated[Completions, Depends(get_hcai_completion_integration)]

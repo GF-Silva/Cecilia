@@ -1,2 +1,3 @@
 from .create_attachments import CreateAttachmentsUseCase
 from .completions.send_chat_messages_use_case import SendChatMessagesUseCase
+from .completions.save_assistant_answer_use_case import SaveAssistantAnswerUseCase

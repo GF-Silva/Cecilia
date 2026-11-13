@@ -1,15 +1,14 @@
-from typing import Sequence
 from uuid import UUID
 import fastpybase64 as base64
 import mimetypes
 
 # Services
-from cecilia.services import MessageService, ReasoningService
+from cecilia.services import MessageService
 
 # Integrations
 from cecilia.integrations import Completions, R2
 from cecilia.integrations.hackclub_ai import errors as hcai_errors
-from cecilia.integrations.hackclub_ai.types.responses import Reasoning as HcaiReasoning
+from cecilia.integrations.hackclub_ai.types.responses import Reasoning as HcaiReasoning, SSEResponse
 from cecilia.integrations.hackclub_ai.types.messages import (
     Message as HcaiMessage, 
     TextContent, 
@@ -25,14 +24,15 @@ from cecilia.integrations.hackclub_ai.types.messages import (
 )
 
 # Models
-from cecilia.models.message_model import MessageCreate
 from cecilia.models.tables import Message as DBMessage
-from cecilia.models.reasoning_model import ReasoningCreate
 from cecilia.models.tables import (
     Reasoning, 
     Attachment as DBAttachment,
     Message as DBMessage
 )
+
+# use cases
+from .save_assistant_answer_use_case import SaveAssistantAnswerUseCase
 
 # Others
 from .types import Response
@@ -44,12 +44,12 @@ class SendChatMessagesUseCase:
         completions_integration: Completions,
         message_service: MessageService,
         r2_integration: R2,
-        reasoning_service: ReasoningService
+        save_assistant_answer_use_case: SaveAssistantAnswerUseCase
     ):
         self.message_service = message_service
         self.completions_integration = completions_integration
         self.r2_integration = r2_integration
-        self.reasoning_service = reasoning_service
+        self.save_assistant_answer_use_case = save_assistant_answer_use_case
 
     async def __call__(
         self,
@@ -73,15 +73,10 @@ class SendChatMessagesUseCase:
             effort=effort
         )
 
-        reasonings: list[HcaiReasoning] = []
-        response = ""
+        responses: list[SSEResponse] = []
         # TODO: This full response field is temporary and should / will be removed
         async for stream_event, full_response in stream:
-            if stream_event.event == "finished":
-                response = full_response
-
-            if stream_event.reasoning:
-                reasonings.append(*stream_event.reasoning)
+            responses.append(stream_event)
 
             yield Response(
                 event=stream_event.event,
@@ -91,16 +86,12 @@ class SendChatMessagesUseCase:
                     for reasoning in stream_event.reasoning
                     if reasoning.text
                 ] if stream_event.reasoning else None
-            ), response
+            ), ''
 
-        db_assistant_message = self.message_service.create(MessageCreate(
-            chat_id=chat_id,
-            is_user=False,
-            text=response
-        ))
-
-        db_reasonings = self._save_reasonings(reasonings, db_assistant_message.id)
-        self.reasoning_service.create_list(db_reasonings)
+        self.save_assistant_answer_use_case(
+            assistant_answer=responses,
+            chat_id=chat_id
+        )
 
     async def _build_message(self, db_message: DBMessage):
         reasonings = [
@@ -183,34 +174,3 @@ class SendChatMessagesUseCase:
             return SummaryReasoning(**reasoning_data, summary=reasoning.text or '')
         else:
             return EncryptedReasoning(**reasoning_data, data=reasoning.encrypted_data or '')
-    
-    def _save_reasonings(self, reasonings: list[HcaiReasoning], message_id: int):
-        db_reasonings_create = []
-
-        for reasoning in reasonings:
-            last_el = db_reasonings_create[-1] if db_reasonings_create else None
-            should_merge = last_el is not None and (
-                last_el.type == reasoning.type
-                and last_el.format == reasoning.format 
-                and last_el.reasoning_id == reasoning.id
-                and last_el.index == reasoning.index
-            )
-
-            if not should_merge or not last_el:
-                db_reasonings_create.append(ReasoningCreate(
-                    type=reasoning.type,
-                    text=reasoning.text,
-                    format=reasoning.format,
-                    index=reasoning.index,
-                    reasoning_id=reasoning.id,
-                    signature=reasoning.signature,
-                    message_id=message_id,
-                    encrypted_data=reasoning.encrypted_data
-                ))
-                continue
-                
-            last_el.text = last_el.text + reasoning.text if reasoning.text and last_el.text else last_el.text
-            last_el.signature = reasoning.signature if not last_el.signature else last_el.signature
-            last_el.encrypted_data = reasoning.encrypted_data if not last_el.encrypted_data else last_el.encrypted_data
-            
-        return db_reasonings_create
