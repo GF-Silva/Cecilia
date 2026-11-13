@@ -71,6 +71,32 @@ class NotFoundError(BaseError):
             values=values
         )
 
+class FileNotFoundError(NotFoundError):
+    def __init__(
+        self, 
+        resource: str = 'storage', 
+        item: Any = 'file', 
+        status_code: int = 404,
+        title: str = "Resource not found",
+        error_code: str = "NOT_FOUND", 
+        values: dict[str, Any] | None = None
+    ):
+        self.title = title
+        self.resource = resource
+        self.status_code = status_code
+        self.item = item
+        self.error_code = error_code
+        self.values = values
+
+        super().__init__(
+            title=title,
+            resource=resource,
+            item=item,
+            status_code=status_code,
+            error_code=error_code,
+            values=values
+        )
+
 class ValueError(BaseError):
     def __init__(
         self,

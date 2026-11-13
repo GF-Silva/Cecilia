@@ -31,6 +31,7 @@ from cecilia.models.reasoning_model import ReasoningCreate
 
 # Others
 from .types import Response
+from cecilia.core.exceptions import FileNotFoundError
 
 class SendChatMessagesUseCase:
     def __init__(
@@ -57,6 +58,8 @@ class SendChatMessagesUseCase:
             raise hcai_errors.MessagesEmptyError(db_messages)
 
         messages = await self._db_to_hcai_messages(db_messages)
+
+        return
 
         stream = self.completions_integration.create(
             messages=messages,
@@ -110,7 +113,12 @@ class SendChatMessagesUseCase:
                     if not file_extension: continue
 
                     if attachment.mime_type.startswith("audio/"):
-                        file_data = await self.r2_integration.get_file_data(attachment.path)
+                        try:
+                            file_data = await self.r2_integration.get_file_data(attachment.path)
+                        except FileNotFoundError:
+                            # TODO: Aplicar a regra de negocio de invalidar o arquivo
+                            continue
+
                         base64_file = base64.b64encode(file_data).decode('utf-8')
 
                         content.append(AudioContent(
@@ -121,9 +129,15 @@ class SendChatMessagesUseCase:
                         ))
 
                     if attachment.mime_type.startswith("image/"):
-                        presigned_url = await self.r2_integration.generate_presigned_get_url(
-                            key=attachment.path
-                        )
+                        try:
+                            presigned_url = await self.r2_integration.generate_presigned_get_url(
+                                path=attachment.path
+                            )
+                        except FileNotFoundError:
+                            # TODO: Aplicar a regra de negocio de invalidar o arquivo
+                            continue
+
+                        if not presigned_url: continue # TODO: Must invalidate the file into db
 
                         content.append(ImageContent(
                             image_url=ImageUrl(url=presigned_url)
