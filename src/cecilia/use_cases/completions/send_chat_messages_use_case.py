@@ -103,7 +103,23 @@ class SendChatMessagesUseCase:
         self.reasoning_service.create_list(db_reasonings)
 
     async def _build_message(self, db_message: DBMessage):
+        reasonings = [
+            self._build_reasoning(reasoning)
+            for reasoning in db_message.reasonings
+            if reasoning.type in ['encrypted', 'summary', 'text']
+        ] if db_message.reasonings else None
+
+        message = HcaiMessage(
+            role="user" if db_message.is_user else "assistant",
+            content=await self._build_content(db_message),
+            reasoning_details=reasonings
+        ) 
+
+        return message
+
+    async def _build_content(self, db_message: DBMessage):
         content: list[Content] = []
+
         if db_message.text:
             content.append(TextContent(
                 text=db_message.text
@@ -116,19 +132,7 @@ class SendChatMessagesUseCase:
         ] if db_message.attachments else None
         if attachments: content += attachments
 
-        reasonings = [
-            self._build_reasoning(reasoning)
-            for reasoning in db_message.reasonings
-            if reasoning.type in ['encrypted', 'summary', 'text']
-        ] if db_message.reasonings else None
-
-        message = HcaiMessage(
-            role="user" if db_message.is_user else "assistant",
-            content=content,
-            reasoning_details=reasonings
-        ) 
-
-        return message
+        return content
 
     async def _build_attachment(self, db_attachment: DBAttachment) -> Content | None:
         file_extension = mimetypes.guess_extension(db_attachment.mime_type)
