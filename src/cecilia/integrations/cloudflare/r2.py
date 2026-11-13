@@ -2,6 +2,7 @@ from types_aiobotocore_s3 import S3Client
 from aiobotocore.session import get_session
 from contextlib import AsyncExitStack
 from cecilia.core.settings import settings
+from cecilia.core.exceptions import FileNotFoundError, InternalError
 
 class R2Manager:
     def __init__(self):
@@ -44,14 +45,26 @@ class R2:
 
         return files
 
-    async def get_file_data(self, path: str, bucket: str = settings.r2.bucket, max: int | None = None) -> bytes:
-        file = await self.client.get_object(
-            Bucket=bucket,
-            Key=path
-        )
+    async def get_file_data(self, path: str, bucket: str = settings.r2.bucket, max: int | None = None) -> bytes | None:
+        try:
+            file = await self.client.get_object(
+                Bucket=bucket,
+                Key=path
+            )
 
-        async with file['Body'] as stream:
-            return await stream.read(max)
+            async with file['Body'] as stream:
+                return await stream.read(max)
+
+        except self.client.exceptions.NoSuchKey:
+            raise FileNotFoundError(
+                values={
+                    "path": path
+                }
+            )
+
+        except Exception as err:
+            print("Erro: ", type(err))
+            raise InternalError()
 
     async def create_file(
         self, 
@@ -68,18 +81,31 @@ class R2:
         
         except Exception as err:
             print("R2 Integration - error: ", type(err))
+            raise InternalError()
 
     async def generate_presigned_get_url(
         self,
-        key: str,
+        path: str,
         bucket: str = settings.r2.bucket,
         expireTime: int = 3600
-    ) -> str:
-        return await self.client.generate_presigned_url(
-            ClientMethod="get_object",
-            Params={
-                "Bucket": bucket,
-                "Key": key
-            },
-            ExpiresIn=expireTime
-        )
+    ):
+        try:
+            return await self.client.generate_presigned_url(
+                ClientMethod="get_object",
+                Params={
+                    "Bucket": bucket,
+                    "Key": path
+                },
+                ExpiresIn=expireTime
+            )
+
+        except self.client.exceptions.NoSuchKey:
+            raise FileNotFoundError(
+                values={
+                    "path": path
+                }
+            )
+        
+        except Exception as err:
+            print("Erro na r2: ", type(err))
+            raise InternalError()
