@@ -73,10 +73,9 @@ class SendChatMessagesUseCase:
             effort=effort
         )
 
-        responses: list[SSEResponse] = []
         # TODO: This full response field is temporary and should / will be removed
         async for stream_event, full_response in stream:
-            responses.append(stream_event)
+            self.save_assistant_answer_use_case.send_chunk(stream_event)
 
             yield Response(
                 event=stream_event.event,
@@ -88,8 +87,7 @@ class SendChatMessagesUseCase:
                 ] if stream_event.reasoning else None
             ), ''
 
-        self.save_assistant_answer_use_case(
-            assistant_answer=responses,
+        self.save_assistant_answer_use_case.save(
             chat_id=chat_id
         )
 

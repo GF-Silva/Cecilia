@@ -1,7 +1,11 @@
 from cecilia.services import MessageService, ReasoningService
 from cecilia.models.reasoning_model import ReasoningCreate
 from cecilia.models.message_model import MessageCreate
-from cecilia.integrations.hackclub_ai.types.responses import Reasoning as HcaiReasoning, SSEResponse
+from cecilia.integrations.hackclub_ai.types.responses import (
+    Reasoning as HcaiReasoning, 
+    SSEResponse,
+    Response
+)
 
 import uuid
 
@@ -13,59 +17,75 @@ class SaveAssistantAnswerUseCase:
     ):
         self.message_service = message_service
         self.reasoning_service = reasoning_service
+        self.response: Response = Response()
+        self.response.reasonings = []
 
-    def __call__(
-        self, 
-        assistant_answer: list[SSEResponse],
+    def send_chunk(self, chunk: SSEResponse):
+        if chunk.chunk:
+            if not self.response.text:
+                self.response.text = chunk.chunk
+            else:
+                self.response.text += chunk.chunk
+
+        if chunk.reasoning:
+            # if not self.response.reasonings:
+            #     self.response.reasonings = chunk.reasoning
+            # else
+            #     self.response.reasonings.append(*chunk.reasoning)    
+
+            for reasoning in chunk.reasoning:
+                last_el = self.response.reasonings[-1] if self.response.reasonings else None
+
+                should_merge = last_el is not None and (
+                    last_el.type == reasoning.type
+                    and last_el.format == reasoning.format 
+                    and last_el.id == reasoning.id
+                    and last_el.index == reasoning.index
+                )
+
+                print(f"Should merge {should_merge}")
+
+                if not should_merge or not last_el:
+                    self.response.reasonings.append(HcaiReasoning(
+                        type=reasoning.type,
+                        text=reasoning.text,
+                        format=reasoning.format,
+                        index=reasoning.index,
+                        id=reasoning.id,
+                        signature=reasoning.signature,
+                        encrypted_data=reasoning.encrypted_data
+                    ))
+                    continue
+                    
+                last_el.text = last_el.text + reasoning.text if reasoning.text and last_el.text else last_el.text
+                last_el.signature = reasoning.signature if not last_el.signature else last_el.signature
+                last_el.encrypted_data = reasoning.encrypted_data if not last_el.encrypted_data else last_el.encrypted_data
+
+    def save(
+        self,
         chat_id: uuid.UUID
     ):
-        reasonings = []
-        response = ""
-        for chunk in assistant_answer:
-            if chunk.chunk:
-                response += chunk.chunk
-
-            if chunk.reasoning:
-                reasonings.append(*chunk.reasoning)
-
-        db_assistant_message = self.message_service.create(MessageCreate(
-            chat_id=chat_id,
+        db_message_create = MessageCreate(
             is_user=False,
-            text=response
-        ))
+            chat_id=chat_id,
+            text=self.response.text
+        )
 
-        db_reasonings = self._hcai_to_db_reasonings(reasonings, db_assistant_message.id)
-        self.reasoning_service.create_list(db_reasonings)
+        db_message_assistant = self.message_service.create(db_message_create)
 
-        return db_assistant_message
-
-    def _hcai_to_db_reasonings(self, reasonings: list[HcaiReasoning], message_id: int) -> list[ReasoningCreate]:
-        db_reasonings_create: list[ReasoningCreate] = []
-
-        for reasoning in reasonings:
-            last_el = db_reasonings_create[-1] if db_reasonings_create else None
-            should_merge = last_el is not None and (
-                last_el.type == reasoning.type
-                and last_el.format == reasoning.format 
-                and last_el.reasoning_id == reasoning.id
-                and last_el.index == reasoning.index
+        db_reasonings_create = [
+            ReasoningCreate(
+                text=reasoning.text,
+                message_id=db_message_assistant.id,
+                type=reasoning.type,
+                format=reasoning.format,
+                encrypted_data=reasoning.encrypted_data,
+                reasoning_id=reasoning.id,
+                signature=reasoning.signature,
+                index=reasoning.index
             )
+            for reasoning in self.response.reasonings
+        ] if self.response.reasonings else None
 
-            if not should_merge or not last_el:
-                db_reasonings_create.append(ReasoningCreate(
-                    type=reasoning.type,
-                    text=reasoning.text,
-                    format=reasoning.format,
-                    index=reasoning.index,
-                    reasoning_id=reasoning.id,
-                    signature=reasoning.signature,
-                    message_id=message_id,
-                    encrypted_data=reasoning.encrypted_data
-                ))
-                continue
-                
-            last_el.text = last_el.text + reasoning.text if reasoning.text and last_el.text else last_el.text
-            last_el.signature = reasoning.signature if not last_el.signature else last_el.signature
-            last_el.encrypted_data = reasoning.encrypted_data if not last_el.encrypted_data else last_el.encrypted_data
-            
-        return db_reasonings_create
+        if db_reasonings_create:
+            self.reasoning_service.create_list(db_reasonings_create)
