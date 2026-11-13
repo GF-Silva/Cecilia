@@ -9,7 +9,7 @@ from cecilia.integrations.hackclub_ai.types.responses import (
 
 import uuid
 
-class SaveAssistantAnswerUseCase:
+class CompletionCollector:
     def __init__(
         self,
         message_service: MessageService,
@@ -38,8 +38,6 @@ class SaveAssistantAnswerUseCase:
             and last_el.id == reasoning.id
             and last_el.index == reasoning.index
         )
-
-        print(f"Should merge {should_merge}")
 
         if not should_merge or not last_el:
             hcai_reasoning = HcaiReasoning(

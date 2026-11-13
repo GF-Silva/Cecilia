@@ -13,7 +13,10 @@ from cecilia.services import ChatService, MessageService, AttachmentService, Rea
 from cecilia.integrations import Completions, R2, r2_manager
 
 # Use cases
-from cecilia.use_cases import CreateAttachmentsUseCase, SendChatMessagesUseCase, SaveAssistantAnswerUseCase
+from cecilia.use_cases import CreateAttachmentsUseCase, SendChatMessagesUseCase
+
+# Collectors
+from cecilia.collectors import CompletionCollector
 
 # Builders
 from cecilia.builders import DBToOpenrouterMessageBuilder
@@ -78,11 +81,11 @@ def get_create_attachments_use_case(
 def get_reasoning_service(reasoning_repository: ReasoningRepository = Depends(get_reasoning_repository)):
     yield ReasoningService(reasoning_repository)
 
-def get_save_assistant_answer_use_case(
+def get_completion_collector(
     message_service: MessageServiceDep,
     reasoning_service: ReasoningServiceDep
 ):
-    yield SaveAssistantAnswerUseCase(message_service=message_service, reasoning_service=reasoning_service)
+    yield CompletionCollector(message_service=message_service, reasoning_service=reasoning_service)
 
 def get_db_to_openrouter_message_builder(
     r2_integration: R2IntegrationDep
@@ -92,14 +95,14 @@ def get_db_to_openrouter_message_builder(
 def get_send_chat_messages_use_case(
     completions_integration: HCAICompletionIntegrationDep,
     message_service: MessageServiceDep,
-    save_assistant_answer_use_case: SaveAssistantAnswerUseCase = Depends(get_save_assistant_answer_use_case),
+    completion_collector: CompletionCollector = Depends(get_completion_collector),
     db_to_openrouter_message_builder: DBToOpenrouterMessageBuilder = Depends(get_db_to_openrouter_message_builder)
 ):
     yield SendChatMessagesUseCase(
         completions_integration=completions_integration,
         message_service=message_service,
         db_to_openrouter_message_builder=db_to_openrouter_message_builder,
-        save_assistant_answer_use_case=save_assistant_answer_use_case
+        completion_collector=completion_collector
     )
 
 MessageServiceDep = Annotated[MessageService, Depends(get_message_service)]

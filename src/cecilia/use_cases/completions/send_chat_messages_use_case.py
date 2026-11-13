@@ -13,8 +13,8 @@ from cecilia.integrations.hackclub_ai.types.messages import (
 # Mappers
 from cecilia.builders import DBToOpenrouterMessageBuilder
 
-# use cases
-from .save_assistant_answer_use_case import SaveAssistantAnswerUseCase
+# Collectors
+from cecilia.collectors import CompletionCollector
 
 # Others
 from .types import Response
@@ -24,12 +24,12 @@ class SendChatMessagesUseCase:
         self,
         completions_integration: Completions,
         message_service: MessageService,
-        save_assistant_answer_use_case: SaveAssistantAnswerUseCase,
+        completion_collector: CompletionCollector,
         db_to_openrouter_message_builder: DBToOpenrouterMessageBuilder
     ):
         self.message_service = message_service
         self.completions_integration = completions_integration
-        self.save_assistant_answer_use_case = save_assistant_answer_use_case
+        self.completion_collector = completion_collector
         self.db_to_openrouter_message_builder = db_to_openrouter_message_builder
 
     async def __call__(
@@ -56,7 +56,7 @@ class SendChatMessagesUseCase:
 
         # TODO: This full response field is temporary and should / will be removed
         async for stream_event, full_response in stream:
-            self.save_assistant_answer_use_case.send_chunk(stream_event)
+            self.completion_collector.send_chunk(stream_event)
 
             yield Response(
                 event=stream_event.event,
@@ -68,6 +68,6 @@ class SendChatMessagesUseCase:
                 ] if stream_event.reasoning else None
             ), ''
 
-        self.save_assistant_answer_use_case.save(
+        self.completion_collector.save(
             chat_id=chat_id
         )
