@@ -8,7 +8,7 @@ from .schemas import ChatPayload
 from .dependencies import SendChatMessagesUseCaseDep
 from cecilia.core.exceptions import BaseError
 
-router = APIRouter(prefix="/completions")
+router = APIRouter(prefix="/completions", tags=['Completions'])
 
 @router.post("", response_class=EventSourceResponse)
 async def create_completion(

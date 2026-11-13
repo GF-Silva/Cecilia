@@ -6,7 +6,7 @@ from .dependencies import (
 
 from cecilia.models.chat_model import ChatCreate, ChatPublic
 
-router = APIRouter(prefix="/chats")
+router = APIRouter(prefix="/chats", tags=['Chat'])
 
 @router.post("", response_model=ChatPublic)
 def create_new_chat(

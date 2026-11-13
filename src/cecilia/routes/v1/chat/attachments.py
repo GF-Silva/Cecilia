@@ -4,7 +4,7 @@ from cecilia.models.attachment_model import AttachmentPublic
 from cecilia.models.tables import Message
 from .validations import get_message
 
-router = APIRouter(prefix="/attachments")
+router = APIRouter(prefix="/attachments", tags=['Attachments'])
 
 @router.post("", response_model=list[AttachmentPublic])
 async def create_attachment(

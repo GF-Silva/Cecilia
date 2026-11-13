@@ -4,7 +4,7 @@ from cecilia.models.message_model import MessageCreate, MessagePublic
 from .schemas import MessageCreatePayload
 from uuid import UUID
 
-router = APIRouter(prefix="/messages")
+router = APIRouter(prefix="/messages", tags=['Messages'])
 
 @router.post("", response_model=MessagePublic)
 def create_message(
