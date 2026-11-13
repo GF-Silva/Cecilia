@@ -15,6 +15,9 @@ from cecilia.integrations import Completions, R2, r2_manager
 # Use cases
 from cecilia.use_cases import CreateAttachmentsUseCase, SendChatMessagesUseCase, SaveAssistantAnswerUseCase
 
+# Builders
+from cecilia.builders import DBToOpenrouterMessageBuilder
+
 # Adapters
 from cecilia.adapters.ffprobe.ffprobe_adapter import FFProbeAdapter
 
@@ -81,16 +84,21 @@ def get_save_assistant_answer_use_case(
 ):
     yield SaveAssistantAnswerUseCase(message_service=message_service, reasoning_service=reasoning_service)
 
+def get_db_to_openrouter_message_builder(
+    r2_integration: R2IntegrationDep
+):
+    yield DBToOpenrouterMessageBuilder(r2_integration=r2_integration)
+
 def get_send_chat_messages_use_case(
     completions_integration: HCAICompletionIntegrationDep,
     message_service: MessageServiceDep,
-    r2_integration: R2IntegrationDep,
-    save_assistant_answer_use_case: SaveAssistantAnswerUseCase = Depends(get_save_assistant_answer_use_case)
+    save_assistant_answer_use_case: SaveAssistantAnswerUseCase = Depends(get_save_assistant_answer_use_case),
+    db_to_openrouter_message_builder: DBToOpenrouterMessageBuilder = Depends(get_db_to_openrouter_message_builder)
 ):
     yield SendChatMessagesUseCase(
         completions_integration=completions_integration,
         message_service=message_service,
-        r2_integration=r2_integration,
+        db_to_openrouter_message_builder=db_to_openrouter_message_builder,
         save_assistant_answer_use_case=save_assistant_answer_use_case
     )
 
