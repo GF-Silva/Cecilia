@@ -9,7 +9,7 @@ from cecilia.services import MessageService, ReasoningService
 # Integrations
 from cecilia.integrations import Completions, R2
 from cecilia.integrations.hackclub_ai import errors as hcai_errors
-from cecilia.integrations.hackclub_ai.types.responses import Reasoning
+from cecilia.integrations.hackclub_ai.types.responses import Reasoning as HcaiReasoning
 from cecilia.integrations.hackclub_ai.types.messages import (
     Message as HcaiMessage, 
     TextContent, 
@@ -28,6 +28,7 @@ from cecilia.integrations.hackclub_ai.types.messages import (
 from cecilia.models.message_model import MessageCreate
 from cecilia.models.tables import Message as DBMessage
 from cecilia.models.reasoning_model import ReasoningCreate
+from cecilia.models.tables import Reasoning
 
 # Others
 from .types import Response
@@ -59,15 +60,13 @@ class SendChatMessagesUseCase:
 
         messages = await self._db_to_hcai_messages(db_messages)
 
-        return
-
         stream = self.completions_integration.create(
             messages=messages,
             model=model,
             effort=effort
         )
 
-        reasonings: list[Reasoning] = []
+        reasonings: list[HcaiReasoning] = []
         response = ""
         # TODO: This full response field is temporary and should / will be removed
         async for stream_event, full_response in stream:
@@ -144,28 +143,7 @@ class SendChatMessagesUseCase:
                         ))
 
             reasonings = [
-                TextReasoning(
-                    format=reasoning.format,
-                    id=reasoning.reasoning_id,
-                    index=reasoning.index,
-                    text=reasoning.text,
-                    signature=reasoning.signature
-                ) if reasoning.type == 'text' 
-
-                else SummaryReasoning(
-                    format=reasoning.format,
-                    id=reasoning.reasoning_id,
-                    index=reasoning.index,
-                    summary=reasoning.text or ''
-                ) if reasoning.type == 'summary'
-
-                else EncryptedReasoning(
-                    format=reasoning.format,
-                    id=reasoning.reasoning_id,
-                    index=reasoning.index,
-                    data=reasoning.encrypted_data or ''
-                )
-
+                self._build_reasoning(reasoning)
                 for reasoning in db_message.reasonings
                 if reasoning.type in ['encrypted', 'summary', 'text']
             ] if db_message.reasonings else None
@@ -179,8 +157,22 @@ class SendChatMessagesUseCase:
             messages.append(message)
 
         return messages
+
+    def _build_reasoning(self, reasoning: Reasoning):
+        reasoning_data = {
+            "format": reasoning.format,
+            "id": reasoning.reasoning_id,
+            "index": reasoning.index
+        }
+
+        if reasoning.type == 'text':
+            return TextReasoning(**reasoning_data, text=reasoning.text, signature=reasoning.signature)
+        elif reasoning.type == 'summary':
+            return SummaryReasoning(**reasoning_data, summary=reasoning.text or '')
+        else:
+            return EncryptedReasoning(**reasoning_data, data=reasoning.encrypted_data or '')
     
-    def _save_reasonings(self, reasonings: list[Reasoning], message_id: int):
+    def _save_reasonings(self, reasonings: list[HcaiReasoning], message_id: int):
         db_reasonings_create = []
 
         for reasoning in reasonings:
