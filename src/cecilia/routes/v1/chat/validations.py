@@ -1,4 +1,4 @@
-from .dependencies import ChatServiceDep, MessageServiceDep
+from cecilia.services import ChatServiceDep, MessageServiceDep
 from pydantic import AfterValidator
 import re
 from typing import Annotated
