@@ -4,7 +4,7 @@ from cecilia.adapters.ffprobe.ffprobe_adapter import FFProbeAdapter
 from cecilia.models.attachment_model import AttachmentCreate
 from cecilia.models.tables import Message
 from cecilia.integrations.cloudflare.r2 import R2
-from cecilia.validators import ImageValidator
+from cecilia.validators import ImageValidator, AudioValidator
 from cecilia.core.exceptions import (
     UnsupportedFileFormatError, 
     FileTooBigError,
@@ -31,12 +31,14 @@ class CreateAttachmentsUseCase:
         attachment_service: AttachmentService,
         r2_integration: R2,
         ffprobe_adapter: FFProbeAdapter,
-        image_validator: ImageValidator
+        image_validator: ImageValidator,
+        audio_validator: AudioValidator
     ):
         self.attachment_service = attachment_service
         self.r2_integration = r2_integration
         self.ffprobe_adapter = ffprobe_adapter
         self.image_validator = image_validator
+        self.audio_validator = audio_validator
 
     async def __call__(
         self,
@@ -110,7 +112,7 @@ class CreateAttachmentsUseCase:
             
             # TODO: Adicionar yield aq pra processar em paralelo
             if mime_type.startswith('audio/'):
-                await self._process_audio(file.size, file_data, file.filename)
+                await asyncio.to_thread(self.audio_validator, file.file)
 
             elif mime_type.startswith('image/'):
                 await asyncio.to_thread(self.image_validator, file.file)
@@ -126,16 +128,4 @@ class CreateAttachmentsUseCase:
 
         return files_data
 
-    async def _process_audio(self, file_size: int, file_data: bytes, filename: str | None = None):
-        if file_size > self.r2_integration.MAX_AUDIO_SIZE:
-            raise FileTooBigError(
-                values = {
-                    "size": file_size,
-                    "filename": filename,
-                    "max_file_size": self.r2_integration.MAX_AUDIO_SIZE
-                }
-            )
-        
-        file_metadata = await self.ffprobe_adapter.validate_file_from_buffer(file_data)
-        self.attachment_service.validate_file_type(file_metadata.format.format_name)
     

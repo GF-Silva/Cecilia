@@ -22,7 +22,10 @@ from cecilia.collectors import CompletionCollector
 from cecilia.builders import DBToOpenrouterMessageBuilder
 
 # Adapters
-from cecilia.adapters.ffprobe.ffprobe_adapter import FFProbeAdapter
+from cecilia.adapters import FFProbeAdapterDep
+
+# Validators
+from cecilia.validators import AudioValidatorDep, ImageValidatorDep
 
 # Python libs
 from fastapi import Depends
@@ -68,15 +71,20 @@ def get_r2_integration():
     
     yield R2(r2_manager.client)
 
-def get_ffprobe_adapter():
-    yield FFProbeAdapter()
-
 def get_create_attachments_use_case(
     attachment_service: AttachmentServiceDep,
     r2_integration: R2IntegrationDep,
-    ffprobe_adapter: FFProbeAdapter = Depends(get_ffprobe_adapter)
+    ffprobe_adapter: FFProbeAdapterDep,
+    audio_validator: AudioValidatorDep,
+    image_validator: ImageValidatorDep
 ):
-    yield CreateAttachmentsUseCase(attachment_service, r2_integration, ffprobe_adapter)
+    yield CreateAttachmentsUseCase(
+        attachment_service, 
+        r2_integration, 
+        ffprobe_adapter, 
+        image_validator=image_validator,
+        audio_validator=audio_validator
+    )
 
 def get_reasoning_service(reasoning_repository: ReasoningRepository = Depends(get_reasoning_repository)):
     yield ReasoningService(reasoning_repository)
