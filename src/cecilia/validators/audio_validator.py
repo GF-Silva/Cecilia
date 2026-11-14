@@ -2,6 +2,7 @@ from cecilia.adapters import FFProbeAdapter
 from typing import BinaryIO
 from cecilia.core.exceptions import InvalidFileError
 from .errors import EmptyFileError, InvalidFileType
+from .responses import FileData
 import magic
 
 # TODO: Add more audio validations
@@ -31,3 +32,7 @@ class AudioValidator:
         if not file_metadata.format.duration or not file_metadata.format.duration > 0:
             raise InvalidFileError()
         
+        return FileData(
+            mime_type=mime_type,
+            stream=stream
+        )

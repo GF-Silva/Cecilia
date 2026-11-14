@@ -1,9 +1,10 @@
 from PIL import Image, UnidentifiedImageError
 from typing import BinaryIO
+import magic
 
 from cecilia.core.exceptions import InvalidFileError, FileTooBigError, InternalError
 from .errors import EmptyFileError, InvalidFileType
-import magic
+from .responses import FileData
 
 # TODO: Add more validations using magic / file content / etc
 class ImageValidator:
@@ -27,6 +28,11 @@ class ImageValidator:
         try:
             with Image.open(stream) as img:
                 img.verify()
+
+            return FileData(
+                stream=stream,
+                mime_type=mime_type
+            )
 
         except UnidentifiedImageError:
             raise InvalidFileError()
