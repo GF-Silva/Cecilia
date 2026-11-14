@@ -12,13 +12,13 @@ def get_attachment_repository(
     return AttachmentRepository(session)
 
 def get_message_repository(session: SessionDep):
-    yield MessageRepository(session)
+    return MessageRepository(session)
 
 def get_chat_repository(session: SessionDep):
-    yield ChatRepository(session)
+    return ChatRepository(session)
 
 def get_reasoning_repository(session: SessionDep):
-    yield ReasoningRepository(session)
+    return ReasoningRepository(session)
 
 AttachmentRepositoryDep = Annotated[AttachmentRepository, Depends(get_attachment_repository)]
 MessageRepositoryDep = Annotated[MessageRepository, Depends(get_message_repository)]
