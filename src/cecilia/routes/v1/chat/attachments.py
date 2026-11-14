@@ -1,5 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, Depends
-from .dependencies import AttachmentServiceDep, CreateAttachmentsUseCaseDep
+from cecilia.services import AttachmentServiceDep
+from cecilia.use_cases import CreateAttachmentsUseCaseDep
 from cecilia.models.attachment_model import AttachmentPublic
 from cecilia.models.tables import Message
 from .validations import get_message

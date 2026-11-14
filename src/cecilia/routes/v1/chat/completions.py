@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from uuid import UUID
 
 from .schemas import ChatPayload
-from .dependencies import SendChatMessagesUseCaseDep
+from cecilia.use_cases import SendChatMessagesUseCaseDep
 from cecilia.core.exceptions import BaseError
 
 router = APIRouter(prefix="/completions", tags=['Completions'])

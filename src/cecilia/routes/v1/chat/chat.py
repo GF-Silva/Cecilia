@@ -1,8 +1,6 @@
 from fastapi import APIRouter
 
-from .dependencies import (
-    ChatServiceDep
-)
+from cecilia.services import ChatServiceDep
 
 from cecilia.models.chat_model import ChatCreate, ChatPublic
 
