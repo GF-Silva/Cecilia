@@ -1,4 +1,7 @@
-from . import AttachmentRepository, MessageRepository, ChatRepository, ReasoningRepository
+from .attachment_repository import AttachmentRepository
+from .message_repository import MessageRepository
+from .chat_repository import ChatRepository
+from .reasoning_repository import ReasoningRepository
 from cecilia.core.database import SessionDep
 from fastapi import Depends
 from typing import Annotated
