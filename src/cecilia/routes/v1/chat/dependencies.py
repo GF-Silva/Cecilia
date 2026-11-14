@@ -6,7 +6,7 @@ from cecilia.core.exceptions import InternalError
 from cecilia.services import ChatServiceDep, MessageServiceDep, AttachmentServiceDep, ReasoningServiceDep
 
 # Integrations
-from cecilia.integrations import Completions, R2, r2_manager
+from cecilia.integrations import HCAICompletionIntegrationDep, R2IntegrationDep
 
 # Use cases
 from cecilia.use_cases import CreateAttachmentsUseCase, SendChatMessagesUseCase
@@ -28,19 +28,6 @@ from fastapi import Depends
 from typing import Annotated
 
 # TODO: Separar as dependencies em diversos arquivos de alto nivel nas suas respectivas classes
-
-def get_hcai_completion_integration():
-    yield Completions(
-        api_key=settings.hackclub_ai.api_key,
-        completions_url=settings.hackclub_ai.completions_url,
-        api_client=settings.api_client
-    )
-
-def get_r2_integration():
-    if not r2_manager.client:
-        raise InternalError()
-    
-    yield R2(r2_manager.client)
 
 def get_create_attachments_use_case(
     attachment_service: AttachmentServiceDep,
@@ -81,7 +68,5 @@ def get_send_chat_messages_use_case(
         completion_collector=completion_collector
     )
 
-HCAICompletionIntegrationDep = Annotated[Completions, Depends(get_hcai_completion_integration)]
-R2IntegrationDep = Annotated[R2, Depends(get_r2_integration)]
 CreateAttachmentsUseCaseDep = Annotated[CreateAttachmentsUseCase, Depends(get_create_attachments_use_case)]
 SendChatMessagesUseCaseDep = Annotated[SendChatMessagesUseCase, Depends(get_send_chat_messages_use_case)]
