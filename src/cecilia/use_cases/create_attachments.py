@@ -4,18 +4,17 @@ from cecilia.adapters.ffprobe.ffprobe_adapter import FFProbeAdapter
 from cecilia.models.attachment_model import AttachmentCreate
 from cecilia.models.tables import Message
 from cecilia.integrations.cloudflare.r2 import R2
+from cecilia.validators import ImageValidator, AudioValidator
 from cecilia.core.exceptions import (
     UnsupportedFileFormatError, 
     FileTooBigError,
-    InvalidFileError,
-    InternalError
+    InvalidFileError
 )
 
 from dataclasses import dataclass
-from PIL import Image, UnidentifiedImageError
 from fastapi import UploadFile
 import asyncio
-import magic
+import filetype
 
 @dataclass
 class FileData:
@@ -25,24 +24,26 @@ class FileData:
     filename: str | None = None
 
 class CreateAttachmentsUseCase:
-    MIME_VALIDATOR = magic.Magic(mime=True)
-
     def __init__(
         self,
         attachment_service: AttachmentService,
         r2_integration: R2,
-        ffprobe_adapter: FFProbeAdapter
+        ffprobe_adapter: FFProbeAdapter,
+        image_validator: ImageValidator,
+        audio_validator: AudioValidator
     ):
         self.attachment_service = attachment_service
         self.r2_integration = r2_integration
         self.ffprobe_adapter = ffprobe_adapter
+        self.image_validator = image_validator
+        self.audio_validator = audio_validator
 
     async def __call__(
         self,
         message_id: int,
         message: Message,
         files: list[UploadFile],
-    ):     
+    ):
         self.attachment_service.validate_message_role(message)
         files_data = await self._validate_files(files)
     
@@ -89,80 +90,35 @@ class CreateAttachmentsUseCase:
                     }
                 )
 
-            await file.seek(0)
-            file_data = await file.read()
+            file_type = filetype.guess(await file.read(2048))
 
-            # Valida se tem conteudo interno
-            if not file_data:
-                raise InvalidFileError(
-                    message = "Empty file"
-                )
-
-            mime_type = self.MIME_VALIDATOR.from_buffer(file_data)
-
+            if not file_type:
+                print("not file type")
+                raise InvalidFileError()
+            
             files_data.append(FileData(
                 file=file,
-                mime_type=mime_type,
+                mime_type=file_type.mime,
                 size=file.size,
                 filename=file.filename
             ))
             
             # TODO: Adicionar yield aq pra processar em paralelo
-            if mime_type.startswith('audio/'):
-                await self._process_audio(file.size, file_data, file.filename)
+            if file_type.mime.startswith('audio/'):
+                await self.audio_validator(file.file)
 
-            elif mime_type.startswith('image/'):
-                await self._validate_image(file)
+            elif file_type.mime.startswith('image/'):
+                await asyncio.to_thread(self.image_validator, file.file)
 
             else:
                 raise UnsupportedFileFormatError(
                     message="Unsuported file format",
                     values = {
-                        "format": mime_type,
+                        "format": file_type,
                         "filename": file.filename
                     }
                 )
 
         return files_data
 
-    async def _process_audio(self, file_size: int, file_data: bytes, filename: str | None = None):
-        if file_size > self.r2_integration.MAX_AUDIO_SIZE:
-            raise FileTooBigError(
-                values = {
-                    "size": file_size,
-                    "filename": filename,
-                    "max_file_size": self.r2_integration.MAX_AUDIO_SIZE
-                }
-            )
-        
-        file_metadata = await self.ffprobe_adapter.validate_file_from_buffer(file_data)
-        self.attachment_service.validate_file_type(file_metadata.format.format_name)
     
-    async def _validate_image(self, file: UploadFile):
-        if not file.size:
-            raise InvalidFileError(
-                message = "Empty file"
-            )
-        
-        if file.size > self.r2_integration.MAX_IMAGE_SIZE:
-            raise FileTooBigError(
-                values = {
-                    "size": file.size,
-                    "filename": file.filename,
-                    "max_file_size": self.r2_integration.MAX_FILE_SIZE
-                }
-            )
-        
-        try:
-            with Image.open(file.file) as img:
-                await asyncio.to_thread(img.verify)
-
-        except UnidentifiedImageError:
-            raise InvalidFileError()
-
-        except Image.DecompressionBombError:
-            raise FileTooBigError()
-
-        except Exception as err:
-            print("Attachments (CreateUseCase) - err: ", err)
-            raise InternalError()
