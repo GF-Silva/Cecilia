@@ -1,21 +1,16 @@
 from PIL import Image, UnidentifiedImageError
 from typing import BinaryIO
 
-from cecilia.services import AttachmentService
 from cecilia.core.exceptions import InvalidFileError, FileTooBigError, InternalError
 
+# TODO: Add more validations using magic / file content / etc
 class ImageValidator:    
-    def __init__(
-        self,
-        attachment_service: AttachmentService
-    ):
-        self.attachment_service = attachment_service
-
     def __call__(
         self,
         stream: BinaryIO
     ): 
         try:
+            stream.seek(0)
             with Image.open(stream) as img:
                 img.verify()
 
