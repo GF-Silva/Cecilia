@@ -17,7 +17,7 @@ def get_r2_integration():
     if not r2_manager.client:
         raise InternalError()
     
-    yield R2(r2_manager.client)
+    return R2(r2_manager.client)
 
 HCAICompletionIntegrationDep = Annotated[Completions, Depends(get_hcai_completion_integration)]
 R2IntegrationDep = Annotated[R2, Depends(get_r2_integration)]
