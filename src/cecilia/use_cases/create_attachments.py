@@ -93,6 +93,7 @@ class CreateAttachmentsUseCase:
             file_type = filetype.guess(await file.read(2048))
 
             if not file_type:
+                print("not file type")
                 raise InvalidFileError()
             
             files_data.append(FileData(
@@ -104,7 +105,7 @@ class CreateAttachmentsUseCase:
             
             # TODO: Adicionar yield aq pra processar em paralelo
             if file_type.mime.startswith('audio/'):
-                await asyncio.to_thread(self.audio_validator, file.file)
+                await self.audio_validator(file.file)
 
             elif file_type.mime.startswith('image/'):
                 await asyncio.to_thread(self.image_validator, file.file)
