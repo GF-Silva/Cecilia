@@ -23,7 +23,7 @@ class AudioValidator:
         
         mime_type = self.MIME_VALIDATOR.from_buffer(data)
 
-        if not mime_type.startswith('/audio'):
+        if not mime_type.startswith('audio/'):
             raise InvalidFileType(message='The file is not an audio')
 
         file_metadata = await self.ffprobe_adapter.validate_file_from_buffer(data)
