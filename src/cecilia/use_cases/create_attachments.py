@@ -14,7 +14,7 @@ from cecilia.core.exceptions import (
 from dataclasses import dataclass
 from fastapi import UploadFile
 import asyncio
-import magic
+import filetype
 
 @dataclass
 class FileData:
@@ -24,8 +24,6 @@ class FileData:
     filename: str | None = None
 
 class CreateAttachmentsUseCase:
-    MIME_VALIDATOR = magic.Magic(mime=True)
-
     def __init__(
         self,
         attachment_service: AttachmentService,
@@ -45,7 +43,7 @@ class CreateAttachmentsUseCase:
         message_id: int,
         message: Message,
         files: list[UploadFile],
-    ):     
+    ):
         self.attachment_service.validate_message_role(message)
         files_data = await self._validate_files(files)
     
@@ -92,36 +90,30 @@ class CreateAttachmentsUseCase:
                     }
                 )
 
-            await file.seek(0)
-            file_data = await file.read()
+            file_type = filetype.guess(await file.read(2048))
 
-            # Valida se tem conteudo interno
-            if not file_data:
-                raise InvalidFileError(
-                    message = "Empty file"
-                )
-
-            mime_type = self.MIME_VALIDATOR.from_buffer(file_data)
-
+            if not file_type:
+                raise InvalidFileError()
+            
             files_data.append(FileData(
                 file=file,
-                mime_type=mime_type,
+                mime_type=file_type.mime,
                 size=file.size,
                 filename=file.filename
             ))
             
             # TODO: Adicionar yield aq pra processar em paralelo
-            if mime_type.startswith('audio/'):
+            if file_type.mime.startswith('audio/'):
                 await asyncio.to_thread(self.audio_validator, file.file)
 
-            elif mime_type.startswith('image/'):
+            elif file_type.mime.startswith('image/'):
                 await asyncio.to_thread(self.image_validator, file.file)
 
             else:
                 raise UnsupportedFileFormatError(
                     message="Unsuported file format",
                     values = {
-                        "format": mime_type,
+                        "format": file_type,
                         "filename": file.filename
                     }
                 )

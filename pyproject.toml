@@ -11,6 +11,7 @@ dependencies = [
     "aiobotocore>=3.10.0",
     "fastapi[standard]>=0.143.0",
     "fastpybase64>=0.1.2",
+    "filetype>=1.2.0",
     "httpx>=0.28.1",
     "httpx-sse>=0.4.3",
     "pillow>=13.0.0",

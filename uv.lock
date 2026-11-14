@@ -230,6 +230,7 @@ dependencies = [
     { name = "aiobotocore" },
     { name = "fastapi", extra = ["standard"] },
     { name = "fastpybase64" },
+    { name = "filetype" },
     { name = "httpx" },
     { name = "httpx-sse" },
     { name = "pillow" },
@@ -247,6 +248,7 @@ requires-dist = [
     { name = "aiobotocore", specifier = ">=3.10.0" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.143.0" },
     { name = "fastpybase64", specifier = ">=0.1.2" },
+    { name = "filetype", specifier = ">=1.2.0" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "httpx-sse", specifier = ">=0.4.3" },
     { name = "pillow", specifier = ">=13.0.0" },
@@ -594,6 +596,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/7a/62/69528297c35560c546f05323efd1d089f92e0eb424352ca874cd87d439b7/fastpybase64-0.1.2-cp315-cp315t-musllinux_1_2_aarch64.whl", hash = "sha256:8ce6b096d1bedb18b6b81ea7fda102af2c3f4751520bd133dfbd69546dacdb4b", size = 1046197, upload-time = "2026-10-31T14:58:04.46Z" },
     { url = "https://files.pythonhosted.org/packages/11/90/73a2837024c6f63dbbb387a36422abe2d3a1519c8ee57fb644e5d4d04691/fastpybase64-0.1.2-cp315-cp315t-musllinux_1_2_x86_64.whl", hash = "sha256:e809c3fd6de48ad716cb24a19eb339ed17f5e7568a2de72514ac2e586bddda36", size = 1137114, upload-time = "2026-10-31T14:58:05.633Z" },
     { url = "https://files.pythonhosted.org/packages/f8/1d/5b406669918cee2f674eb1b7c6c533bb47cec59d869ba98bb7543c5a193f/fastpybase64-0.1.2-cp315-cp315t-win_amd64.whl", hash = "sha256:151cbabec8a32c3f8beab046fd015af939b2287834b529ee2687d3dbc99957a7", size = 68577, upload-time = "2026-10-31T14:58:06.86Z" },
+]
+
+[[package]]
+name = "filetype"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/29/745f7d30d47fe0f251d3ad3dc2978a23141917661998763bebb6da007eb1/filetype-1.2.0.tar.gz", hash = "sha256:66b56cd6474bf41d8c54660347d37afcc3f7d1970648de365c102ef77548aadb", size = 998020, upload-time = "2022-11-02T17:34:04.141Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/18/79/1b8fa1bb3568781e84c9200f951c735f3f157429f44be0495da55894d620/filetype-1.2.0-py2.py3-none-any.whl", hash = "sha256:7ce71b6880181241cf7ac8697a2f1eb6a8bd9b429f7ad6d27b8db9ba5f1c2d25", size = 19970, upload-time = "2022-11-02T17:34:01.425Z" },
 ]
 
 [[package]]
