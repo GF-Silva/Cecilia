@@ -4,7 +4,7 @@ from cecilia.core.settings import settings
 from cecilia.core.exceptions import InternalError
 
 # Repositories
-from cecilia.repositories import ChatRepository, MessageRepository, AttachmentRepository, ReasoningRepository
+from cecilia.repositories import ChatRepositoryDep, MessageRepositoryDep, AttachmentRepositoryDep, ReasoningRepositoryDep
 
 # Services
 from cecilia.services import ChatService, MessageService, AttachmentService, ReasoningService
@@ -33,28 +33,16 @@ from typing import Annotated
 
 # TODO: Separar as dependencies em diversos arquivos de alto nivel nas suas respectivas classes
 
-def get_chat_repository(session: SessionDep):
-    yield ChatRepository(session)
-
-def get_message_repository(session: SessionDep):
-    yield MessageRepository(session)
-
-def get_attachment_repository(session: SessionDep):
-    yield AttachmentRepository(session)
-
-def get_reasoning_repository(session: SessionDep):
-    yield ReasoningRepository(session)
-
-def get_chat_service(chat_repository: ChatRepository = Depends(get_chat_repository)):
+def get_chat_service(chat_repository: ChatRepositoryDep):
     yield ChatService(chat_repository)
 
 def get_message_service(
-        message_repository: MessageRepository = Depends(get_message_repository)
+        message_repository: MessageRepositoryDep
     ):
     yield MessageService(message_repository)
 
 def get_attachment_service(
-    attachment_repository: AttachmentRepository = Depends(get_attachment_repository)
+    attachment_repository: AttachmentRepositoryDep
 ):
     yield AttachmentService(attachment_repository)
 
@@ -86,7 +74,7 @@ def get_create_attachments_use_case(
         audio_validator=audio_validator
     )
 
-def get_reasoning_service(reasoning_repository: ReasoningRepository = Depends(get_reasoning_repository)):
+def get_reasoning_service(reasoning_repository: ReasoningRepositoryDep):
     yield ReasoningService(reasoning_repository)
 
 def get_completion_collector(
