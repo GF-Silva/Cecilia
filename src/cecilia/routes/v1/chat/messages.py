@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from .dependencies import MessageServiceDep
+from cecilia.services import MessageServiceDep
 from cecilia.models.message_model import MessageCreate, MessagePublic
 from .schemas import MessageCreatePayload
 from uuid import UUID
