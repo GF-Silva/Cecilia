@@ -1,13 +1,9 @@
 # Core elements
-from cecilia.core.database import SessionDep
 from cecilia.core.settings import settings
 from cecilia.core.exceptions import InternalError
 
-# Repositories
-from cecilia.repositories import ChatRepositoryDep, MessageRepositoryDep, AttachmentRepositoryDep, ReasoningRepositoryDep
-
 # Services
-from cecilia.services import ChatService, MessageService, AttachmentService, ReasoningService
+from cecilia.services import ChatServiceDep, MessageServiceDep, AttachmentServiceDep, ReasoningServiceDep
 
 # Integrations
 from cecilia.integrations import Completions, R2, r2_manager
@@ -32,19 +28,6 @@ from fastapi import Depends
 from typing import Annotated
 
 # TODO: Separar as dependencies em diversos arquivos de alto nivel nas suas respectivas classes
-
-def get_chat_service(chat_repository: ChatRepositoryDep):
-    yield ChatService(chat_repository)
-
-def get_message_service(
-        message_repository: MessageRepositoryDep
-    ):
-    yield MessageService(message_repository)
-
-def get_attachment_service(
-    attachment_repository: AttachmentRepositoryDep
-):
-    yield AttachmentService(attachment_repository)
 
 def get_hcai_completion_integration():
     yield Completions(
@@ -74,9 +57,6 @@ def get_create_attachments_use_case(
         audio_validator=audio_validator
     )
 
-def get_reasoning_service(reasoning_repository: ReasoningRepositoryDep):
-    yield ReasoningService(reasoning_repository)
-
 def get_completion_collector(
     message_service: MessageServiceDep,
     reasoning_service: ReasoningServiceDep
@@ -101,10 +81,6 @@ def get_send_chat_messages_use_case(
         completion_collector=completion_collector
     )
 
-MessageServiceDep = Annotated[MessageService, Depends(get_message_service)]
-ReasoningServiceDep = Annotated[ReasoningService, Depends(get_reasoning_service)]
-ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]
-AttachmentServiceDep = Annotated[AttachmentService, Depends(get_attachment_service)]
 HCAICompletionIntegrationDep = Annotated[Completions, Depends(get_hcai_completion_integration)]
 R2IntegrationDep = Annotated[R2, Depends(get_r2_integration)]
 CreateAttachmentsUseCaseDep = Annotated[CreateAttachmentsUseCase, Depends(get_create_attachments_use_case)]
