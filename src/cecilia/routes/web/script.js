@@ -2,13 +2,31 @@ import { fetchEventSource } from 'https://esm.sh/@microsoft/fetch-event-source';
 
 const messages = document.getElementById('messages');
 const prompt = document.getElementById('prompt');
-const navigator = document.getElementById('chat_nav');
+const navigatorOptions = document.getElementById('chat_nav__options');
 const uuidReg = /chats\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/
+let userId = get_user_id();
 let chatId = window.location.pathname.match(uuidReg)?.[1];
 
 if (chatId) {
     await buildContext(chatId);
     messages.scrollTop = messages.scrollHeight;
+}
+
+function get_user_id() {
+    // Pega o user salvo
+    const user = localStorage.getItem('user');
+
+    // N tem user, cria novo
+    if (!user) {
+        // cria o novo user
+        const newUserId = Math.round(Math.random() * 1000000000);
+        localStorage.setItem('user', JSON.stringify({
+            id: newUserId
+        }));
+        return newUserId;
+    }
+    
+    return JSON.parse(user)['id'];
 }
 
 prompt.addEventListener('keydown', (evt) => {
@@ -103,7 +121,7 @@ async function messageHandler(ev, message) {
 
 async function create_chat() {
     const body = {
-        user_id: 1
+        user_id: userId
     };
 
     const response = await fetch('/v1/chats', {
@@ -132,7 +150,7 @@ function add_chat_navigation(chatId) {
     link.textContent = chatId;
 
     option.append(link);
-    navigator.append(option);
+    navigatorOptions.append(option);
 }
 
 async function create_message(chatId, text) {
