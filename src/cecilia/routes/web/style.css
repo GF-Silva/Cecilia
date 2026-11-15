@@ -1,3 +1,7 @@
+:root {
+  interpolate-size: allow-keywords;
+}
+
 body {
     background-color: aliceblue;
     font-family: 'Times New Roman', Times, serif;
@@ -157,32 +161,24 @@ main {
     background-color: rgba(186, 135, 63, 0.235);
 }
 
-.display {
-    grid-area: messages;
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 80%;
-    height: 60%;
-    background-color: #ff8a5b;
-    border: 2px solid #000;
-    border-radius: 10px 10px 0 0;
-    margin: 0 10%;
-    padding: 2%;
-    overflow: auto;
-    max-height: 60%;
-    z-index: 100;
+.message__reasoning {
+    transition: transform 0.3s ease;
 }
 
-.display__exit {
-    position: absolute;
-    top: 0;
-    left: 0;
-    background-color: #f00;
-    border-width: 1px;
-    border-color: #000;
-    border-radius: 6px 0;
-    cursor: pointer;
+.message__reasoning__content {
+    background-color: #ff895b2e;
+    border: 1px #dc7d58 solid;
+    padding: 2%;
+}
+
+details::details-content {
+  height: 0;
+  overflow: clip;
+  transition: height 0.3s ease, content-visibility 0.3s ease allow-discrete;
+}
+
+details[open]::details-content {
+  height: auto;
 }
 
 header, footer, main, nav {

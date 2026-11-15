@@ -97,8 +97,8 @@ function createMessageEl(role, content, extra_data) {
                 reasoningText += reasoning.text ? reasoning.text : '';
             });
 
-            message.dataset.reasoning = message.dataset.reasoning ? message.dataset.reasoning + reasoningText : reasoningText
-            createReasoningAddBtn(message);
+            const [details, summary, content] = createReasoningAddBtn(message);
+            updateReasoning(details, content, summary, reasoningText);
         };
     }
 
@@ -114,38 +114,23 @@ function createMessageEl(role, content, extra_data) {
 }
 
 function createReasoningAddBtn(message) {
-    const reasoningOpener = document.createElement('button');
-    reasoningOpener.className = 'open_reasoning';
-    reasoningOpener.textContent = 'Open reasoning';
+    const details = document.createElement('details');
+    details.className = 'message__reasoning';
 
-    reasoningOpener.addEventListener('click', _ => {
-        createDisplay('Reasoning', marked.parse(message.dataset.reasoning));
-    });
+    const summary = document.createElement('summary');
+    summary.className = 'message__reasoning__summary';
 
-    message.append(reasoningOpener);
-}
+    const summaryTitle = document.createElement('span');
+    summaryTitle.textContent = 'Open reasoning';
 
-function createDisplay(title, content) {
-    const display = document.createElement('div');
-    display.className = 'display';
+    const content = document.createElement('div');
+    content.className = 'message__reasoning__content';
 
-    const titleEl = document.createElement('h2');
-    titleEl.textContent = title;
-    
-    const displayContent = document.createElement('div');
-    displayContent.className = 'display__content';
-    displayContent.innerHTML = content
-    
-    const exitBtn = document.createElement('button');
-    exitBtn.className = 'display__exit'
-    exitBtn.textContent = 'X';
+    summary.append(summaryTitle);
+    details.append(summary, content);
+    message.append(details);
 
-    exitBtn.addEventListener('click', evt => {
-        display.remove();
-    });
-
-    display.append(titleEl, displayContent, exitBtn);
-    mainEl.append(display);
+    return [details, summary, content];
 }
 
 function updateContent(content, text) {
@@ -169,6 +154,7 @@ async function create_completion(chatId) {
 
     const ctrl = new AbortController();
     const [assistantMessage, assistantContent] = createMessageEl('assistant');
+    let [reasoningEl, summaryEl, contentEl] = [];
 
     await fetchEventSource(`/v1/chats/${chatId}/completions`, {
         method: 'POST',
@@ -179,7 +165,10 @@ async function create_completion(chatId) {
         signal: ctrl.signal,
 
         onmessage(ev) {
-            messageHandler(ev, assistantContent, assistantMessage);
+            if (ev.event == 'reasoning' && !reasoningEl) {
+                [reasoningEl, summaryEl, contentEl] = createReasoningAddBtn(assistantMessage);
+            }
+            messageHandler(ev, assistantContent, assistantMessage, reasoningEl, summaryEl, contentEl);
         },
 
         onerror(err) {
@@ -188,22 +177,20 @@ async function create_completion(chatId) {
     });
 }
 
-async function messageHandler(ev, content, message) {
+function updateReasoning(res_el, res_content_el, res_summary_el, text) {
+    res_el.dataset.reasoning = res_el.dataset.reasoning ? res_el.dataset.reasoning + text : text;
+    res_content_el.innerHTML = marked.parse(res_el.dataset.reasoning);
+}
+
+async function messageHandler(ev, content, message, reasoningEl, summaryEl, contentEl) {
     const data = JSON.parse(ev.data);
     if (ev.event == 'message') {
         updateContent(content, data['chunk']);
     }
 
-    if (ev.event == 'reasoning') {
-        if (!message.dataset.reasoning) {
-            createReasoningAddBtn(message, data.reasoning.join('\n'));
-            message.dataset.reasoning = data['reasoning'].join('\n');
-        } else {
-            message.dataset.reasoning += data['reasoning'].join('\n');
-        }
+    if (ev.event == 'reasoning' && reasoningEl) {
+        updateReasoning(reasoningEl, contentEl, summaryEl, data['reasoning'].join('\n\n'));
     }
-
-    console.log(ev.event);
 }
 
 async function create_chat() {
