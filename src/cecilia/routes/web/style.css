@@ -47,8 +47,10 @@ header {
 
 footer {
     grid-area: footer;
-    background-color: #e0c8ef;
+    background-color: bisque;
     padding: .5%;
+    border-top: 2px solid #000;
+    display: flex;
 }
 
 main {
