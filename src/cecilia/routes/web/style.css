@@ -62,7 +62,7 @@ p {
     padding: .1% 2%;
     border: 2px #000 solid;
     overflow: auto;
-    min-height: 10vh;
+    min-height: fit-content;
 }
 
 .message__user {

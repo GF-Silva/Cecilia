@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from starlette.routing import WebSocketRoute
+import uuid
 import os
 import arel
 
@@ -51,6 +52,10 @@ app.mount('/static', StaticFiles(directory='src/cecilia/routes/web'), name='stat
 
 @app.get('/', response_class = HTMLResponse)
 async def index(request: Request):
+    return templates.TemplateResponse(request, 'index.html')
+
+@app.get('/chats/{chat_id}', response_class=HTMLResponse)
+async def chat(request: Request, chat_id: uuid.UUID):
     return templates.TemplateResponse(request, 'index.html')
 
 add_scalar_reference(app)

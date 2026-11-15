@@ -2,6 +2,12 @@ import { fetchEventSource } from 'https://esm.sh/@microsoft/fetch-event-source';
 
 const messages = document.getElementById('messages');
 const prompt = document.getElementById('prompt');
+const uuidReg = /chats\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/
+let chatId = window.location.pathname.match(uuidReg)?.[1];
+
+if (chatId) {
+    await buildContext(chatId);
+}
 
 prompt.addEventListener('keydown', (evt) => {
     if (evt.key != 'Enter' || evt.shiftKey || evt.isComposing) return;
@@ -16,6 +22,20 @@ prompt.addEventListener('keydown', (evt) => {
 
     prompt.value = '';
 })
+
+async function buildContext(chatId) {
+    const response = await fetch(`/v1/chats/${chatId}/messages`);
+
+    if (!response.ok) {
+        throw new Error('Falha iniciando context');
+    }
+
+    const data = await response.json();
+
+    data.forEach(msg => {
+        createMessage(msg['is_user'] ? 'user' : 'assistant', msg['text']);
+    });
+}
 
 function createMessage(role, content) {
     const message = document.createElement('div');
@@ -40,9 +60,9 @@ function updateContent(message, text) {
 async function send_prompt(text) {
     createMessage('user', text);
 
-    const chat = await create_chat();
-    const message = await create_message(chat['id'], text);
-    const completion = await create_completion(chat['id']);
+    chatId = chatId ? chatId : await create_chat();
+    const message = await create_message(chatId, text);
+    const completion = await create_completion(chatId);
 }
 
 async function create_completion(chatId) {
@@ -102,7 +122,7 @@ async function create_chat() {
 
     history.pushState(null, '', `/chats/${data['id']}`)
 
-    return data;
+    return data['id'];
 }
 
 async function create_message(chatId, text) {
