@@ -1,5 +1,6 @@
 import { fetchEventSource } from 'https://esm.sh/@microsoft/fetch-event-source';
 
+const mainEl = document.querySelector('main');
 const messages = document.getElementById('messages');
 const prompt = document.getElementById('prompt');
 const createNewChat = document.getElementById('create_new_chat');
@@ -77,13 +78,31 @@ async function buildContext(chatId) {
     const data = await response.json();
 
     data.forEach(msg => {
-        createMessage(msg['is_user'] ? 'user' : 'assistant', msg['text']);
+        createMessageEl(msg['is_user'] ? 'user' : 'assistant', msg['text'], msg);
     });
 }
 
-function createMessage(role, content) {
+function createMessageEl(role, content, extra_data) {
     const message = document.createElement('div');
     message.className = `message ${role == 'user' ? 'message__user' : 'message__assistant'}`;
+
+    if (role == 'assistant' && extra_data) {
+        // Process reasonings
+        if (extra_data['reasonings']) {
+            extra_data['reasonings'].forEach(reasoning => {    
+                if (reasoning.text) {
+                    message.dataset.reasoning = message.dataset.reasoning ? message.dataset.reasoning + reasoning.text : reasoning.text;
+                    const reasoningOpener = document.createElement('button');
+                    reasoningOpener.className = 'open_reasoning';
+                    reasoningOpener.addEventListener('click', _ => {
+                        createDisplay('Reasoning', marked.parse(message.dataset.reasoning));
+                    });
+
+                    message.append(reasoningOpener);
+                }
+            });
+        };
+    }
 
     const text = document.createElement('p');
     text.innerHTML = content ? marked.parse(content) : null;
@@ -95,13 +114,29 @@ function createMessage(role, content) {
     return message;
 }
 
+function createDisplay(title, content) {
+    const display = document.createElement('div');
+    display.className = 'display';
+
+    const titleEl = document.createElement('h2');
+    titleEl.textContent = title;
+    display.append(titleEl);
+
+    const displayContent = document.createElement('div');
+    displayContent.className = 'display__content';
+    displayContent.innerHTML = content
+    display.append(displayContent);
+
+    mainEl.append(display);
+}
+
 function updateContent(message, text) {
     message.dataset.text = message.dataset.text ? message.dataset.text + text : text;
     message.innerHTML = marked.parse(message.dataset.text);
 }
 
 async function send_prompt(text) {
-    createMessage('user', text);
+    createMessageEl('user', text);
 
     chatId = chatId ? chatId : await create_chat();
     const message = await create_message(chatId, text);
@@ -111,12 +146,12 @@ async function send_prompt(text) {
 async function create_completion(chatId) {
     const body = {
         model: 'google/gemini-3.1-flash-lite',
-        effort: 'none'
+        effort: 'medium'
     };
 
     const ctrl = new AbortController();
 
-    const assistantMessage = createMessage('assistant');
+    const assistantMessage = createMessageEl('assistant');
 
     await fetchEventSource(`/v1/chats/${chatId}/completions`, {
         method: 'POST',
@@ -137,9 +172,14 @@ async function create_completion(chatId) {
 }
 
 async function messageHandler(ev, message) {
+    const data = JSON.parse(ev.data);
+    console.log(data);
     if (ev.event == 'message') {
-        const data = JSON.parse(ev.data);
         updateContent(message, data['chunk']);
+    }
+
+    if (ev.event == 'reasoning') {
+        console.log(data['reasonings'])
     }
 }
 
