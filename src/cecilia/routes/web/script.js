@@ -75,7 +75,7 @@ async function create_completion(chatId) {
 
     const assistantMessage = createMessage('assistant');
 
-    await fetchEventSource(`http://localhost:8000/v1/chats/${chatId}/completions`, {
+    await fetchEventSource(`/v1/chats/${chatId}/completions`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -105,7 +105,7 @@ async function create_chat() {
         user_id: 1
     };
 
-    const response = await fetch('http://localhost:8000/v1/chats', {
+    const response = await fetch('/v1/chats', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -130,7 +130,7 @@ async function create_message(chatId, text) {
         text: text
     };
 
-    const response = await fetch(`http://localhost:8000/v1/chats/${chatId}/messages`, {
+    const response = await fetch(`/v1/chats/${chatId}/messages`, {
         method: "POST",
         headers: {
             'Content-Type': 'application/json'
