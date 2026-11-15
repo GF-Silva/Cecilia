@@ -7,6 +7,7 @@ let chatId = window.location.pathname.match(uuidReg)?.[1];
 
 if (chatId) {
     await buildContext(chatId);
+    messages.scrollTop = messages.scrollHeight;
 }
 
 prompt.addEventListener('keydown', (evt) => {
@@ -45,9 +46,8 @@ function createMessage(role, content) {
     text.innerHTML = content ? marked.parse(content) : null;
 
     message.append(text);
-
-    messages.scrollTop = messages.scrollHeight;
     messages.append(message);
+    messages.scrollTop = messages.scrollHeight;
 
     return message;
 }
