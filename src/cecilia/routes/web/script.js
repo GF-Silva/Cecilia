@@ -1,5 +1,6 @@
 import { fetchEventSource } from 'https://esm.sh/@microsoft/fetch-event-source';
 
+const mainEl = document.querySelector('main');
 const messages = document.getElementById('messages');
 const prompt = document.getElementById('prompt');
 const createNewChat = document.getElementById('create_new_chat');
@@ -77,31 +78,81 @@ async function buildContext(chatId) {
     const data = await response.json();
 
     data.forEach(msg => {
-        createMessage(msg['is_user'] ? 'user' : 'assistant', msg['text']);
+        createMessageEl(msg['is_user'] ? 'user' : 'assistant', msg['text'], msg);
     });
 }
 
-function createMessage(role, content) {
+function createMessageEl(role, content, extra_data) {
     const message = document.createElement('div');
     message.className = `message ${role == 'user' ? 'message__user' : 'message__assistant'}`;
 
-    const text = document.createElement('p');
-    text.innerHTML = content ? marked.parse(content) : null;
+    if (role == 'assistant' && extra_data) {
+        // Process reasoning
+        if (extra_data.reasonings) {
+            let reasoningText = "";
 
-    message.append(text);
+            extra_data.reasonings.forEach(reasoning => {
+                reasoningText += reasoning.text ? reasoning.text : '';
+            });
+
+            message.dataset.reasoning = message.dataset.reasoning ? message.dataset.reasoning + reasoningText : reasoningText
+            createReasoningAddBtn(message);
+        };
+    }
+
+    const contentEl = document.createElement('div');
+    contentEl.className = 'message__content';
+    contentEl.innerHTML = content ? marked.parse(content) : null;
+
+    message.append(contentEl);
     messages.append(message);
     messages.scrollTop = messages.scrollHeight;
 
-    return message;
+    return [message, contentEl];
 }
 
-function updateContent(message, text) {
-    message.dataset.text = message.dataset.text ? message.dataset.text + text : text;
-    message.innerHTML = marked.parse(message.dataset.text);
+function createReasoningAddBtn(message) {
+    const reasoningOpener = document.createElement('button');
+    reasoningOpener.className = 'open_reasoning';
+    reasoningOpener.textContent = 'Open reasoning';
+
+    reasoningOpener.addEventListener('click', _ => {
+        createDisplay('Reasoning', marked.parse(message.dataset.reasoning));
+    });
+
+    message.append(reasoningOpener);
+}
+
+function createDisplay(title, content) {
+    const display = document.createElement('div');
+    display.className = 'display';
+
+    const titleEl = document.createElement('h2');
+    titleEl.textContent = title;
+    
+    const displayContent = document.createElement('div');
+    displayContent.className = 'display__content';
+    displayContent.innerHTML = content
+    
+    const exitBtn = document.createElement('button');
+    exitBtn.className = 'display__exit'
+    exitBtn.textContent = 'X';
+
+    exitBtn.addEventListener('click', evt => {
+        display.remove();
+    });
+
+    display.append(titleEl, displayContent, exitBtn);
+    mainEl.append(display);
+}
+
+function updateContent(content, text) {
+    content.dataset.text = content.dataset.text ? content.dataset.text + text : text;
+    content.innerHTML = marked.parse(content.dataset.text);
 }
 
 async function send_prompt(text) {
-    createMessage('user', text);
+    createMessageEl('user', text);
 
     chatId = chatId ? chatId : await create_chat();
     const message = await create_message(chatId, text);
@@ -111,12 +162,12 @@ async function send_prompt(text) {
 async function create_completion(chatId) {
     const body = {
         model: 'google/gemini-3.1-flash-lite',
-        effort: 'none'
+        effort: 'medium'
     };
 
     const ctrl = new AbortController();
 
-    const assistantMessage = createMessage('assistant');
+    const [assistantMessage, assistantContent] = createMessageEl('assistant');
 
     await fetchEventSource(`/v1/chats/${chatId}/completions`, {
         method: 'POST',
@@ -127,7 +178,7 @@ async function create_completion(chatId) {
         signal: ctrl.signal,
 
         onmessage(ev) {
-            messageHandler(ev, assistantMessage);
+            messageHandler(ev, assistantContent, assistantMessage);
         },
 
         onerror(err) {
@@ -136,10 +187,19 @@ async function create_completion(chatId) {
     });
 }
 
-async function messageHandler(ev, message) {
+async function messageHandler(ev, content, message) {
+    const data = JSON.parse(ev.data);
     if (ev.event == 'message') {
-        const data = JSON.parse(ev.data);
-        updateContent(message, data['chunk']);
+        updateContent(content, data['chunk']);
+    }
+
+    if (ev.event == 'reasoning') {
+        if (!content.dataset.reasoning) {
+            createReasoningAddBtn(message, data.reasoning.join('\n'));
+            message.dataset.reasoning = data['reasoning'].join('\n');
+        } else {
+            message.dataset.reasoning += data['reasoning'].join('\n');
+        }
     }
 }
 
