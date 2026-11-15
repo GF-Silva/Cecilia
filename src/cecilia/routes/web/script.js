@@ -164,7 +164,7 @@ async function send_prompt(text) {
 async function create_completion(chatId) {
     const body = {
         model: modelSelector.value,
-        effort: effortSelector.value
+        effort: effortSelector.value === '' ? null : effortSelector.value
     };
 
     const ctrl = new AbortController();
