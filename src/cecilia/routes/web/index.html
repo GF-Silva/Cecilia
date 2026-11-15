@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,26 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1 class="title">Cecilia</h1>
-    <textarea id="prompt" type="text" placeholder="Qual a sua pergunta?"></textarea>
-    <br><br>
-    <div id="messages"></div>
+    <div class='homepage'>
+        <header>
+            <h1 class="title">Cecilia</h1>
+        </header>
+
+        <nav aria-label="Chats navigation">
+            <ul></ul>
+        </nav>
+
+        <main>
+            <textarea id="prompt" type="text" placeholder="Qual a sua pergunta?"></textarea>
+            <br><br>
+            <div id="messages"></div>
+        </main>
+
+        <footer>
+            <p class="credits">Developer: Gabriel - @GF-Silva</p>
+            <p class="credits">Github: <a href="https://github.com/GF-Silva/Cecilia">https://github.com/GF-Silva/Cecilia</a></p>
+        </footer>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script type="module" src="/static/script.js"></script>
