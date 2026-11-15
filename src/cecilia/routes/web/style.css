@@ -92,10 +92,16 @@ main {
     height: 100%;
     display: grid;
     grid-template-areas: 
-        'messages'
+        'chat_header'
         'messages'
         'prompt';
-    grid-template-rows: 1fr 10dvh;
+    grid-template-rows: 5dvh 1fr 10dvh;
+}
+
+.chat_header {
+    grid-area: chat_header;
+    display: flex;
+    justify-content: space-around;
 }
 
 #prompt {

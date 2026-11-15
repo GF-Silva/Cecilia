@@ -4,6 +4,8 @@ const mainEl = document.querySelector('main');
 const messages = document.getElementById('messages');
 const prompt = document.getElementById('prompt');
 const createNewChat = document.getElementById('create_new_chat');
+const effortSelector = document.getElementById('effort');
+const modelSelector = document.getElementById('model');
 const navigatorOptions = document.getElementById('chat_nav__options');
 const uuidReg = /chats\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/
 let userId = get_user_id();
@@ -161,12 +163,11 @@ async function send_prompt(text) {
 
 async function create_completion(chatId) {
     const body = {
-        model: 'google/gemini-3.1-flash-lite',
-        effort: 'medium'
+        model: modelSelector.value,
+        effort: effortSelector.value
     };
 
     const ctrl = new AbortController();
-
     const [assistantMessage, assistantContent] = createMessageEl('assistant');
 
     await fetchEventSource(`/v1/chats/${chatId}/completions`, {
@@ -194,7 +195,7 @@ async function messageHandler(ev, content, message) {
     }
 
     if (ev.event == 'reasoning') {
-        if (!content.dataset.reasoning) {
+        if (!message.dataset.reasoning) {
             createReasoningAddBtn(message, data.reasoning.join('\n'));
             message.dataset.reasoning = data['reasoning'].join('\n');
         } else {
