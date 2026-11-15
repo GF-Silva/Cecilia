@@ -19,5 +19,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script type="module" src="/static/script.js"></script>
+
+    {% if DEBUG %}
+        {{ hot_reload.script(url_for('hot-reload')) | safe }}
+    {% endif %}
 </body>
 </html>

@@ -12,22 +12,42 @@ from cecilia.integrations.cloudflare.clients import r2_manager
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
+from starlette.routing import WebSocketRoute
+import os
+import arel
+
+DEBUG = os.getenv('DEBUG', "0") == "1"
+templates = Jinja2Templates(directory='src/cecilia/routes/web')
+templates.env.globals['DEBUG'] = DEBUG
+
+hot_reload = None
+if DEBUG:
+    hot_reload = arel.HotReload(paths=[arel.Path('src/cecilia/routes/web')])
+    templates.env.globals['hot_reload'] = hot_reload
 
 @asynccontextmanager
 async def lyfespan(app: FastAPI):
     database.create_db_and_tables()
 
     await r2_manager.startup()
+    if hot_reload:
+        await hot_reload.startup()
 
     yield
 
     await r2_manager.shutdown()
 
+    if hot_reload:
+        await hot_reload.shutdown()
+
 app = FastAPI(title="Cecília API", lifespan=lyfespan)
 
-app.mount('/static', StaticFiles(directory='src/cecilia/routes/web'), name='static')
+if hot_reload:
+    app.router.routes.append(WebSocketRoute(
+        '/hot-reload', hot_reload, name='hot-reload'
+    ))
 
-templates = Jinja2Templates(directory='src/cecilia/routes/web')
+app.mount('/static', StaticFiles(directory='src/cecilia/routes/web'), name='static')
 
 @app.get('/', response_class = HTMLResponse)
 async def index(request: Request):
