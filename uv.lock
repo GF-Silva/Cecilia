@@ -191,6 +191,20 @@ wheels = [
 ]
 
 [[package]]
+name = "arel"
+version = "0.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "starlette" },
+    { name = "watchfiles" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/40/17/baf088f4a04d163b4be8d82d6628a9a4c25bf2019613c4b60aee000195bc/arel-0.5.0.tar.gz", hash = "sha256:422a27f089835951cf0931db848e26176341593ba33364f03de89c1c00ef66dd", size = 14899, upload-time = "2026-10-20T13:22:38.399Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c8/93/2092b311b3b20e5bbdceb1da74b0422a03ee01c9b2205649a72a222ab53b/arel-0.5.0-py3-none-any.whl", hash = "sha256:e7680a40373e827beeeb14f0f6f8dc7aab9deed5dd9ce2d71b79efbf6203c8d7", size = 8614, upload-time = "2026-10-20T13:22:37.201Z" },
+]
+
+[[package]]
 name = "attrs"
 version = "26.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -228,11 +242,13 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiobotocore" },
+    { name = "arel" },
     { name = "fastapi", extra = ["standard"] },
     { name = "fastpybase64" },
     { name = "filetype" },
     { name = "httpx" },
     { name = "httpx-sse" },
+    { name = "jinja2" },
     { name = "pillow" },
     { name = "pydantic-settings" },
     { name = "python-magic" },
@@ -246,11 +262,13 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "aiobotocore", specifier = ">=3.10.0" },
+    { name = "arel", specifier = ">=0.5.0" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.143.0" },
     { name = "fastpybase64", specifier = ">=0.1.2" },
     { name = "filetype", specifier = ">=1.2.0" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "httpx-sse", specifier = ">=0.4.3" },
+    { name = "jinja2", specifier = ">=3.1.6" },
     { name = "pillow", specifier = ">=13.0.0" },
     { name = "pydantic-settings", specifier = ">=2.15.0" },
     { name = "python-magic", specifier = ">=0.4.27" },
