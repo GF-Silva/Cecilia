@@ -1,0 +1,74 @@
+body {
+    background-color: aliceblue;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+main {
+    height: 95vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: 
+        "title"
+        "messages"
+        "prompt";
+}
+
+.title {
+    grid-area: title;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    height: fit-content;
+    width: fit-content;
+    padding: .3% 2%;
+    border-radius: 12px;
+    border: 2px #000 solid;
+    margin: 2%;
+    text-align: center;
+    background-color: bisque;
+}
+
+p {
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: auto;
+}
+
+#prompt {
+    grid-area: prompt;
+    position: relative;
+    left: 50%;
+    bottom: 0;
+    height: 100%;
+    transform: translateX(-50%);
+    padding: 2%;
+    margin-top: 2%;
+    border-radius: 10px;
+}
+
+#messages {
+    grid-area: messages;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    gap: 2vh;
+}
+
+.message {
+    background-color: rgb(224, 232, 239);
+    width: 50%;
+    border-radius: 10px;
+    padding: .1% 2%;
+    border: 2px #000 solid;
+    overflow: auto;
+    min-height: 10vh;
+}
+
+.message__user {
+    margin-left: auto;
+}
+
+.message__assistant {
+    margin-right: auto;
+    width: 80%;
+}
