@@ -26,7 +26,7 @@ nav {
     height: 100%;
     display: flex;
     flex-direction: column;
-    background-color: #00000021;
+    background-color: bisque;
     border-right: 2px solid #000;
 }
 

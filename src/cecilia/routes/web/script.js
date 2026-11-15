@@ -2,6 +2,7 @@ import { fetchEventSource } from 'https://esm.sh/@microsoft/fetch-event-source';
 
 const messages = document.getElementById('messages');
 const prompt = document.getElementById('prompt');
+const createNewChat = document.getElementById('create_new_chat');
 const navigatorOptions = document.getElementById('chat_nav__options');
 const uuidReg = /chats\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/
 let userId = get_user_id();
@@ -33,6 +34,10 @@ function get_user_id() {
     
     return JSON.parse(user)['id'];
 }
+
+createNewChat.addEventListener('click', (evt) => {
+    window.location.href = '/';
+});
 
 prompt.addEventListener('keydown', (evt) => {
     if (evt.key != 'Enter' || evt.shiftKey || evt.isComposing) return;
