@@ -5,8 +5,13 @@ from fastapi.responses import JSONResponse
 from httpx import TimeoutException
 
 from .routes import api_router
-from cecilia.core import database, exceptions, schemas, settings
+from cecilia.core import database, exceptions, schemas
 from cecilia.integrations.cloudflare.clients import r2_manager
+
+# TODO: Temporary only, remove after creating frontend
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 
 @asynccontextmanager
 async def lyfespan(app: FastAPI):
@@ -19,6 +24,14 @@ async def lyfespan(app: FastAPI):
     await r2_manager.shutdown()
 
 app = FastAPI(title="Cecília API", lifespan=lyfespan)
+
+app.mount('/static', StaticFiles(directory='src/cecilia/routes/web'), name='static')
+
+templates = Jinja2Templates(directory='src/cecilia/routes/web')
+
+@app.get('/', response_class = HTMLResponse)
+async def index(request: Request):
+    return templates.TemplateResponse(request, 'index.html')
 
 add_scalar_reference(app)
 app.include_router(api_router)
@@ -52,7 +65,6 @@ def internal_error_handler(_, exception: Exception):
         content=error.model_dump(exclude_unset=True)
     )
 
-
 @app.exception_handler(TimeoutException)
 async def read_timeout_handler(request: Request, exception: TimeoutException):
     return JSONResponse(
@@ -61,3 +73,4 @@ async def read_timeout_handler(request: Request, exception: TimeoutException):
             "detail": "timed out while receiving data"
         }
     )
+

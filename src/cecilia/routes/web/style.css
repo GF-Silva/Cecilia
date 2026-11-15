@@ -6,7 +6,7 @@ body {
 main {
     height: 95vh;
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto 1fr 10vh;
     grid-template-areas: 
         "title"
         "messages"
@@ -37,6 +37,7 @@ p {
 #prompt {
     grid-area: prompt;
     position: relative;
+    width: 80%;
     left: 50%;
     bottom: 0;
     height: 100%;

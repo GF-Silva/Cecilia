@@ -14,6 +14,7 @@ dependencies = [
     "filetype>=1.2.0",
     "httpx>=0.28.1",
     "httpx-sse>=0.4.3",
+    "jinja2>=3.1.6",
     "pillow>=13.0.0",
     "pydantic-settings>=2.15.0",
     "python-magic>=0.4.27",
