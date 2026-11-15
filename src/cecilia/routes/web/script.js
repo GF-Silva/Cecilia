@@ -14,15 +14,19 @@ if (chatId) {
 
 function get_user_id() {
     // Pega o user salvo
-    const userId = null;
+    const user = localStorage.getItem('user');
 
     // N tem user, cria novo
-    if (!userId) {
+    if (!user) {
         // cria o novo user
-        return Math.round(Math.random() * 1000000000);
+        const newUserId = Math.round(Math.random() * 1000000000);
+        localStorage.setItem('user', JSON.stringify({
+            id: newUserId
+        }));
+        return newUserId;
     }
     
-    return userId
+    return JSON.parse(user)['id'];
 }
 
 prompt.addEventListener('keydown', (evt) => {
