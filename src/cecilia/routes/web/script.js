@@ -12,6 +12,11 @@ if (chatId) {
     messages.scrollTop = messages.scrollHeight;
 }
 
+if (userId) {
+    // TODO: Pagination with limit + offset
+    await buildChats(userId, 100, 0);
+}
+
 function get_user_id() {
     // Pega o user salvo
     const user = localStorage.getItem('user');
@@ -42,6 +47,20 @@ prompt.addEventListener('keydown', (evt) => {
 
     prompt.value = '';
 })
+
+async function buildChats(userId, limit, offset) {
+    const response = await fetch(`/v1/chats/${userId}?limit=${limit}&offset=${offset}`);
+
+    if (!response.ok) {
+        throw new Error('Error getting user chats');
+    }
+
+    const data = await response.json();
+
+    data.forEach(chat => {
+        add_chat_navigation(chat['id']);
+    });
+}
 
 async function buildContext(chatId) {
     const response = await fetch(`/v1/chats/${chatId}/messages`);
@@ -146,7 +165,7 @@ async function create_chat() {
 function add_chat_navigation(chatId) {
     const option = document.createElement('li');
     const link = document.createElement('a');
-    link.href = chatId;
+    link.href = `/chats/${chatId}`;
     link.textContent = chatId;
 
     option.append(link);
