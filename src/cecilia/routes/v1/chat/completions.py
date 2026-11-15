@@ -23,10 +23,9 @@ async def create_completion(
             effort=chat_payload.effort
         )
 
-        async for stream, response in response_stream:
+        async for stream in response_stream:
             yield ServerSentEvent(
-                data=stream if not response else None,
-                raw_data=response if response else None,
+                data=stream,
                 event=stream.event
             )
 

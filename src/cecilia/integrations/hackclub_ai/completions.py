@@ -137,17 +137,14 @@ class Completions:
                         raise InternalError()
                 
             elif "text/event-stream" in content_type:
-                response = ""
                 async for sse in event_source.aiter_sse():
-                    # TODO: This full response field is temporary and should / will be removed
                     if sse.data == "[DONE]":
                         yield SSEResponse(
                             event=Event.FINISHED
-                        ), response
+                        )
                         break
         
                     data = CompletionEvent.model_validate(json.loads(sse.data))
-                    response += data.choices[0].delta.content
 
                     yield SSEResponse(
                         event=Event.REASONING if data.choices[0].delta.reasoning else Event.MESSAGE,
@@ -165,4 +162,4 @@ class Completions:
                             for reasoning in data.choices[0].delta.reasoning_details
                         ] if data.choices[0].delta.reasoning_details else None,
                         raw_reasoning = data.choices[0].delta.reasoning if data.choices[0].delta.reasoning else None
-                    ), None
+                    )

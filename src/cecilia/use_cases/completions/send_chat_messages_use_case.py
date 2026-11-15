@@ -54,8 +54,7 @@ class SendChatMessagesUseCase:
             effort=effort
         )
 
-        # TODO: This full response field is temporary and should / will be removed
-        async for stream_event, full_response in stream:
+        async for stream_event in stream:
             self.completion_collector.send_chunk(stream_event)
 
             yield Response(
@@ -66,7 +65,7 @@ class SendChatMessagesUseCase:
                     for reasoning in stream_event.reasoning
                     if reasoning.text
                 ] if stream_event.reasoning else None
-            ), ''
+            )
 
         self.completion_collector.save(
             chat_id=chat_id
