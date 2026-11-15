@@ -87,33 +87,40 @@ function createMessageEl(role, content, extra_data) {
     message.className = `message ${role == 'user' ? 'message__user' : 'message__assistant'}`;
 
     if (role == 'assistant' && extra_data) {
-        // Process reasonings
-        if (extra_data['reasonings']) {
-            extra_data['reasonings'].forEach(reasoning => {    
-                if (reasoning.text) {
-                    message.dataset.reasoning = message.dataset.reasoning ? message.dataset.reasoning + reasoning.text : reasoning.text;
-                    const reasoningOpener = document.createElement('button');
-                    reasoningOpener.className = 'open_reasoning';
-                    reasoningOpener.textContent = 'Open reasoning';
+        // Process reasoning
+        if (extra_data.reasonings) {
+            let reasoningText = "";
 
-                    reasoningOpener.addEventListener('click', _ => {
-                        createDisplay('Reasoning', marked.parse(message.dataset.reasoning));
-                    });
-
-                    message.append(reasoningOpener);
-                }
+            extra_data.reasonings.forEach(reasoning => {
+                reasoningText += reasoning.text ? reasoning.text : '';
             });
+
+            message.dataset.reasoning = message.dataset.reasoning ? message.dataset.reasoning + reasoningText : reasoningText
+            createReasoningAddBtn(message);
         };
     }
 
-    const text = document.createElement('p');
-    text.innerHTML = content ? marked.parse(content) : null;
+    const contentEl = document.createElement('div');
+    contentEl.className = 'message__content';
+    contentEl.innerHTML = content ? marked.parse(content) : null;
 
-    message.append(text);
+    message.append(contentEl);
     messages.append(message);
     messages.scrollTop = messages.scrollHeight;
 
-    return message;
+    return [message, contentEl];
+}
+
+function createReasoningAddBtn(message) {
+    const reasoningOpener = document.createElement('button');
+    reasoningOpener.className = 'open_reasoning';
+    reasoningOpener.textContent = 'Open reasoning';
+
+    reasoningOpener.addEventListener('click', _ => {
+        createDisplay('Reasoning', marked.parse(message.dataset.reasoning));
+    });
+
+    message.append(reasoningOpener);
 }
 
 function createDisplay(title, content) {
@@ -139,9 +146,9 @@ function createDisplay(title, content) {
     mainEl.append(display);
 }
 
-function updateContent(message, text) {
-    message.dataset.text = message.dataset.text ? message.dataset.text + text : text;
-    message.innerHTML = marked.parse(message.dataset.text);
+function updateContent(content, text) {
+    content.dataset.text = content.dataset.text ? content.dataset.text + text : text;
+    content.innerHTML = marked.parse(content.dataset.text);
 }
 
 async function send_prompt(text) {
@@ -160,7 +167,7 @@ async function create_completion(chatId) {
 
     const ctrl = new AbortController();
 
-    const assistantMessage = createMessageEl('assistant');
+    const [assistantMessage, assistantContent] = createMessageEl('assistant');
 
     await fetchEventSource(`/v1/chats/${chatId}/completions`, {
         method: 'POST',
@@ -171,7 +178,7 @@ async function create_completion(chatId) {
         signal: ctrl.signal,
 
         onmessage(ev) {
-            messageHandler(ev, assistantMessage);
+            messageHandler(ev, assistantContent, assistantMessage);
         },
 
         onerror(err) {
@@ -180,15 +187,19 @@ async function create_completion(chatId) {
     });
 }
 
-async function messageHandler(ev, message) {
+async function messageHandler(ev, content, message) {
     const data = JSON.parse(ev.data);
-    console.log(data);
     if (ev.event == 'message') {
-        updateContent(message, data['chunk']);
+        updateContent(content, data['chunk']);
     }
 
     if (ev.event == 'reasoning') {
-        console.log(data['reasonings'])
+        if (!content.dataset.reasoning) {
+            createReasoningAddBtn(message, data.reasoning.join('\n'));
+            message.dataset.reasoning = data['reasoning'].join('\n');
+        } else {
+            message.dataset.reasoning += data['reasoning'].join('\n');
+        }
     }
 }
 
