@@ -146,9 +146,9 @@ main {
 }
 
 .open_reasoning {
-    background: #000;
-    width: 10vw;
-    height: 10vh;
+    width: 50%;
+    height: 3.5dvh;
+    background-color: rgba(186, 135, 63, 0.235);
 }
 
 .display {

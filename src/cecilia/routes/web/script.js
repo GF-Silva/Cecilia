@@ -94,6 +94,8 @@ function createMessageEl(role, content, extra_data) {
                     message.dataset.reasoning = message.dataset.reasoning ? message.dataset.reasoning + reasoning.text : reasoning.text;
                     const reasoningOpener = document.createElement('button');
                     reasoningOpener.className = 'open_reasoning';
+                    reasoningOpener.textContent = 'Open reasoning';
+                    
                     reasoningOpener.addEventListener('click', _ => {
                         createDisplay('Reasoning', marked.parse(message.dataset.reasoning));
                     });
