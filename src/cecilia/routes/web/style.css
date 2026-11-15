@@ -154,11 +154,29 @@ main {
 .display {
     grid-area: messages;
     position: absolute;
+    left: 0;
     bottom: 0;
-    width: 100%;
+    width: 80%;
     height: 60%;
-    background-color: #ce2b2be6;
+    background-color: #ff8a5b;
+    border: 2px solid #000;
+    border-radius: 10px 10px 0 0;
+    margin: 0 10%;
+    padding: 2%;
+    overflow: auto;
+    max-height: 60%;
     z-index: 100;
+}
+
+.display__exit {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #f00;
+    border-width: 1px;
+    border-color: #000;
+    border-radius: 6px 0;
+    cursor: pointer;
 }
 
 header, footer, main, nav {

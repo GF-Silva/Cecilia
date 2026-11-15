@@ -95,7 +95,7 @@ function createMessageEl(role, content, extra_data) {
                     const reasoningOpener = document.createElement('button');
                     reasoningOpener.className = 'open_reasoning';
                     reasoningOpener.textContent = 'Open reasoning';
-                    
+
                     reasoningOpener.addEventListener('click', _ => {
                         createDisplay('Reasoning', marked.parse(message.dataset.reasoning));
                     });
@@ -122,13 +122,20 @@ function createDisplay(title, content) {
 
     const titleEl = document.createElement('h2');
     titleEl.textContent = title;
-    display.append(titleEl);
-
+    
     const displayContent = document.createElement('div');
     displayContent.className = 'display__content';
     displayContent.innerHTML = content
-    display.append(displayContent);
+    
+    const exitBtn = document.createElement('button');
+    exitBtn.className = 'display__exit'
+    exitBtn.textContent = 'X';
 
+    exitBtn.addEventListener('click', evt => {
+        display.remove();
+    });
+
+    display.append(titleEl, displayContent, exitBtn);
     mainEl.append(display);
 }
 
