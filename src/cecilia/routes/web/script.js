@@ -2,6 +2,7 @@ import { fetchEventSource } from 'https://esm.sh/@microsoft/fetch-event-source';
 
 const messages = document.getElementById('messages');
 const prompt = document.getElementById('prompt');
+const navigator = document.getElementById('chat_nav');
 const uuidReg = /chats\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/
 let chatId = window.location.pathname.match(uuidReg)?.[1];
 
@@ -112,7 +113,6 @@ async function create_chat() {
         },
         body: JSON.stringify(body)
     });
-
     const data = await response.json();
 
     if (!response.ok) {
@@ -120,9 +120,19 @@ async function create_chat() {
         throw new Error('failed creating chat');
     }
 
-    history.pushState(null, '', `/chats/${data['id']}`)
-
+    history.pushState(null, '', `/chats/${data['id']}`);
+    add_chat_navigation(data['id']);
     return data['id'];
+}
+
+function add_chat_navigation(chatId) {
+    const option = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = chatId;
+    link.textContent = chatId;
+
+    option.append(link);
+    navigator.append(option);
 }
 
 async function create_message(chatId, text) {
