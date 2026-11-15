@@ -46,6 +46,9 @@ class ChatService:
 
         return self._to_public_chat(db_chat_updated)
 
+    def get_all_by_user_id(self, user_id: int, offset: int = 0, limit: int = 100):
+        return self.chat_repository.get_all_by_user_id(user_id=user_id, offset=offset, limit=limit)
+
     def _to_public_chat(self, chat: Chat) -> ChatPublic:
         return ChatPublic.model_validate(chat)
 

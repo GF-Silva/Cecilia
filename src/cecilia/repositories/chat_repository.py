@@ -11,6 +11,14 @@ class ChatRepository:
     def index(self, offset: int = 0, limit: int = 100) -> Sequence[Chat]:
         return self.session.exec(select(Chat).offset(offset).limit(limit)).all()
 
+    def get_all_by_user_id(self, user_id: int, offset: int = 0, limit: int = 100):
+        return self.session.exec(
+            select(Chat)
+            .where(Chat.user_id == user_id)
+            .offset(offset)
+            .limit(limit)
+        ).all()
+
     def show(self, id: UUID) -> Chat | None:
         return self.session.get(Chat, id)
 
