@@ -61,6 +61,7 @@ header {
     border-bottom: 2px solid #000;
     display: flex;
     flex-direction: row;
+    justify-content: space-around;
 }
 
 .credits {
@@ -91,17 +92,10 @@ main {
     width: 100%;
     height: 100%;
     display: grid;
-    grid-template-areas: 
-        'chat_header'
+    grid-template-areas:
         'messages'
         'prompt';
-    grid-template-rows: 5dvh 1fr 10dvh;
-}
-
-.chat_header {
-    grid-area: chat_header;
-    display: flex;
-    justify-content: space-around;
+    grid-template-rows: 1fr 10dvh;
 }
 
 #prompt {

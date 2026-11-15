@@ -202,6 +202,8 @@ async function messageHandler(ev, content, message) {
             message.dataset.reasoning += data['reasoning'].join('\n');
         }
     }
+
+    console.log(ev.event);
 }
 
 async function create_chat() {
