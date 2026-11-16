@@ -192,6 +192,11 @@ async function messageHandler(ev, content, message, reasoningEl, summaryEl, cont
     if (ev.event == 'reasoning' && reasoningEl) {
         updateReasoning(reasoningEl, contentEl, summaryEl, data['reasoning'].join('\n\n'));
     }
+
+    if (ev.event == 'error') {
+        console.log('stream error: ', data);
+        updateContent(content, `# Error - ${data['title']} \n\n ${data['message']}`);
+    }
 }
 
 async function create_chat() {
