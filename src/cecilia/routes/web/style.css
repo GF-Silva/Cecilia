@@ -155,12 +155,6 @@ main {
     width: 80%;
 }
 
-.open_reasoning {
-    width: 50%;
-    height: 3.5dvh;
-    background-color: rgba(186, 135, 63, 0.235);
-}
-
 .message__reasoning {
     transition: transform 0.3s ease;
 }

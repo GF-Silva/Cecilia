@@ -87,7 +87,7 @@ async function buildContext(chatId) {
 function createMessageEl(role, content, extra_data) {
     const message = document.createElement('div');
     message.className = `message ${role == 'user' ? 'message__user' : 'message__assistant'}`;
-
+    
     if (role == 'assistant' && extra_data) {
         // Process reasoning
         if (extra_data.reasonings) {
@@ -105,7 +105,7 @@ function createMessageEl(role, content, extra_data) {
     const contentEl = document.createElement('div');
     contentEl.className = 'message__content';
     contentEl.innerHTML = content ? marked.parse(content) : null;
-
+    
     message.append(contentEl);
     messages.append(message);
     messages.scrollTop = messages.scrollHeight;
@@ -128,7 +128,7 @@ function createReasoningAddBtn(message) {
 
     summary.append(summaryTitle);
     details.append(summary, content);
-    message.append(details);
+    message.prepend(details);
 
     return [details, summary, content];
 }
