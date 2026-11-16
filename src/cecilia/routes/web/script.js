@@ -8,34 +8,45 @@ const effortSelector = document.getElementById('effort');
 const modelSelector = document.getElementById('model');
 const navigatorOptions = document.getElementById('chat_nav__options');
 const uuidReg = /chats\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/
-let userId = get_user_id();
 let chatId = window.location.pathname.match(uuidReg)?.[1];
+const user = get_user_configs();
+
+if (user['effort']) {
+    effortSelector.value = user['effort'];
+}
+
+if (user['model']) {
+    modelSelector.value = user['model'];
+}
+
+function get_user_configs() {
+    const user = localStorage.getItem('user');
+
+    if (!user) {
+        const newUser = {
+            id: Math.round(Math.random() * 100000000),
+            effort: '',
+            model: 'deepseek/deepseek-v4.1-flash'
+        }
+        localStorage.setItem('user', JSON.stringify(newUser));
+        return newUser;
+    }
+
+    return JSON.parse(user);
+}
+
+function save_user_configs(user) {
+    localStorage.setItem('user', JSON.stringify(user));
+}
 
 if (chatId) {
     await buildContext(chatId);
     messages.scrollTop = messages.scrollHeight;
 }
 
-if (userId) {
+if (user['id']) {
     // TODO: Pagination with limit + offset
-    await buildChats(userId, 100, 0);
-}
-
-function get_user_id() {
-    // Pega o user salvo
-    const user = localStorage.getItem('user');
-
-    // N tem user, cria novo
-    if (!user) {
-        // cria o novo user
-        const newUserId = Math.round(Math.random() * 1000000000);
-        localStorage.setItem('user', JSON.stringify({
-            id: newUserId
-        }));
-        return newUserId;
-    }
-    
-    return JSON.parse(user)['id'];
+    await buildChats(user['id'], 100, 0);
 }
 
 createNewChat.addEventListener('click', (evt) => {
@@ -140,14 +151,17 @@ function updateContent(content, text) {
 }
 
 async function send_prompt(text) {
-    createMessageEl('user', text);
-
+    createMessageEl('user', text)
     chatId = chatId ? chatId : await create_chat();
     const message = await create_message(chatId, text);
     const completion = await create_completion(chatId);
 }
 
 async function create_completion(chatId) {
+    user['effort'] = effortSelector.value;
+    user['model'] = modelSelector.value;
+    save_user_configs(user);
+
     const body = {
         model: modelSelector.value,
         effort: effortSelector.value === '' ? null : effortSelector.value
@@ -201,7 +215,7 @@ async function messageHandler(ev, content, message, reasoningEl, summaryEl, cont
 
 async function create_chat() {
     const body = {
-        user_id: userId
+        user_id: user['id']
     };
 
     const response = await fetch('/v1/chats', {
