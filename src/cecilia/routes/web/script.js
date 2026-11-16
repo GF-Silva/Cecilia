@@ -74,11 +74,12 @@ async function buildContext(chatId) {
     const response = await fetch(`/v1/chats/${chatId}/messages`);
 
     if (!response.ok) {
+        alert('chat not found');
+        window.location.href = '/';
         throw new Error('Falha iniciando context');
     }
 
     const data = await response.json();
-
     data.forEach(msg => {
         createMessageEl(msg['is_user'] ? 'user' : 'assistant', msg['text'], msg);
     });
@@ -191,6 +192,11 @@ async function messageHandler(ev, content, message, reasoningEl, summaryEl, cont
     if (ev.event == 'reasoning' && reasoningEl) {
         updateReasoning(reasoningEl, contentEl, summaryEl, data['reasoning'].join('\n\n'));
     }
+
+    if (ev.event == 'error') {
+        console.log('stream error: ', data);
+        updateContent(content, `# Error - ${data['title']} \n\n ${data['message']}`);
+    }
 }
 
 async function create_chat() {
@@ -209,6 +215,7 @@ async function create_chat() {
 
     if (!response.ok) {
         console.log('Failed creating chat', data);
+        alert('Failed creating the chat');
         throw new Error('failed creating chat');
     }
 
@@ -244,6 +251,7 @@ async function create_message(chatId, text) {
 
     if (!response.ok) {
         console.log('failed creating message', data);
+        alert('Failed creating message');
         throw new Error('Failed creating message');
     }
 
