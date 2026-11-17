@@ -12,6 +12,7 @@ let chatId = window.location.pathname.match(uuidReg)?.[1];
 const effortSelector = document.getElementById('prompt-effort');
 const modelSelector = document.getElementById('prompt-model');
 const attachmentsInput = document.getElementById('prompt-attachments');
+const promptAttachmentsContainer = document.getElementById('prompt-attachments-container');
 const user = get_user_configs();
 
 if (user['effort']) {
@@ -71,6 +72,19 @@ prompt.addEventListener('keydown', (evt) => {
     prompt.value = '';
 })
 
+attachmentsInput.addEventListener('input', evt => {
+    for (const file of evt.target.files) {
+        createUserPromptAttachmentEl(promptAttachmentsContainer, file);
+    }
+});
+
+function createUserPromptAttachmentEl(container, file) {
+    const attachment = document.createElement('object');
+    attachment.data = URL.createObjectURL(file);
+    attachment.type = file.type;
+    container.append(attachment);
+}
+
 async function buildChats(userId, limit, offset) {
     const response = await fetch(`/v1/chats/${userId}?limit=${limit}&offset=${offset}`);
 
@@ -103,9 +117,6 @@ async function buildContext(chatId) {
 function createMessageEl(role, content, extra_data) {
     const message = document.createElement('div');
     message.className = `message ${role == 'user' ? 'message__user' : 'message__assistant'}`;
-
-    // Message header
-    const messageHeader = null;
     
     if (role == 'assistant' && extra_data) {
         // Process reasoning
@@ -241,7 +252,7 @@ async function createAttachments(chatId, messageId, attachments) {
         formData.append('files', new File([attachment], attachment.name, {
             type: attachment.type,
             size: attachment.size
-        }));
+        })); // TODO: Substituir o new File para usar o objeto attachments diretamente, pois ele ja 'e file
     }
 
     const response = await fetch(`/v1/chats/${chatId}/messages/${messageId}/attachments`, {

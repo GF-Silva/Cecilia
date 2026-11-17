@@ -99,31 +99,41 @@ main {
     grid-template-areas:
         'messages'
         'prompt';
-    grid-template-rows: 1fr 10dvh;
+    grid-template-rows: 1fr auto;
 }
 
 .prompt__container {
     grid-area: prompt;
-    position: absolute;
-    left: 50%;
-    bottom: 5%;
-    transform: translateX(-50%);
-    width: 80%;
-    height: 100%;
-    display: flex;
-    align-items: end;
-    justify-content: space-evenly;
+    height: auto;
+    max-height: 30dvh;
+    padding: 0 8%;
+    display: grid;
+    grid-template-areas:
+        'attachments attachments'
+        'options prompt';
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
     z-index: 100;
 }
 
+.prompt__container__attachments {
+    grid-area: attachments;
+    background: #00000029;
+    overflow: auto;
+    display: flex;
+    flex-direction: row;
+    gap: 1%;
+}
+
 .prompt__options__opener {
+    grid-area: options;
+    margin-top: auto;
     anchor-name: --prompt__options;
     font-weight: bold;
     font-size: large;
     border-radius: 20%;
     border: 1px solid #000;
-    width: auto;
-    height: 50%;
+    width: fit-content;
     aspect-ratio: 1;
 }
 
@@ -168,8 +178,8 @@ main {
 
 .prompt {
     grid-area: prompt;
-    position: relative;
-    width: 80%;
+    width: 100%;
+    height: auto;
     bottom: 0;
     max-height: 30dvh;
     field-sizing: content;
