@@ -1,6 +1,7 @@
 export class Prompt {
     constructor (container, onPromptSend, effortOptions, modelOptions) {
         this.effortOptions = effortOptions;
+        this.modelOptions = modelOptions;
 
         const promptContainer = document.createElement('div');
         promptContainer.className = 'prompt__container';
@@ -38,33 +39,17 @@ export class Prompt {
         return [ promptAttachments ];
     }
 
-    createPromptOptions(container, modelOptions) {
+    createPromptOptions(container) {
         const promptOptions = document.createElement('div');
         promptOptions.setAttribute('popover', 'auto')
         promptOptions.id = 'prompt__options';
 
-        const effortSelectorEl = document.createElement('select');
-        effortSelectorEl.name = 'effort';
-        effortSelectorEl.id = 'prompt-effort';
-
-        for (const effort in this.effortOptions) {
-            const opt = document.createElement('option');
-            opt.value = effort;
-            opt.textContent = this.effortOptions[effort];
-            effortSelectorEl.append(opt);
-        }
-
-        const effortSelectorContainer = document.createElement('div');
-        effortSelectorContainer.innerHTML = '<label for="prompt-effort">Effort: </label>';
-        effortSelectorContainer.append(effortSelectorEl);
-
-        
         promptOptions.innerHTML = `
             <label for="prompt-attachments" class="prompt__options__upload-attachment__label">Upload file</label>
         `;
         
-        const modelSelector = this.createModelSelector(promptOptions, modelOptions);
-        promptOptions.append(effortSelectorContainer);
+        this.createEffortSelector(promptOptions, this.effortOptions)
+        this.createModelSelector(promptOptions, this.modelOptions);
 
         const promptAttachmentsInput = document.createElement('input');
         promptAttachmentsInput.accept = 'image/*; audio/*';
@@ -87,7 +72,31 @@ export class Prompt {
         return [ promptAttachmentsInput ];
     }
 
-    createModelSelector(container, models) {
+    createEffortSelector(container) {
+        const effortSelectorContainer = document.createElement('div');
+
+        // Seletor de effort
+        const selectorEl = document.createElement('select');
+        selectorEl.name = 'effort';
+        selectorEl.id = 'prompt-effort';
+
+        // Seletor de label
+        const label = document.createElement('label');
+        label.for = 'prompt-effort';
+        label.textContent = 'Effort: ';
+
+        for (const effort in this.effortOptions) {
+            const opt = document.createElement('option');
+            opt.value = effort;
+            opt.textContent = this.effortOptions[effort];
+            selectorEl.append(opt);
+        }
+
+        effortSelectorContainer.append(label, selectorEl);
+        container.append(effortSelectorContainer);
+    }
+
+    createModelSelector(container) {
         const selectorContainerEl = document.createElement('div');
 
         const label = document.createElement('label');
@@ -99,10 +108,10 @@ export class Prompt {
         modelSelector.class = 'prompt-model';
         modelSelector.id = 'prompt-model';
 
-        for (const model in models) {
+        for (const model in this.modelOptions) {
             const opt = document.createElement('option');
             opt.value = model;
-            opt.textContent = models[model];
+            opt.textContent = this.modelOptions[model];
             modelSelector.append(opt);
         }
 
