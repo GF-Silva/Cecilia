@@ -130,6 +130,7 @@ main {
 #prompt__options {
     position: fixed;
     display: flex;
+    flex-direction: column;
     position-anchor: --prompt__options;
     position-area: top;
     position-try-fallbacks: top, left, right;
@@ -140,7 +141,6 @@ main {
     border-width: 2px;
     opacity: 0;
     padding: .8%;
-    gap: 2%;
     transition:
         opacity 0.2s,
         translate 0.2s,
