@@ -103,6 +103,9 @@ async function buildContext(chatId) {
 function createMessageEl(role, content, extra_data) {
     const message = document.createElement('div');
     message.className = `message ${role == 'user' ? 'message__user' : 'message__assistant'}`;
+
+    // Message header
+    const messageHeader = null;
     
     if (role == 'assistant' && extra_data) {
         // Process reasoning
@@ -115,7 +118,35 @@ function createMessageEl(role, content, extra_data) {
 
             const [details, summary, content] = createReasoningAddBtn(message);
             updateReasoning(details, content, summary, reasoningText);
+
+            // MessageHeader.append reasoning
         };
+    }
+
+    if (role == 'user' && extra_data) {
+        if (extra_data.attachments)  {
+            extra_data.attachments.forEach(attachment => {
+                console.log(attachment);
+                const attachmentEl = document.createElement('details');
+                attachmentEl.className = 'message__attachment';
+
+                const summary = document.createElement('summary');
+                summary.innerHTML = '<span>Open attachment</span>';
+
+                const header = document.createElement('p');
+                header.textContent = attachment.public_filename;
+                header.className = 'message__attachment__header';
+
+                const mimeType = document.createElement('p');
+                mimeType.textContent = attachment.mime_type;
+                mimeType.className = 'message__attachment__content';
+
+                attachmentEl.append(summary, header, mimeType);
+
+                message.append(attachmentEl);
+                // message header.append
+            });
+        }
     }
 
     const contentEl = document.createElement('div');

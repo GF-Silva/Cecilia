@@ -212,6 +212,28 @@ main {
     margin-left: auto;
 }
 
+.message__attachment {
+    background-color: papayawhip;
+    width: 90%;
+    left: 0;
+    padding: 0 4%;
+    border: 2px solid aliceblue;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.message__attachment__header {
+    font-weight: bold;
+}
+
+.message__attachment__content {
+    color: #444343;
+}
+
+.message__attachment__header, .message__attachment__content {
+    margin: 0;
+}
+
 .message__assistant {
     margin-right: auto;
     width: 80%;
