@@ -271,7 +271,6 @@ async function createChat() {
 
 async function createAttachments(chatId, messageId, attachments) {
     if (!attachments.length > 0) {
-        console.log('length');
         return;
     }
 
@@ -280,8 +279,6 @@ async function createAttachments(chatId, messageId, attachments) {
     attachments.forEach(attachment => {
         formData.append('files', attachment);
     });
-
-    return;
 
     const response = await fetch(`/v1/chats/${chatId}/messages/${messageId}/attachments`, {
         method: 'POST',
@@ -293,9 +290,7 @@ async function createAttachments(chatId, messageId, attachments) {
         alert(`Failed uploading attachments`);
     }
 
-    console.log(await response.json());
-
-    return ;
+    return await response.json();
 }
 
 async function createMessage(chatId, text) {
