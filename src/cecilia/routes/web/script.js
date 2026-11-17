@@ -22,7 +22,22 @@ const effortOptions = {
     max: 'max'
 };
 
-const [ promptAttachments ] = new Prompt(mainEl, sendPrompt, effortOptions);
+const modelOptions = {
+    "google/gemini-3.1-flash-lite": "Gemini 3.1 Flash Lite",
+    "deepseek/deepseek-v4.1-flash": "DeepSeek V4.1 Flash",
+    "~anthropic/claude-opus-latest": "Claude Opus lastest",
+    "anthropic/claude-opus-5.5": "Claude Opus 5.5",
+    "anthropic/claude-sonnet-5.5": "Claude Sonnet 5.5",
+    'anthropic/claude-haiku-5.5': "Claude Haiku 5.5",
+    "anthropic/claude-fable-5.2": "Claude Fable 5.2",
+    "openai/gpt-4": "GPT 4",
+    "openai/gpt-6.1-sol": "GPT 6.1 Sol",
+    "openai/gpt-6-astra": "GPT 6 Astra",
+    "openai/gpt-6.1-terra": "GPT 6.1 Terra",
+    "openai/gpt-6-luna": "GPT 6 Luna"
+}
+
+const [ promptAttachments ] = new Prompt(mainEl, sendPrompt, effortOptions, modelOptions);
 
 
 const effortSelector = document.getElementById('prompt-effort');

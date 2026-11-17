@@ -1,5 +1,5 @@
 export class Prompt {
-    constructor (container, onPromptSend, effortOptions) {
+    constructor (container, onPromptSend, effortOptions, modelOptions) {
         this.effortOptions = effortOptions;
 
         const promptContainer = document.createElement('div');
@@ -9,7 +9,7 @@ export class Prompt {
         attachments.className = 'prompt__container__attachments';
         attachments.id = 'prompt-attachments-container';
 
-        const [ promptAttachmentsInput ] = this.createPromptOptions(promptContainer);
+        const [ promptAttachmentsInput ] = this.createPromptOptions(promptContainer, modelOptions);
 
         const prompt = document.createElement('textarea');
         prompt.id = 'prompt';
@@ -38,7 +38,7 @@ export class Prompt {
         return [ promptAttachments ];
     }
 
-    createPromptOptions(container) {
+    createPromptOptions(container, modelOptions) {
         const promptOptions = document.createElement('div');
         promptOptions.setAttribute('popover', 'auto')
         promptOptions.id = 'prompt__options';
@@ -58,28 +58,12 @@ export class Prompt {
         effortSelectorContainer.innerHTML = '<label for="prompt-effort">Effort: </label>';
         effortSelectorContainer.append(effortSelectorEl);
 
+        
         promptOptions.innerHTML = `
             <label for="prompt-attachments" class="prompt__options__upload-attachment__label">Upload file</label>
-            
-            <div>
-                <label for="prompt-model">Model: </label>
-                <select name='model' class="prompt-model" id='prompt-model'>
-                    <option value="google/gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
-                    <option value="deepseek/deepseek-v4.1-flash">DeepSeek V4.1 Flash</option>
-                    <option value="~anthropic/claude-opus-latest">Claude Opus lastest</option>
-                    <option value="anthropic/claude-opus-5.5">Claude Opus 5.5</option>
-                    <option value="anthropic/claude-sonnet-5.5">Claude Sonnet 5.5</option>
-                    <option value='anthropic/claude-haiku-5.5'>Claude Haiku 5.5</option>
-                    <option value="anthropic/claude-fable-5.2">Claude Fable 5.2</option>
-                    <option value="openai/gpt-4">GPT 4</option>
-                    <option value="openai/gpt-6.1-sol">GPT 6.1 Sol</option>
-                    <option value="openai/gpt-6-astra">GPT 6 Astra</option>
-                    <option value="openai/gpt-6.1-terra">GPT 6.1 Terra</option>
-                    <option value="openai/gpt-6-luna">GPT 6 Luna</option>
-                </select>
-            </div>
         `;
-
+        
+        const modelSelector = this.createModelSelector(promptOptions, modelOptions);
         promptOptions.append(effortSelectorContainer);
 
         const promptAttachmentsInput = document.createElement('input');
@@ -101,5 +85,28 @@ export class Prompt {
         container.append(optionsOpenerBtn, promptOptions, promptAttachmentsInput);
 
         return [ promptAttachmentsInput ];
+    }
+
+    createModelSelector(container, models) {
+        const selectorContainerEl = document.createElement('div');
+
+        const label = document.createElement('label');
+        label.for = 'prompt-model';
+        label.textContent = 'Model: ';
+
+        const modelSelector = document.createElement('select');
+        modelSelector.name = 'model';
+        modelSelector.class = 'prompt-model';
+        modelSelector.id = 'prompt-model';
+
+        for (const model in models) {
+            const opt = document.createElement('option');
+            opt.value = model;
+            opt.textContent = models[model];
+            modelSelector.append(opt);
+        }
+
+        selectorContainerEl.append(label, modelSelector);
+        container.append(selectorContainerEl);
     }
 }
