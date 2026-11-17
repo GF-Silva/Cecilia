@@ -13,20 +13,20 @@
         </header>
 
         <nav id="chat_nav" aria-label="Chats navigation">
-            <button id='create_new_chat'>+ Create new chat</button>
-            <ul id="chat_nav__options"></ul>
+            <button id='create-new-chat'>+ Create new chat</button>
+            <ul id="chat-nav-options"></ul>
         </nav>
 
         <main>
             <div class="prompt__container">
                 <button popovertarget="prompt__options" class="prompt__options__opener" aria-haspopup="menu">+</button>
                 <div popover id="prompt__options">
-                    <label for="prompt__options__upload-attachment" class="prompt__options__upload-attachment__label">Upload file</label>
-                    <input accept="image/*; audio/*" type="file" name="Upload attachment" id="prompt__options__upload-attachment" hidden>
+                    <label for="prompt-attachments" class="prompt__options__upload-attachment__label">Upload file</label>
+                    <input accept="image/*; audio/*" type="file" name="Upload attachment" id="prompt-attachments" hidden>
                     
                     <div>
-                        <label for="effort">Effort: </label>
-                        <select name="effort" id="effort">
+                        <label for="prompt-effort">Effort: </label>
+                        <select name="effort" id="prompt-effort">
                             <option value=''>Default</option>
                             <option value="none">none</option>
                             <option value="minimal">minimal</option>
@@ -39,8 +39,8 @@
                     </div>
 
                     <div>
-                        <label for="model">Model: </label>
-                        <select name='model' id='model'>
+                        <label for="prompt-model">Model: </label>
+                        <select name='model' class="prompt-model" id='prompt-model'>
                             <option value="google/gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
                             <option value="deepseek/deepseek-v4.1-flash">DeepSeek V4.1 Flash</option>
                             <option value="~anthropic/claude-opus-latest">Claude Opus lastest</option>
@@ -56,14 +56,14 @@
                         </select>
                     </div>
                 </div>
-                <textarea id="prompt" type="text" placeholder="What do you want do do?"></textarea>
+                <textarea id="prompt" class="prompt" type="text" placeholder="What do you want do do?"></textarea>
             </div>
             <br><br>
-            <div id="messages"></div>
+            <div id="messages" class="messages"></div>
         </main>
 
         <footer>
-            <p class="credits">Developer: Gabriel - @GF-Silva</p>
+            <p class="credits">Developer: <a href="https://github.com/GF-Silva">Gabriel - @GF-Silva</a></p>
             <p class="credits">Github: <a href="https://github.com/GF-Silva/Cecilia">https://github.com/GF-Silva/Cecilia</a></p>
         </footer>
     </div>

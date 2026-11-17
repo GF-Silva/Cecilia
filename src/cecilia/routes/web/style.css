@@ -147,7 +147,8 @@ main {
         display 0.2s allow-discrete,
         overlay 0.2s allow-discrete;
 
-    background: #ffe4cc;
+    background: #ffead8;
+    gap: 2%;
 }
 
 #prompt__options:popover-open {
@@ -159,13 +160,13 @@ main {
 }
 
 .prompt__options__upload-attachment__label {
-    background: #ffecdc;
-    padding: 10%;
+    background: #fff7f0;
+    padding: 3%;
     border-radius: 5px;
     border: 1px solid #000;
 }
 
-#prompt {
+.prompt {
     grid-area: prompt;
     position: relative;
     width: 80%;
@@ -178,7 +179,7 @@ main {
     z-index: 100;
 }
 
-#messages {
+.messages {
     grid-area: messages;
     position: absolute;
     top: 0;
@@ -192,7 +193,7 @@ main {
     gap: 2vh;
 }
 
-#messages > *:last-child {
+.messages > *:last-child {
     margin-bottom: 20dvh;
 }
 

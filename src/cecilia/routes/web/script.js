@@ -3,10 +3,10 @@ import { fetchEventSource } from 'https://esm.sh/@microsoft/fetch-event-source';
 const mainEl = document.querySelector('main');
 const messages = document.getElementById('messages');
 const prompt = document.getElementById('prompt');
-const createNewChat = document.getElementById('create_new_chat');
-const effortSelector = document.getElementById('effort');
-const modelSelector = document.getElementById('model');
-const navigatorOptions = document.getElementById('chat_nav__options');
+const createNewChat = document.getElementById('create-new-chat');
+const effortSelector = document.getElementById('prompt-effort');
+const modelSelector = document.getElementById('prompt-model');
+const navigatorOptions = document.getElementById('chat-nav-options');
 const uuidReg = /chats\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/
 let chatId = window.location.pathname.match(uuidReg)?.[1];
 const user = get_user_configs();
