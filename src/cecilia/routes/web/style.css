@@ -118,7 +118,6 @@ main {
 
 .prompt__container__attachments {
     grid-area: attachments;
-    background: #00000029;
     overflow: auto;
     display: flex;
     flex-direction: row;

@@ -75,15 +75,22 @@ prompt.addEventListener('keydown', (evt) => {
 
 attachmentsInput.addEventListener('input', evt => {
     for (const file of evt.target.files) {
-        promptAttachments.push(file);
         createUserPromptAttachmentEl(promptAttachmentsContainer, file);
     }
 });
 
 function createUserPromptAttachmentEl(container, file) {
     const attachment = document.createElement('object');
+    const id = Math.round(Math.random() * 10000000);
+    attachment.dataset.id = id;
+    promptAttachments[id] = file;
     attachment.data = URL.createObjectURL(file);
     attachment.type = file.type;
+
+    attachment.addEventListener('click', evt => {
+        promptAttachments.splice(evt.target.dataset.id);
+        evt.target.remove();
+    });
     container.append(attachment);
 }
 
