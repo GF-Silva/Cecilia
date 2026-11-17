@@ -10,52 +10,68 @@
     <div class='homepage'>
         <header>
             <h1 class="title">Cecilia</h1>
-            <div>
-                <label for="effort">Effort: </label>
-                <select name="effort" id="effort">
-                    <option value=''>Default</option>
-                    <option value="none">none</option>
-                    <option value="minimal">minimal</option>
-                    <option value="low">low</option>
-                    <option value="medium">medium</option>
-                    <option value="high">high</option>
-                    <option value="xhigh">xhigh</option>
-                    <option value="max">max</option>
-                </select>
-            </div>
-
-            <div>
-                <label for="model">Model: </label>
-                <select name='model' id='model'>
-                    <option value="google/gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
-                    <option value="deepseek/deepseek-v4.1-flash">DeepSeek V4.1 Flash</option>
-                    <option value="~anthropic/claude-opus-latest">Claude Opus lastest</option>
-                    <option value="anthropic/claude-opus-5.5">Claude Opus 5.5</option>
-                    <option value="anthropic/claude-sonnet-5.5">Claude Sonnet 5.5</option>
-                    <option value='anthropic/claude-haiku-5.5'>Claude Haiku 5.5</option>
-                    <option value="anthropic/claude-fable-5.2">Claude Fable 5.2</option>
-                    <option value="openai/gpt-4">GPT 4</option>
-                    <option value="openai/gpt-6.1-sol">GPT 6.1 Sol</option>
-                    <option value="openai/gpt-6-astra">GPT 6 Astra</option>
-                    <option value="openai/gpt-6.1-terra">GPT 6.1 Terra</option>
-                    <option value="openai/gpt-6-luna">GPT 6 Luna</option>
-                </select>
-            </div>
         </header>
 
         <nav id="chat_nav" aria-label="Chats navigation">
-            <button id='create_new_chat'>+ Create new chat</button>
-            <ul id="chat_nav__options"></ul>
+            <button id='create-new-chat'>+ Create new chat</button>
+            <ul id="chat-nav-options"></ul>
         </nav>
 
         <main>
-            <textarea id="prompt" type="text" placeholder="What do you want do do?"></textarea>
+            <div class="prompt__container">
+                <div class="prompt__container__attachments" id="prompt-attachments-container"></div>
+                <button popovertarget="prompt__options" class="prompt__options__opener" aria-haspopup="menu">+</button>
+                <div popover id="prompt__options">
+                    <label for="prompt-attachments" class="prompt__options__upload-attachment__label">Upload file</label>
+                    <input
+                        accept="image/*; audio/*" 
+                        type="file" 
+                        name="Upload attachment" 
+                        id="prompt-attachments" 
+                        hidden
+                        multiple
+                    >
+                    
+                    <div>
+                        <label for="prompt-effort">Effort: </label>
+                        <select name="effort" id="prompt-effort">
+                            <option value=''>Default</option>
+                            <option value="none">none</option>
+                            <option value="minimal">minimal</option>
+                            <option value="low">low</option>
+                            <option value="medium">medium</option>
+                            <option value="high">high</option>
+                            <option value="xhigh">xhigh</option>
+                            <option value="max">max</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="prompt-model">Model: </label>
+                        <select name='model' class="prompt-model" id='prompt-model'>
+                            <option value="google/gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
+                            <option value="deepseek/deepseek-v4.1-flash">DeepSeek V4.1 Flash</option>
+                            <option value="~anthropic/claude-opus-latest">Claude Opus lastest</option>
+                            <option value="anthropic/claude-opus-5.5">Claude Opus 5.5</option>
+                            <option value="anthropic/claude-sonnet-5.5">Claude Sonnet 5.5</option>
+                            <option value='anthropic/claude-haiku-5.5'>Claude Haiku 5.5</option>
+                            <option value="anthropic/claude-fable-5.2">Claude Fable 5.2</option>
+                            <option value="openai/gpt-4">GPT 4</option>
+                            <option value="openai/gpt-6.1-sol">GPT 6.1 Sol</option>
+                            <option value="openai/gpt-6-astra">GPT 6 Astra</option>
+                            <option value="openai/gpt-6.1-terra">GPT 6.1 Terra</option>
+                            <option value="openai/gpt-6-luna">GPT 6 Luna</option>
+                        </select>
+                    </div>
+                </div>
+                <textarea id="prompt" class="prompt" type="text" placeholder="What do you want do do?"></textarea>
+            </div>
             <br><br>
-            <div id="messages"></div>
+            <div id="messages" class="messages"></div>
         </main>
 
         <footer>
-            <p class="credits">Developer: Gabriel - @GF-Silva</p>
+            <p class="credits">Developer: <a href="https://github.com/GF-Silva">Gabriel - @GF-Silva</a></p>
             <p class="credits">Github: <a href="https://github.com/GF-Silva/Cecilia">https://github.com/GF-Silva/Cecilia</a></p>
         </footer>
     </div>

@@ -3,12 +3,17 @@ import { fetchEventSource } from 'https://esm.sh/@microsoft/fetch-event-source';
 const mainEl = document.querySelector('main');
 const messages = document.getElementById('messages');
 const prompt = document.getElementById('prompt');
-const createNewChat = document.getElementById('create_new_chat');
-const effortSelector = document.getElementById('effort');
-const modelSelector = document.getElementById('model');
-const navigatorOptions = document.getElementById('chat_nav__options');
+const createNewChat = document.getElementById('create-new-chat');
+const navigatorOptions = document.getElementById('chat-nav-options');
+
+// Configs
 const uuidReg = /chats\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/
 let chatId = window.location.pathname.match(uuidReg)?.[1];
+const effortSelector = document.getElementById('prompt-effort');
+const modelSelector = document.getElementById('prompt-model');
+const attachmentsInput = document.getElementById('prompt-attachments');
+const promptAttachmentsContainer = document.getElementById('prompt-attachments-container');
+let promptAttachments = [];
 const user = get_user_configs();
 
 if (user['effort']) {
@@ -17,6 +22,16 @@ if (user['effort']) {
 
 if (user['model']) {
     modelSelector.value = user['model'];
+}
+
+if (user['id']) {
+    // TODO: Pagination with limit + offset
+    await buildChats(user['id'], 100, 0);
+}
+
+if (chatId) {
+    await buildContext(chatId);
+    messages.scrollTop = messages.scrollHeight;
 }
 
 function get_user_configs() {
@@ -39,16 +54,7 @@ function save_user_configs(user) {
     localStorage.setItem('user', JSON.stringify(user));
 }
 
-if (chatId) {
-    await buildContext(chatId);
-    messages.scrollTop = messages.scrollHeight;
-}
-
-if (user['id']) {
-    // TODO: Pagination with limit + offset
-    await buildChats(user['id'], 100, 0);
-}
-
+// UI
 createNewChat.addEventListener('click', (evt) => {
     window.location.href = '/';
 });
@@ -59,13 +65,34 @@ prompt.addEventListener('keydown', (evt) => {
     evt.preventDefault();
 
     const text = prompt.value.trim();
-
     if (!text) return;
-
-    send_prompt(text);
-
+    sendPrompt(text, promptAttachments);
+    attachmentsInput.value = '';
+    promptAttachments = [];
+    promptAttachmentsContainer.replaceChildren();
     prompt.value = '';
 })
+
+attachmentsInput.addEventListener('input', evt => {
+    for (const file of evt.target.files) {
+        createUserPromptAttachmentEl(promptAttachmentsContainer, file);
+    }
+});
+
+function createUserPromptAttachmentEl(container, file) {
+    const attachment = document.createElement('object');
+    const id = Math.round(Math.random() * 10000000);
+    attachment.dataset.id = id;
+    promptAttachments[id] = file;
+    attachment.data = URL.createObjectURL(file);
+    attachment.type = file.type;
+
+    attachment.addEventListener('click', evt => {
+        promptAttachments.splice(evt.target.dataset.id);
+        evt.target.remove();
+    });
+    container.append(attachment);
+}
 
 async function buildChats(userId, limit, offset) {
     const response = await fetch(`/v1/chats/${userId}?limit=${limit}&offset=${offset}`);
@@ -111,7 +138,35 @@ function createMessageEl(role, content, extra_data) {
 
             const [details, summary, content] = createReasoningAddBtn(message);
             updateReasoning(details, content, summary, reasoningText);
+
+            // MessageHeader.append reasoning
         };
+    }
+
+    if (role == 'user' && extra_data) {
+        if (extra_data.attachments)  {
+            extra_data.attachments.forEach(attachment => {
+                console.log(attachment);
+                const attachmentEl = document.createElement('details');
+                attachmentEl.className = 'message__attachment';
+
+                const summary = document.createElement('summary');
+                summary.innerHTML = '<span>Open attachment</span>';
+
+                const header = document.createElement('p');
+                header.textContent = attachment.public_filename;
+                header.className = 'message__attachment__header';
+
+                const mimeType = document.createElement('p');
+                mimeType.textContent = attachment.mime_type;
+                mimeType.className = 'message__attachment__content';
+
+                attachmentEl.append(summary, header, mimeType);
+
+                message.append(attachmentEl);
+                // message header.append
+            });
+        }
     }
 
     const contentEl = document.createElement('div');
@@ -145,19 +200,107 @@ function createReasoningAddBtn(message) {
     return [details, summary, content];
 }
 
-function updateContent(content, text) {
-    content.dataset.text = content.dataset.text ? content.dataset.text + text : text;
-    content.innerHTML = marked.parse(content.dataset.text);
+function updateReasoning(res_el, res_content_el, res_summary_el, text) {
+    res_el.dataset.reasoning = res_el.dataset.reasoning ? res_el.dataset.reasoning + text : text;
+    res_content_el.innerHTML = marked.parse(res_el.dataset.reasoning);
 }
 
-async function send_prompt(text) {
+function add_chat_navigation(chatId) {
+    const option = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = `/chats/${chatId}`;
+    link.textContent = chatId;
+
+    option.append(link);
+    navigatorOptions.append(option);
+}
+
+// Logics
+async function sendPrompt(text, attachments) {
     createMessageEl('user', text)
-    chatId = chatId ? chatId : await create_chat();
-    const message = await create_message(chatId, text);
-    const completion = await create_completion(chatId);
+    chatId = chatId ? chatId : await createChat();
+    const message = await createMessage(chatId, text);
+    await createAttachments(chatId, message['id'], attachments);
+    const completion = await createCompletion(chatId);
 }
 
-async function create_completion(chatId) {
+async function createChat() {
+    const body = {
+        user_id: user['id']
+    };
+
+    const response = await fetch('/v1/chats', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+        console.log('Failed creating chat', data);
+        alert('Failed creating the chat');
+        throw new Error('failed creating chat');
+    }
+
+    history.pushState(null, '', `/chats/${data['id']}`);
+    add_chat_navigation(data['id']);
+    return data['id'];
+}
+
+async function createAttachments(chatId, messageId, attachments) {
+    if (!attachments.length > 0) {
+        console.log('length');
+        return;
+    }
+
+    const formData = new FormData();
+
+    attachments.forEach(attachment => {
+        formData.append('files', attachment); // TODO: Substituir o new File para usar o objeto attachments diretamente, pois ele ja 'e file
+    });
+
+    const response = await fetch(`/v1/chats/${chatId}/messages/${messageId}/attachments`, {
+        method: 'POST',
+        body: formData
+    });
+
+    if (!response.ok) {
+        console.log(await response.json());
+        alert(`Failed uploading attachments`);
+    }
+
+    console.log(await response.json());
+
+    return ;
+}
+
+async function createMessage(chatId, text) {
+    const body = {
+        text: text
+    };
+
+    const response = await fetch(`/v1/chats/${chatId}/messages`, {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        console.log('failed creating message', data);
+        alert('Failed creating message');
+        throw new Error('Failed creating message');
+    }
+
+    return data;
+}
+
+async function createCompletion(chatId) {
     user['effort'] = effortSelector.value;
     user['model'] = modelSelector.value;
     save_user_configs(user);
@@ -192,11 +335,6 @@ async function create_completion(chatId) {
     });
 }
 
-function updateReasoning(res_el, res_content_el, res_summary_el, text) {
-    res_el.dataset.reasoning = res_el.dataset.reasoning ? res_el.dataset.reasoning + text : text;
-    res_content_el.innerHTML = marked.parse(res_el.dataset.reasoning);
-}
-
 async function messageHandler(ev, content, message, reasoningEl, summaryEl, contentEl) {
     const data = JSON.parse(ev.data);
     if (ev.event == 'message') {
@@ -213,61 +351,7 @@ async function messageHandler(ev, content, message, reasoningEl, summaryEl, cont
     }
 }
 
-async function create_chat() {
-    const body = {
-        user_id: user['id']
-    };
-
-    const response = await fetch('/v1/chats', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    });
-    const data = await response.json();
-
-    if (!response.ok) {
-        console.log('Failed creating chat', data);
-        alert('Failed creating the chat');
-        throw new Error('failed creating chat');
-    }
-
-    history.pushState(null, '', `/chats/${data['id']}`);
-    add_chat_navigation(data['id']);
-    return data['id'];
-}
-
-function add_chat_navigation(chatId) {
-    const option = document.createElement('li');
-    const link = document.createElement('a');
-    link.href = `/chats/${chatId}`;
-    link.textContent = chatId;
-
-    option.append(link);
-    navigatorOptions.append(option);
-}
-
-async function create_message(chatId, text) {
-    const body = {
-        text: text
-    };
-
-    const response = await fetch(`/v1/chats/${chatId}/messages`, {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        console.log('failed creating message', data);
-        alert('Failed creating message');
-        throw new Error('Failed creating message');
-    }
-
-    return data;
+function updateContent(content, text) {
+    content.dataset.text = content.dataset.text ? content.dataset.text + text : text;
+    content.innerHTML = marked.parse(content.dataset.text);
 }
