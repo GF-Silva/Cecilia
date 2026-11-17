@@ -66,7 +66,7 @@ prompt.addEventListener('keydown', (evt) => {
 
     const text = prompt.value.trim();
     if (!text) return;
-    sendPrompt(text);
+    sendPrompt(text, promptAttachments);
     attachmentsInput.value = '';
     promptAttachments = [];
     promptAttachmentsContainer.replaceChildren();
@@ -215,13 +215,12 @@ function add_chat_navigation(chatId) {
     navigatorOptions.append(option);
 }
 
-// Logic
-
-async function sendPrompt(text) {
+// Logics
+async function sendPrompt(text, attachments) {
     createMessageEl('user', text)
     chatId = chatId ? chatId : await createChat();
     const message = await createMessage(chatId, text);
-    await createAttachments(chatId, message['id'], promptAttachments);
+    await createAttachments(chatId, message['id'], attachments);
     const completion = await createCompletion(chatId);
 }
 
@@ -252,6 +251,7 @@ async function createChat() {
 
 async function createAttachments(chatId, messageId, attachments) {
     if (!attachments.length > 0) {
+        console.log('length');
         return;
     }
 
@@ -271,7 +271,9 @@ async function createAttachments(chatId, messageId, attachments) {
         alert(`Failed uploading attachments`);
     }
 
-    return await response.json();
+    console.log(await response.json());
+
+    return ;
 }
 
 async function createMessage(chatId, text) {
