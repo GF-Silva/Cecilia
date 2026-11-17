@@ -48,9 +48,22 @@ export class Prompt {
             <label for="prompt-attachments" class="prompt__options__upload-attachment__label">Upload file</label>
         `;
         
-        this.createEffortSelector(promptOptions, this.effortOptions)
-        this.createModelSelector(promptOptions, this.modelOptions);
+        this.createEffortSelector(promptOptions);
+        this.createModelSelector(promptOptions);
+        const promptAttachmentsInput = this.createAttachmentInput(promptOptions);
 
+        const optionsOpenerBtn = document.createElement('button');
+        optionsOpenerBtn.popoverTargetElement = promptOptions;
+        optionsOpenerBtn.className = 'prompt__options__opener';
+        optionsOpenerBtn.ariaHasPopup = 'menu';
+        optionsOpenerBtn.textContent = '+';
+
+        container.append(optionsOpenerBtn, promptOptions);
+
+        return [ promptAttachmentsInput ];
+    }
+
+    createAttachmentInput(container) {
         const promptAttachmentsInput = document.createElement('input');
         promptAttachmentsInput.accept = 'image/*; audio/*';
         promptAttachmentsInput.type = 'file';
@@ -59,17 +72,9 @@ export class Prompt {
         promptAttachmentsInput.hidden = true;
         promptAttachmentsInput.multiple = true;
 
-        promptOptions.append(promptAttachmentsInput);
+        container.append(promptAttachmentsInput);
 
-        const optionsOpenerBtn = document.createElement('button');
-        optionsOpenerBtn.popoverTargetElement = promptOptions;
-        optionsOpenerBtn.className = 'prompt__options__opener';
-        optionsOpenerBtn.ariaHasPopup = 'menu';
-        optionsOpenerBtn.textContent = '+';
-
-        container.append(optionsOpenerBtn, promptOptions, promptAttachmentsInput);
-
-        return [ promptAttachmentsInput ];
+        return promptAttachmentsInput;
     }
 
     createEffortSelector(container) {
