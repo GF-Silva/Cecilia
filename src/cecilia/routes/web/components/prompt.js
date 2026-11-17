@@ -1,5 +1,6 @@
 export class Prompt {
     constructor (container, onPromptSend, effortOptions, modelOptions) {
+        this.onPromptSend = onPromptSend;
         this.effortOptions = effortOptions;
         this.modelOptions = modelOptions;
         this.promptAttachments = [];
@@ -7,9 +8,9 @@ export class Prompt {
         const promptContainer = document.createElement('div');
         promptContainer.className = 'prompt__container';
 
-        const attachments = document.createElement('div');
-        attachments.className = 'prompt__container__attachments';
-        attachments.id = 'prompt-attachments-container';
+        this.attachments = document.createElement('div');
+        this.attachments.className = 'prompt__container__attachments';
+        this.attachments.id = 'prompt-attachments-container';
 
         const [ optionsOpenerBtn, promptOptions ] = this.createPromptOptions(promptContainer, modelOptions);
         const effortSelector = this.createEffortSelector();
@@ -18,7 +19,7 @@ export class Prompt {
         const prompt = this.createPromptInput(promptAttachmentsInput);
 
         promptOptions.append(effortSelector, modelSelector, promptAttachmentsInput)
-        promptContainer.append(promptOptions, optionsOpenerBtn, attachments, prompt);
+        promptContainer.append(promptOptions, optionsOpenerBtn, this.attachments, prompt);
         container.append(promptContainer);
 
         return [ this.promptAttachments ];
@@ -36,12 +37,12 @@ export class Prompt {
 
             const text = prompt.value.trim();
             if (!text) return;
-            
-            await onPromptSend(text, this.promptAttachments);
             promptAttachmentsInput.value = '';
-            this.promptAttachments = [];
-            attachments.replaceChildren();
+            this.attachments.replaceChildren();
             prompt.value = '';
+            
+            await this.onPromptSend(text, this.promptAttachments);
+            this.promptAttachments = [];
         });
 
         return prompt;
