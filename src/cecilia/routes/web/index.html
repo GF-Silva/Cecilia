@@ -49,7 +49,14 @@
         </nav>
 
         <main>
-            <textarea id="prompt" type="text" placeholder="What do you want do do?"></textarea>
+            <div class="prompt__container">
+                <button popovertarget="prompt__options" class="prompt__options__opener" aria-haspopup="menu">+</button>
+                <div popover id="prompt__options">
+                    <label for="prompt__options__upload-attachment" class="prompt__options__upload-attachment__label">Upload file</label>
+                    <input accept="image/*; audio/*" type="file" name="Upload attachment" id="prompt__options__upload-attachment" hidden>
+                </div>
+                <textarea id="prompt" type="text" placeholder="What do you want do do?"></textarea>
+            </div>
             <br><br>
             <div id="messages"></div>
         </main>

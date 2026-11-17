@@ -102,17 +102,78 @@ main {
     grid-template-rows: 1fr 10dvh;
 }
 
-#prompt {
+.prompt__container {
     grid-area: prompt;
     position: absolute;
     left: 50%;
     bottom: 5%;
     transform: translateX(-50%);
     width: 80%;
+    height: 100%;
+    display: flex;
+    align-items: end;
+    justify-content: space-evenly;
+    z-index: 100;
+}
+
+.prompt__options__opener {
+    anchor-name: --prompt__options;
+    font-weight: bold;
+    font-size: large;
+    border-radius: 20%;
+    border: 1px solid #000;
+    width: auto;
+    height: 50%;
+    aspect-ratio: 1;
+}
+
+#prompt__options {
+    position: fixed;
+    display: flex;
+    position-anchor: --prompt__options;
+    position-area: top;
+    position-try-fallbacks: top, left, right;
+    translate: 0 100vh;
+    margin-bottom: 1%;
+    height: fit-content;
+    border-radius: 5px;
+    border-width: 2px;
+    opacity: 0;
+    padding: .8%;
+    gap: 2%;
+    transition:
+        opacity 0.2s,
+        translate 0.2s,
+        display 0.2s allow-discrete,
+        overlay 0.2s allow-discrete;
+
+    background: #ffe4cc;
+}
+
+#prompt__options:popover-open {
+  opacity: 1;
+  translate: 0 0;
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+.prompt__options__upload-attachment__label {
+    background: #ffecdc;
+    padding: 10%;
+    border-radius: 5px;
+    border: 1px solid #000;
+}
+
+#prompt {
+    grid-area: prompt;
+    position: relative;
+    width: 80%;
+    bottom: 0;
     max-height: 30dvh;
     field-sizing: content;
     resize: none;
-    padding: .5%;
+    padding: .8%;
     border-radius: 6px;
     z-index: 100;
 }
