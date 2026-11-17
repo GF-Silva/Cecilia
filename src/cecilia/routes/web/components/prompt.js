@@ -10,7 +10,10 @@ export class Prompt {
         attachments.className = 'prompt__container__attachments';
         attachments.id = 'prompt-attachments-container';
 
-        const [ promptAttachmentsInput ] = this.createPromptOptions(promptContainer, modelOptions);
+        const [ optionsOpenerBtn, promptOptions ] = this.createPromptOptions(promptContainer, modelOptions);
+        const effortSelector = this.createEffortSelector();
+        const modelSelector = this.createModelSelector();
+        const promptAttachmentsInput = this.createAttachmentInput();
 
         const prompt = document.createElement('textarea');
         prompt.id = 'prompt';
@@ -33,7 +36,8 @@ export class Prompt {
             prompt.value = '';
         });
 
-        promptContainer.append(attachments, prompt);
+        promptOptions.append(effortSelector, modelSelector, promptAttachmentsInput)
+        promptContainer.append(promptOptions, optionsOpenerBtn, attachments, prompt);
         container.append(promptContainer);
 
         return [ promptAttachments ];
@@ -47,10 +51,6 @@ export class Prompt {
         promptOptions.innerHTML = `
             <label for="prompt-attachments" class="prompt__options__upload-attachment__label">Upload file</label>
         `;
-        
-        this.createEffortSelector(promptOptions);
-        this.createModelSelector(promptOptions);
-        const promptAttachmentsInput = this.createAttachmentInput(promptOptions);
 
         const optionsOpenerBtn = document.createElement('button');
         optionsOpenerBtn.popoverTargetElement = promptOptions;
@@ -58,12 +58,10 @@ export class Prompt {
         optionsOpenerBtn.ariaHasPopup = 'menu';
         optionsOpenerBtn.textContent = '+';
 
-        container.append(optionsOpenerBtn, promptOptions);
-
-        return [ promptAttachmentsInput ];
+        return [ optionsOpenerBtn, promptOptions ];
     }
 
-    createAttachmentInput(container) {
+    createAttachmentInput() {
         const promptAttachmentsInput = document.createElement('input');
         promptAttachmentsInput.accept = 'image/*; audio/*';
         promptAttachmentsInput.type = 'file';
@@ -72,12 +70,10 @@ export class Prompt {
         promptAttachmentsInput.hidden = true;
         promptAttachmentsInput.multiple = true;
 
-        container.append(promptAttachmentsInput);
-
         return promptAttachmentsInput;
     }
 
-    createEffortSelector(container) {
+    createEffortSelector() {
         const effortSelectorContainer = document.createElement('div');
 
         // Seletor de effort
@@ -98,10 +94,10 @@ export class Prompt {
         }
 
         effortSelectorContainer.append(label, selectorEl);
-        container.append(effortSelectorContainer);
+        return effortSelectorContainer;
     }
 
-    createModelSelector(container) {
+    createModelSelector() {
         const selectorContainerEl = document.createElement('div');
 
         const label = document.createElement('label');
@@ -121,6 +117,6 @@ export class Prompt {
         }
 
         selectorContainerEl.append(label, modelSelector);
-        container.append(selectorContainerEl);
+        return selectorContainerEl;
     }
 }
