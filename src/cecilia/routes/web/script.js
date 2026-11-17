@@ -103,6 +103,10 @@ function createUserPromptAttachmentEl(container, file) {
     attachment.data = URL.createObjectURL(file);
     attachment.type = file.type;
 
+    attachment.addEventListener('load', evt => {
+        evt.target.contentWindow.document.querySelector('video').pause();
+    });
+
     attachment.addEventListener('click', evt => {
         promptAttachments.splice(evt.target.dataset.id);
         evt.target.remove();
@@ -274,8 +278,10 @@ async function createAttachments(chatId, messageId, attachments) {
     const formData = new FormData();
 
     attachments.forEach(attachment => {
-        formData.append('files', attachment); // TODO: Substituir o new File para usar o objeto attachments diretamente, pois ele ja 'e file
+        formData.append('files', attachment);
     });
+
+    return;
 
     const response = await fetch(`/v1/chats/${chatId}/messages/${messageId}/attachments`, {
         method: 'POST',
