@@ -13,6 +13,7 @@ const effortSelector = document.getElementById('prompt-effort');
 const modelSelector = document.getElementById('prompt-model');
 const attachmentsInput = document.getElementById('prompt-attachments');
 const promptAttachmentsContainer = document.getElementById('prompt-attachments-container');
+let promptAttachments = [];
 const user = get_user_configs();
 
 if (user['effort']) {
@@ -64,16 +65,17 @@ prompt.addEventListener('keydown', (evt) => {
     evt.preventDefault();
 
     const text = prompt.value.trim();
-
     if (!text) return;
-
     sendPrompt(text);
-
+    attachmentsInput.value = '';
+    promptAttachments = [];
+    promptAttachmentsContainer.replaceChildren();
     prompt.value = '';
 })
 
 attachmentsInput.addEventListener('input', evt => {
     for (const file of evt.target.files) {
+        promptAttachments.push(file);
         createUserPromptAttachmentEl(promptAttachmentsContainer, file);
     }
 });
@@ -212,7 +214,7 @@ async function sendPrompt(text) {
     createMessageEl('user', text)
     chatId = chatId ? chatId : await createChat();
     const message = await createMessage(chatId, text);
-    const attachments = await createAttachments(chatId, message['id'], attachmentsInput.files);
+    await createAttachments(chatId, message['id'], promptAttachments);
     const completion = await createCompletion(chatId);
 }
 
@@ -248,12 +250,9 @@ async function createAttachments(chatId, messageId, attachments) {
 
     const formData = new FormData();
 
-    for (const attachment of attachments) {
-        formData.append('files', new File([attachment], attachment.name, {
-            type: attachment.type,
-            size: attachment.size
-        })); // TODO: Substituir o new File para usar o objeto attachments diretamente, pois ele ja 'e file
-    }
+    attachments.forEach(attachment => {
+        formData.append('files', attachment); // TODO: Substituir o new File para usar o objeto attachments diretamente, pois ele ja 'e file
+    });
 
     const response = await fetch(`/v1/chats/${chatId}/messages/${messageId}/attachments`, {
         method: 'POST',
@@ -261,6 +260,7 @@ async function createAttachments(chatId, messageId, attachments) {
     });
 
     if (!response.ok) {
+        console.log(await response.json());
         alert(`Failed uploading attachments`);
     }
 
