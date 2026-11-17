@@ -4,11 +4,13 @@ const mainEl = document.querySelector('main');
 const messages = document.getElementById('messages');
 const prompt = document.getElementById('prompt');
 const createNewChat = document.getElementById('create-new-chat');
-const effortSelector = document.getElementById('prompt-effort');
-const modelSelector = document.getElementById('prompt-model');
 const navigatorOptions = document.getElementById('chat-nav-options');
+
+// Configs
 const uuidReg = /chats\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/
 let chatId = window.location.pathname.match(uuidReg)?.[1];
+const effortSelector = document.getElementById('prompt-effort');
+const modelSelector = document.getElementById('prompt-model');
 const user = get_user_configs();
 
 if (user['effort']) {
@@ -17,6 +19,16 @@ if (user['effort']) {
 
 if (user['model']) {
     modelSelector.value = user['model'];
+}
+
+if (user['id']) {
+    // TODO: Pagination with limit + offset
+    await buildChats(user['id'], 100, 0);
+}
+
+if (chatId) {
+    await buildContext(chatId);
+    messages.scrollTop = messages.scrollHeight;
 }
 
 function get_user_configs() {
@@ -39,16 +51,7 @@ function save_user_configs(user) {
     localStorage.setItem('user', JSON.stringify(user));
 }
 
-if (chatId) {
-    await buildContext(chatId);
-    messages.scrollTop = messages.scrollHeight;
-}
-
-if (user['id']) {
-    // TODO: Pagination with limit + offset
-    await buildChats(user['id'], 100, 0);
-}
-
+// UI
 createNewChat.addEventListener('click', (evt) => {
     window.location.href = '/';
 });
@@ -145,16 +148,77 @@ function createReasoningAddBtn(message) {
     return [details, summary, content];
 }
 
-function updateContent(content, text) {
-    content.dataset.text = content.dataset.text ? content.dataset.text + text : text;
-    content.innerHTML = marked.parse(content.dataset.text);
+function updateReasoning(res_el, res_content_el, res_summary_el, text) {
+    res_el.dataset.reasoning = res_el.dataset.reasoning ? res_el.dataset.reasoning + text : text;
+    res_content_el.innerHTML = marked.parse(res_el.dataset.reasoning);
 }
+
+function add_chat_navigation(chatId) {
+    const option = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = `/chats/${chatId}`;
+    link.textContent = chatId;
+
+    option.append(link);
+    navigatorOptions.append(option);
+}
+
+// Logic
 
 async function send_prompt(text) {
     createMessageEl('user', text)
     chatId = chatId ? chatId : await create_chat();
     const message = await create_message(chatId, text);
     const completion = await create_completion(chatId);
+}
+
+async function create_chat() {
+    const body = {
+        user_id: user['id']
+    };
+
+    const response = await fetch('/v1/chats', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+        console.log('Failed creating chat', data);
+        alert('Failed creating the chat');
+        throw new Error('failed creating chat');
+    }
+
+    history.pushState(null, '', `/chats/${data['id']}`);
+    add_chat_navigation(data['id']);
+    return data['id'];
+}
+
+async function create_message(chatId, text) {
+    const body = {
+        text: text
+    };
+
+    const response = await fetch(`/v1/chats/${chatId}/messages`, {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        console.log('failed creating message', data);
+        alert('Failed creating message');
+        throw new Error('Failed creating message');
+    }
+
+    return data;
 }
 
 async function create_completion(chatId) {
@@ -192,11 +256,6 @@ async function create_completion(chatId) {
     });
 }
 
-function updateReasoning(res_el, res_content_el, res_summary_el, text) {
-    res_el.dataset.reasoning = res_el.dataset.reasoning ? res_el.dataset.reasoning + text : text;
-    res_content_el.innerHTML = marked.parse(res_el.dataset.reasoning);
-}
-
 async function messageHandler(ev, content, message, reasoningEl, summaryEl, contentEl) {
     const data = JSON.parse(ev.data);
     if (ev.event == 'message') {
@@ -213,61 +272,7 @@ async function messageHandler(ev, content, message, reasoningEl, summaryEl, cont
     }
 }
 
-async function create_chat() {
-    const body = {
-        user_id: user['id']
-    };
-
-    const response = await fetch('/v1/chats', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    });
-    const data = await response.json();
-
-    if (!response.ok) {
-        console.log('Failed creating chat', data);
-        alert('Failed creating the chat');
-        throw new Error('failed creating chat');
-    }
-
-    history.pushState(null, '', `/chats/${data['id']}`);
-    add_chat_navigation(data['id']);
-    return data['id'];
-}
-
-function add_chat_navigation(chatId) {
-    const option = document.createElement('li');
-    const link = document.createElement('a');
-    link.href = `/chats/${chatId}`;
-    link.textContent = chatId;
-
-    option.append(link);
-    navigatorOptions.append(option);
-}
-
-async function create_message(chatId, text) {
-    const body = {
-        text: text
-    };
-
-    const response = await fetch(`/v1/chats/${chatId}/messages`, {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        console.log('failed creating message', data);
-        alert('Failed creating message');
-        throw new Error('Failed creating message');
-    }
-
-    return data;
+function updateContent(content, text) {
+    content.dataset.text = content.dataset.text ? content.dataset.text + text : text;
+    content.innerHTML = marked.parse(content.dataset.text);
 }
