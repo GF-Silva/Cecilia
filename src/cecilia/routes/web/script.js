@@ -10,7 +10,21 @@ const navigatorOptions = document.getElementById('chat-nav-options');
 // Configs
 const uuidReg = /chats\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/
 let chatId = window.location.pathname.match(uuidReg)?.[1];
-const [ promptAttachments ] = new Prompt(mainEl, sendPrompt);
+
+const effortOptions = {
+    '': 'Default',
+    none: 'none',
+    minimal: 'minimal',
+    low: 'low',
+    medium: 'medium',
+    high: 'high',
+    xhigh: 'xhigh',
+    max: 'max'
+};
+
+const [ promptAttachments ] = new Prompt(mainEl, sendPrompt, effortOptions);
+
+
 const effortSelector = document.getElementById('prompt-effort');
 const modelSelector = document.getElementById('prompt-model');
 const attachmentsInput = document.getElementById('prompt-attachments');
@@ -34,7 +48,6 @@ if (chatId) {
     await buildContext(chatId);
     messages.scrollTop = messages.scrollHeight;
 }
-
 
 function get_user_configs() {
     const user = localStorage.getItem('user');
