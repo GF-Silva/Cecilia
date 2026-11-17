@@ -22,7 +22,14 @@
                 <button popovertarget="prompt__options" class="prompt__options__opener" aria-haspopup="menu">+</button>
                 <div popover id="prompt__options">
                     <label for="prompt-attachments" class="prompt__options__upload-attachment__label">Upload file</label>
-                    <input accept="image/*; audio/*" type="file" name="Upload attachment" id="prompt-attachments" hidden>
+                    <input
+                        accept="image/*; audio/*" 
+                        type="file" 
+                        name="Upload attachment" 
+                        id="prompt-attachments" 
+                        hidden
+                        multiple
+                    >
                     
                     <div>
                         <label for="prompt-effort">Effort: </label>

@@ -11,6 +11,7 @@ const uuidReg = /chats\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f
 let chatId = window.location.pathname.match(uuidReg)?.[1];
 const effortSelector = document.getElementById('prompt-effort');
 const modelSelector = document.getElementById('prompt-model');
+const attachmentsInput = document.getElementById('prompt-attachments');
 const user = get_user_configs();
 
 if (user['effort']) {
@@ -65,7 +66,7 @@ prompt.addEventListener('keydown', (evt) => {
 
     if (!text) return;
 
-    send_prompt(text);
+    sendPrompt(text);
 
     prompt.value = '';
 })
@@ -165,14 +166,15 @@ function add_chat_navigation(chatId) {
 
 // Logic
 
-async function send_prompt(text) {
+async function sendPrompt(text) {
     createMessageEl('user', text)
-    chatId = chatId ? chatId : await create_chat();
-    const message = await create_message(chatId, text);
-    const completion = await create_completion(chatId);
+    chatId = chatId ? chatId : await createChat();
+    const message = await createMessage(chatId, text);
+    const attachments = await createAttachments(chatId, message['id'], attachmentsInput.files);
+    const completion = await createCompletion(chatId);
 }
 
-async function create_chat() {
+async function createChat() {
     const body = {
         user_id: user['id']
     };
@@ -197,7 +199,33 @@ async function create_chat() {
     return data['id'];
 }
 
-async function create_message(chatId, text) {
+async function createAttachments(chatId, messageId, attachments) {
+    if (!attachments.length > 0) {
+        return;
+    }
+
+    const formData = new FormData();
+
+    for (const attachment of attachments) {
+        formData.append('files', new File([attachment], attachment.name, {
+            type: attachment.type,
+            size: attachment.size
+        }));
+    }
+
+    const response = await fetch(`/v1/chats/${chatId}/messages/${messageId}/attachments`, {
+        method: 'POST',
+        body: formData
+    });
+
+    if (!response.ok) {
+        alert(`Failed uploading attachments`);
+    }
+
+    return await response.json();
+}
+
+async function createMessage(chatId, text) {
     const body = {
         text: text
     };
@@ -221,7 +249,7 @@ async function create_message(chatId, text) {
     return data;
 }
 
-async function create_completion(chatId) {
+async function createCompletion(chatId) {
     user['effort'] = effortSelector.value;
     user['model'] = modelSelector.value;
     save_user_configs(user);
