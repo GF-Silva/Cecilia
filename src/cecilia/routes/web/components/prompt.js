@@ -2,6 +2,7 @@ export class Prompt {
     constructor (container, onPromptSend, effortOptions, modelOptions) {
         this.effortOptions = effortOptions;
         this.modelOptions = modelOptions;
+        this.promptAttachments = [];
 
         const promptContainer = document.createElement('div');
         promptContainer.className = 'prompt__container';
@@ -14,13 +15,20 @@ export class Prompt {
         const effortSelector = this.createEffortSelector();
         const modelSelector = this.createModelSelector();
         const promptAttachmentsInput = this.createAttachmentInput();
+        const prompt = this.createPromptInput(promptAttachmentsInput);
 
+        promptOptions.append(effortSelector, modelSelector, promptAttachmentsInput)
+        promptContainer.append(promptOptions, optionsOpenerBtn, attachments, prompt);
+        container.append(promptContainer);
+
+        return [ this.promptAttachments ];
+    }
+
+    createPromptInput(promptAttachmentsInput) {
         const prompt = document.createElement('textarea');
         prompt.id = 'prompt';
         prompt.className = 'prompt';
         prompt.placeholder = 'What do you want to do?';
-
-        let promptAttachments = [];
         
         prompt.addEventListener('keydown', async (evt) => {
             if (evt.key != 'Enter' || evt.shiftKey || evt.isComposing) return;
@@ -29,21 +37,17 @@ export class Prompt {
             const text = prompt.value.trim();
             if (!text) return;
             
-            await onPromptSend(text, promptAttachments);
+            await onPromptSend(text, this.promptAttachments);
             promptAttachmentsInput.value = '';
-            promptAttachments = [];
+            this.promptAttachments = [];
             attachments.replaceChildren();
             prompt.value = '';
         });
 
-        promptOptions.append(effortSelector, modelSelector, promptAttachmentsInput)
-        promptContainer.append(promptOptions, optionsOpenerBtn, attachments, prompt);
-        container.append(promptContainer);
-
-        return [ promptAttachments ];
+        return prompt;
     }
 
-    createPromptOptions(container) {
+    createPromptOptions() {
         const promptOptions = document.createElement('div');
         promptOptions.setAttribute('popover', 'auto')
         promptOptions.id = 'prompt__options';
