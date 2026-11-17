@@ -1,19 +1,20 @@
 import { fetchEventSource } from 'https://esm.sh/@microsoft/fetch-event-source';
+import { Prompt } from './components/prompt.js';
 
 const mainEl = document.querySelector('main');
+
 const messages = document.getElementById('messages');
-const prompt = document.getElementById('prompt');
 const createNewChat = document.getElementById('create-new-chat');
 const navigatorOptions = document.getElementById('chat-nav-options');
 
 // Configs
 const uuidReg = /chats\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/
 let chatId = window.location.pathname.match(uuidReg)?.[1];
+const [ promptAttachments ] = new Prompt(mainEl, sendPrompt);
 const effortSelector = document.getElementById('prompt-effort');
 const modelSelector = document.getElementById('prompt-model');
 const attachmentsInput = document.getElementById('prompt-attachments');
 const promptAttachmentsContainer = document.getElementById('prompt-attachments-container');
-let promptAttachments = [];
 const user = get_user_configs();
 
 if (user['effort']) {
@@ -34,9 +35,10 @@ if (chatId) {
     messages.scrollTop = messages.scrollHeight;
 }
 
+
 function get_user_configs() {
     const user = localStorage.getItem('user');
-
+    
     if (!user) {
         const newUser = {
             id: Math.round(Math.random() * 100000000),
@@ -58,20 +60,6 @@ function save_user_configs(user) {
 createNewChat.addEventListener('click', (evt) => {
     window.location.href = '/';
 });
-
-prompt.addEventListener('keydown', (evt) => {
-    if (evt.key != 'Enter' || evt.shiftKey || evt.isComposing) return;
-
-    evt.preventDefault();
-
-    const text = prompt.value.trim();
-    if (!text) return;
-    sendPrompt(text, promptAttachments);
-    attachmentsInput.value = '';
-    promptAttachments = [];
-    promptAttachmentsContainer.replaceChildren();
-    prompt.value = '';
-})
 
 attachmentsInput.addEventListener('input', evt => {
     for (const file of evt.target.files) {
