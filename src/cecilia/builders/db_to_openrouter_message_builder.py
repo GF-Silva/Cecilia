@@ -18,7 +18,7 @@ from cecilia.integrations.hackclub_ai.types.messages import (
     SummaryReasoning
 )
 from cecilia.integrations.cloudflare.r2 import R2
-from cecilia.use_cases.delete import DeleteAttachmentUseCase
+from cecilia.use_cases.attachments.delete import DeleteAttachmentUseCase
 import fastpybase64 as base64
 
 class DBToOpenrouterMessageBuilder:
@@ -57,6 +57,7 @@ class DBToOpenrouterMessageBuilder:
             attachment
             for db_attachment in db_message.attachments
             if (attachment := await self._build_attachment(db_attachment)) is not None
+            if db_attachment.is_valid is not False
         ] if db_message.attachments else None
         if attachments: content += attachments
 
@@ -72,6 +73,7 @@ class DBToOpenrouterMessageBuilder:
             try:
                 file_data = await self.r2_integration.get_file_data(db_attachment.path)
             except FileNotFoundError:
+                print('invalidating file')
                 await self.delete_attachment_use_case(
                     attachment_id=db_attachment.id, 
                     message_id=db_attachment.message_id
@@ -93,6 +95,7 @@ class DBToOpenrouterMessageBuilder:
                     path=db_attachment.path
                 )
             except FileNotFoundError:
+                print('invalidating file')
                 await self.delete_attachment_use_case(
                     attachment_id=db_attachment.id, 
                     message_id=db_attachment.message_id

@@ -1,5 +1,6 @@
 from cecilia.models.attachment_model import AttachmentPublic
-from cecilia.use_cases import CreateAttachmentsUseCaseDep, DeleteAttachmentUseCaseDep
+from cecilia.use_cases import CreateAttachmentsUseCaseDep
+from cecilia.use_cases.attachments import DeleteAttachmentUseCaseDep
 from fastapi import APIRouter, UploadFile, File, Depends
 from cecilia.services import AttachmentServiceDep
 from cecilia.core.responses import BaseResponse
