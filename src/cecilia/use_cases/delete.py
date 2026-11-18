@@ -12,6 +12,7 @@ class DeleteAttachmentUseCase:
         self.attachments_service = attachments_service
 
     async def __call__(self, attachment_id: int, message_id: int):
+        # TODO:
         # O attachments.invalidate_file invalida o arquivo internamente no attachments,
         # ent ele tenta deletar? Aq ele pode ou deletar ou mandar pra um background worker fazer isso
         # talvez um worker na r2 e outro no database. Ai o codigo apenas alterna um estado, ent n dmr mt
@@ -22,6 +23,10 @@ class DeleteAttachmentUseCase:
         # Definir o estado do arquivo no database como invalido
         # Aplicar o worker da R2 para deletar arquivos invalidados
         # Tirar a validacao de arquivos do codigo e passar para um worker
+
+        # TODO: Nao deletar o arquivo nem o registro diretamente. Ao invez disso, apenas invalidar o 
+        # arquivo e deixar o worker deletar arquivos invalidados a mais de 10 dias.
+        # A parte de nao deletar o registro ja esta feita
 
         attachment = self.attachments_service.update(
             id=attachment_id,
