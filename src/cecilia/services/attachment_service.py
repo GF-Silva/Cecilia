@@ -1,10 +1,11 @@
 from cecilia.repositories import AttachmentRepository
-from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic
+from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic, AttachmentUpdate
 from cecilia.models.tables import Attachment, Message
 from collections.abc import Sequence
 from cecilia.core.exceptions import NotFoundError, UnsupportedFileFormatError, RuleError
 
 class AttachmentService:
+    # TODO: The service must not know the accepted types, this should be at openrouter / r2 integration
     ACCEPTED_FILE_TYPES = {
         "mp3": 'audio/mpeg',
         'aiff': 'audio/x-aiff',
@@ -100,10 +101,12 @@ class AttachmentService:
 
     def delete(self, id: int, message_id: int):
         attachment = self.show(id, message_id)
-
         self.attachment_repository.delete(attachment)
-
         return True
+
+    def update(self, id: int, message_id: int, attachment_update: AttachmentUpdate):
+        attachment = self.show(id, message_id)
+        return self.attachment_repository.update(db_attachment=attachment, attachment_update=attachment_update)
 
     def _to_attachment_public(self, attachment: Attachment) -> AttachmentPublic:
         return AttachmentPublic.model_validate(attachment)

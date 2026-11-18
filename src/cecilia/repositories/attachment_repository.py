@@ -1,4 +1,4 @@
-from cecilia.models.attachment_model import AttachmentCreate
+from cecilia.models.attachment_model import AttachmentCreate, AttachmentUpdate
 from cecilia.models.tables import Attachment
 from sqlmodel import select, Session
 from collections.abc import Sequence
@@ -35,6 +35,16 @@ class AttachmentRepository:
             select(Attachment)
             .where(Attachment.id == id, Attachment.message_id == message_id)
         ).one_or_none()
+
+    def update(self, attachment_update: AttachmentUpdate, db_attachment: Attachment) -> Attachment:
+        attachment_data = attachment_update.model_dump(exclude_unset=True)
+        db_attachment.sqlmodel_update(attachment_data)
+
+        self.session.add(db_attachment)
+        self.session.commit()
+        self.session.refresh(db_attachment)
+
+        return db_attachment
 
     def index(self, offset: int = 0, limit: int = 100) -> Sequence[Attachment]:
         return self.session.exec(select(Attachment).offset(offset).limit(limit)).all()

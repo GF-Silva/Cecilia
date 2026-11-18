@@ -18,14 +18,17 @@ from cecilia.integrations.hackclub_ai.types.messages import (
     SummaryReasoning
 )
 from cecilia.integrations.cloudflare.r2 import R2
+from cecilia.use_cases.attachments.delete import DeleteAttachmentUseCase
 import fastpybase64 as base64
 
 class DBToOpenrouterMessageBuilder:
     def __init__(
         self,
-        r2_integration: R2
+        r2_integration: R2,
+        delete_attachment_use_case: DeleteAttachmentUseCase
     ):
         self.r2_integration = r2_integration
+        self.delete_attachment_use_case = delete_attachment_use_case
 
     async def __call__(self, db_message: DBMessage):
         reasonings = [
@@ -54,12 +57,14 @@ class DBToOpenrouterMessageBuilder:
             attachment
             for db_attachment in db_message.attachments
             if (attachment := await self._build_attachment(db_attachment)) is not None
+            if db_attachment.is_valid is not False
         ] if db_message.attachments else None
         if attachments: content += attachments
 
         return content
 
     async def _build_attachment(self, db_attachment: DBAttachment) -> Content | None:
+        assert db_attachment.id
         file_extension = mimetypes.guess_extension(db_attachment.mime_type)
 
         if not file_extension: print("mime"); return
@@ -68,7 +73,11 @@ class DBToOpenrouterMessageBuilder:
             try:
                 file_data = await self.r2_integration.get_file_data(db_attachment.path)
             except FileNotFoundError:
-                # TODO: Aplicar a regra de negocio de invalidar o arquivo
+                print('invalidating file')
+                await self.delete_attachment_use_case(
+                    attachment_id=db_attachment.id, 
+                    message_id=db_attachment.message_id
+                )
                 return
 
             base64_file = base64.b64encode(file_data).decode('utf-8')
@@ -86,10 +95,14 @@ class DBToOpenrouterMessageBuilder:
                     path=db_attachment.path
                 )
             except FileNotFoundError:
-                # TODO: Aplicar a regra de negocio de invalidar o arquivo
+                print('invalidating file')
+                await self.delete_attachment_use_case(
+                    attachment_id=db_attachment.id, 
+                    message_id=db_attachment.message_id
+                )
                 return
 
-            if not presigned_url: return # TODO: Must invalidate the file into db
+            if not presigned_url: return
 
             return ImageContent(
                 image_url=ImageUrl(url=presigned_url)
