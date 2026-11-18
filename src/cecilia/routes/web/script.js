@@ -37,7 +37,7 @@ const modelOptions = {
     "openai/gpt-6-luna": "GPT 6 Luna"
 }
 
-const [ promptAttachments ] = new Prompt(mainEl, sendPrompt, effortOptions, modelOptions);
+const prompt = new Prompt(mainEl, sendPrompt, effortOptions, modelOptions);
 
 
 const effortSelector = document.getElementById('prompt-effort');
@@ -91,20 +91,21 @@ createNewChat.addEventListener('click', (evt) => {
 
 attachmentsInput.addEventListener('input', evt => {
     for (const file of evt.target.files) {
+        console.log(file);
         createUserPromptAttachmentEl(promptAttachmentsContainer, file);
     }
 });
 
 function createUserPromptAttachmentEl(container, file) {
     const attachment = document.createElement('object');
-    const id = Math.round(Math.random() * 10000000);
+    const id = Math.round(Math.random() * 100000000);
     attachment.dataset.id = id;
-    promptAttachments[id] = file;
+    prompt.promptAttachments[id] = file;
     attachment.data = URL.createObjectURL(file);
     attachment.type = file.type;
 
     attachment.addEventListener('load', evt => {
-        evt.target.contentWindow.document.querySelector('video').pause();
+        evt.target.contentWindow?.document.querySelector('video')?.pause();
     });
 
     attachment.addEventListener('click', evt => {

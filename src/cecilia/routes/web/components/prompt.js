@@ -21,8 +21,6 @@ export class Prompt {
         promptOptions.append(effortSelector, modelSelector, promptAttachmentsInput)
         promptContainer.append(promptOptions, optionsOpenerBtn, this.attachments, prompt);
         container.append(promptContainer);
-
-        return [ this.promptAttachments ];
     }
 
     createPromptInput(promptAttachmentsInput) {
