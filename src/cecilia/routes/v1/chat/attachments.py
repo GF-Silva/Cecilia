@@ -1,5 +1,5 @@
 from cecilia.models.attachment_model import AttachmentPublic
-from cecilia.use_cases import CreateAttachmentsUseCaseDep
+from cecilia.use_cases import CreateAttachmentsUseCaseDep, DeleteAttachmentUseCaseDep
 from fastapi import APIRouter, UploadFile, File, Depends
 from cecilia.services import AttachmentServiceDep
 from cecilia.core.responses import BaseResponse
@@ -22,8 +22,12 @@ async def create_attachment(
     )
 
 @router.delete("/{attachment_id}", response_model=BaseResponse)
-def delete_attachment(attachment_id: int, message_id: int, attachment_service: AttachmentServiceDep):
-    attachment_service.delete(id=attachment_id, message_id=message_id)
+async def delete_attachment(
+    attachment_id: int, 
+    message_id: int, 
+    delete_attachment_use_case: DeleteAttachmentUseCaseDep
+):
+    await delete_attachment_use_case(attachment_id=attachment_id, message_id=message_id)
 
     return BaseResponse(
         title='Attachment deleted with success',

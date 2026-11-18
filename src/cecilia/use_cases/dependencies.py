@@ -10,6 +10,13 @@ from cecilia.builders import DBToOpenrouterMessageBuilderDep
 
 from .create_attachments import CreateAttachmentsUseCase
 from .completions.send_chat_messages_use_case import SendChatMessagesUseCase
+from .delete import DeleteAttachmentUseCase
+
+def get_delete_attachment_use_case(
+    r2_integration: R2IntegrationDep,
+    attachment_service: AttachmentServiceDep
+):
+    return DeleteAttachmentUseCase(r2_integration=r2_integration, attachments_service=attachment_service)
 
 def get_create_attachments_use_case(
     attachment_service: AttachmentServiceDep,
@@ -39,5 +46,6 @@ def get_send_chat_messages_use_case(
         completion_collector=completion_collector
     )
 
+DeleteAttachmentUseCaseDep = Annotated[DeleteAttachmentUseCase, Depends(get_delete_attachment_use_case)]
 CreateAttachmentsUseCaseDep = Annotated[CreateAttachmentsUseCase, Depends(get_create_attachments_use_case)]
 SendChatMessagesUseCaseDep = Annotated[SendChatMessagesUseCase, Depends(get_send_chat_messages_use_case)]
