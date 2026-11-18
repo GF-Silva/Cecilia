@@ -66,6 +66,28 @@ class R2:
             print("Erro: ", type(err))
             raise InternalError()
 
+    async def delete_file(
+        self,
+        path: str,
+        bucket: str = settings.r2.bucket
+    ):
+        try:
+            await self.client.delete_object(
+                Bucket=bucket,
+                Key=path
+            )
+
+        except self.client.exceptions.NoSuchKey:
+            raise FileNotFoundError(
+                values={
+                    "path": path
+                }
+            )
+
+        except Exception as err:
+            print("Erro: ", type(err))
+            raise InternalError()
+
     async def create_file(
         self, 
         data: bytes,
