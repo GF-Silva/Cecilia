@@ -1,6 +1,6 @@
 # Cecilia
 
-TODO: Image here
+<img width="1024" height="760" alt="Captura_de_tela_20261117_230424" src="https://github.com/user-attachments/assets/a81ed92a-91d2-4791-9d1a-8a37a7251b3c" />
 
 Cecilia is my future masterpiece. It is, for now, an chatbot with audio / image capabilities, a lot of effort / model selections and a petty solid architecture (at least i think). Why do i say for now? Im gonna update it with hardware integrations, personality, cost optimizations and more.
 
