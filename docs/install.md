@@ -8,6 +8,7 @@ If you encounter errors or bugs during installation, please search for tutorials
 
 - Python v3.14 (Other versions have not been tested)
 - LibMagic
+- FFMpeg (Specifically ffprobe)
 - Git (Used only to install the repo; you can install directly from GitHub if you want)
 - Web browser
 
@@ -25,10 +26,10 @@ sudo pacman -S file
 sudo pacman -S git
 
 # Install with paru:
-paru -S python314 uv
+paru -S python314 uv ffmpeg
 
 # Or Install with yay:
-yay -S python314 uv
+yay -S python314 uv ffmpeg
 
 # Copy the repo:
 git clone https://github.com/GF-Silva/Cecilia.git
@@ -52,7 +53,7 @@ uv sync
 sudo apt update
 sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt update
-sudo apt install python3.14 python3.14-venv git curl ca-certificates less -y
+sudo apt install python3.14 python3.14-venv git curl ca-certificates ffmpeg less -y
 sudo apt-get install libmagic-dev
 curl -LsSf https://astral.sh/uv/install.sh | sh 
 source "$HOME/.local/bin/env"  
@@ -75,6 +76,9 @@ winget install --id Python.Python.3.14 -e --source winget
 
 # Install Git
 winget install --id Git.Git -e --source winget
+
+# Install FFMpeg
+winget install -e --id Gyan.FFmpeg   
 
 # Install the repository
 git clone https://github.com/GF-Silva/Cecilia.git
