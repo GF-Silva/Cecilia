@@ -18,6 +18,7 @@ class FileValidator:
         self.image_validator = image_validator
         self.audio_validator = audio_validator
 
+    # TODO: Paralelismo com asyncio.gather e to_thread
     async def __call__(
         self, 
         stream: BinaryIO, 

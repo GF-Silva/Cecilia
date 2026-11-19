@@ -1,6 +1,5 @@
 from cecilia.integrations import R2IntegrationDep
-from cecilia.validators import AudioValidatorDep, ImageValidatorDep
-from cecilia.adapters import FFProbeAdapterDep
+from cecilia.validators import FileValidatorDep
 from cecilia.services import AttachmentServiceDep
 from .delete import DeleteAttachmentUseCase
 from .create import CreateAttachmentsUseCase
@@ -16,16 +15,12 @@ def get_delete_attachment_use_case(
 def get_create_attachments_use_case(
     attachment_service: AttachmentServiceDep,
     r2_integration: R2IntegrationDep,
-    ffprobe_adapter: FFProbeAdapterDep,
-    audio_validator: AudioValidatorDep,
-    image_validator: ImageValidatorDep
+    file_validator: FileValidatorDep
 ):
     return CreateAttachmentsUseCase(
         attachment_service=attachment_service, 
-        r2_integration=r2_integration, 
-        ffprobe_adapter=ffprobe_adapter, 
-        image_validator=image_validator,
-        audio_validator=audio_validator
+        r2_integration=r2_integration,
+        file_validator=file_validator
     )
 
 CreateAttachmentsUseCaseDep = Annotated[CreateAttachmentsUseCase, Depends(get_create_attachments_use_case)]
