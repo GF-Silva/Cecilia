@@ -48,3 +48,8 @@ class MessageRepository:
         self.session.refresh(db_message)
 
         return db_message
+
+    def delete(self, messages: Sequence[Message]):
+        self.session.delete_all(messages)
+        self.session.commit()
+        return messages

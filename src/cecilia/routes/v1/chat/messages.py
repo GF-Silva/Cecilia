@@ -37,6 +37,14 @@ def get_messages(
 
     return messages
 
+@router.delete("/{message_id}")
+def delete_messages(
+    starting_message_id: int, 
+    chat_id: UUID,
+    message_service: MessageServiceDep
+):
+    return message_service.delete(starting_message_id=starting_message_id, chat_id=chat_id)
+
 @router.get("/{message_id}", response_model=MessagePublic)
 def get_message_data(
     message_id: int,

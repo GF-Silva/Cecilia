@@ -45,5 +45,17 @@ class MessageService:
 
         return self._to_message_public(db_message)
 
+    def delete(
+        self, 
+        chat_id: UUID,
+        starting_message_id: int
+    ):
+        db_messages = self.get_all_by_chat_id(
+            chat_id=chat_id, 
+            starting_message_id=starting_message_id
+        )
+        if not db_messages: raise NotFoundError(resource="chats messages", item=starting_message_id)
+        return self.message_repository.delete(db_messages)
+
     def _to_message_public(self, message: Message) -> MessagePublic:
         return MessagePublic.model_validate(message)
