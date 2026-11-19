@@ -20,14 +20,21 @@ class MessageService:
                 resource="chats messages",
                 item=id
             )
-
+        
         return db_message
 
-    def get_all_by_chat_id(self, chat_id: UUID, offset: int = 0, limit: int = 100) -> Sequence[Message]:
+    def get_all_by_chat_id(
+        self, 
+        chat_id: UUID, 
+        offset: int = 0, 
+        limit: int = 100,
+        starting_message_id: int | None = None
+    ) -> Sequence[Message]:
         return self.message_repository.get_all_by_chat_id(
             chat_id=chat_id,
             offset=offset,
-            limit=limit
+            limit=limit,
+            starting_message_id=starting_message_id
         )
 
     def index(self, offset: int = 0, limit: int = 100) -> Sequence[Message]:
