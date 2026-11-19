@@ -45,6 +45,9 @@ source ./.venv/bin/activate.fish
 source ./.venv/bin/activate
 
 uv sync
+
+# Set-up the database
+alembic upgrade head
 ```
 
 #### Ubuntu / derivatives
@@ -64,6 +67,9 @@ cd Cecilia
 python3.14 -m venv .venv
 source ./.venv/bin/activate
 uv sync
+
+# Set-up the database
+alembic upgrade head
 ```
 
 ### Windows
@@ -91,4 +97,7 @@ py -3.14 -m venv .venv
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned .\.venv\Scripts\Activate.ps1` `
 pip install . 
 pip install python-magic-bin
+
+# Set-up the database
+alembic upgrade head
 ```

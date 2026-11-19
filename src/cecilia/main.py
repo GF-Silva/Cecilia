@@ -28,8 +28,6 @@ if DEBUG:
 
 @asynccontextmanager
 async def lyfespan(app: FastAPI):
-    database.create_db_and_tables()
-
     await r2_manager.startup()
     if hot_reload:
         await hot_reload.startup()
