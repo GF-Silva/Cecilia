@@ -23,11 +23,20 @@ class MessageRepository:
             .where(Message.id == id, Message.chat_id == chat_id)
         ).one_or_none()
 
-    def get_all_by_chat_id(self, chat_id: UUID, limit: int = 100, offset: int = 0) -> Sequence[Message]:
+    def get_all_by_chat_id(
+        self, 
+        chat_id: UUID, 
+        limit: int = 100, 
+        offset: int = 0,
+        starting_message_id: int | None = None
+    ) -> Sequence[Message]:
         return self.session.exec(
             select(Message)
             .options(selectinload(Message.attachments)) # pyright: ignore[reportArgumentType]
-            .where(Message.chat_id == chat_id)
+            .where(
+                Message.chat_id == chat_id,
+                Message.id is not None and Message.id >= (starting_message_id if starting_message_id else 1)
+            )
             .offset(offset)
             .limit(limit)
         ).all()
@@ -39,3 +48,8 @@ class MessageRepository:
         self.session.refresh(db_message)
 
         return db_message
+
+    def delete(self, messages: Sequence[Message]):
+        self.session.delete_all(messages)
+        self.session.commit()
+        return messages

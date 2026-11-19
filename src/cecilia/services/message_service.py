@@ -20,14 +20,21 @@ class MessageService:
                 resource="chats messages",
                 item=id
             )
-
+        
         return db_message
 
-    def get_all_by_chat_id(self, chat_id: UUID, offset: int = 0, limit: int = 100) -> Sequence[Message]:
+    def get_all_by_chat_id(
+        self, 
+        chat_id: UUID, 
+        offset: int = 0, 
+        limit: int = 100,
+        starting_message_id: int | None = None
+    ) -> Sequence[Message]:
         return self.message_repository.get_all_by_chat_id(
             chat_id=chat_id,
             offset=offset,
-            limit=limit
+            limit=limit,
+            starting_message_id=starting_message_id
         )
 
     def index(self, offset: int = 0, limit: int = 100) -> Sequence[Message]:
@@ -37,6 +44,18 @@ class MessageService:
         db_message = self.message_repository.create(message_data)
 
         return self._to_message_public(db_message)
+
+    def delete(
+        self, 
+        chat_id: UUID,
+        starting_message_id: int
+    ):
+        db_messages = self.get_all_by_chat_id(
+            chat_id=chat_id, 
+            starting_message_id=starting_message_id
+        )
+        if not db_messages: raise NotFoundError(resource="chats messages", item=starting_message_id)
+        return self.message_repository.delete(db_messages)
 
     def _to_message_public(self, message: Message) -> MessagePublic:
         return MessagePublic.model_validate(message)

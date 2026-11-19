@@ -25,15 +25,25 @@ def get_messages(
     chat_id: UUID,
     message_service: MessageServiceDep,
     limit: int = 100,
-    offset: int = 0
+    offset: int = 0,
+    starting_message_id: int | None = None
 ):
     messages = message_service.get_all_by_chat_id(
         chat_id=chat_id,
         limit=limit,
-        offset=offset
+        offset=offset,
+        starting_message_id=starting_message_id
     )
 
     return messages
+
+@router.delete("/{message_id}")
+def delete_messages(
+    starting_message_id: int, 
+    chat_id: UUID,
+    message_service: MessageServiceDep
+):
+    return message_service.delete(starting_message_id=starting_message_id, chat_id=chat_id)
 
 @router.get("/{message_id}", response_model=MessagePublic)
 def get_message_data(
@@ -42,5 +52,4 @@ def get_message_data(
     message_service: MessageServiceDep,
 ):
     db_message = message_service.show(message_id, chat_id)
-
     return db_message
