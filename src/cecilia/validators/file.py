@@ -48,7 +48,8 @@ class FileValidator:
                 message="Unsuported file format",
                 values = {
                     "format": mime_type,
-                    "filename": filename
+                    "filename": filename,
+                    "allowed_types": allowed_types
                 }
             )
         

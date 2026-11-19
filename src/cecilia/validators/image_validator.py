@@ -1,8 +1,6 @@
 from PIL import Image, UnidentifiedImageError
 from typing import BinaryIO
-
 from cecilia.core.exceptions import InvalidFileError, FileTooBigError, InternalError
-from .responses import FileData
 
 # TODO: Add more validations using magic / file content / etc
 class ImageValidator:

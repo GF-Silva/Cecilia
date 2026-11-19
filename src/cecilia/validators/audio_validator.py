@@ -1,9 +1,6 @@
 from cecilia.adapters import FFProbeAdapter
 from typing import BinaryIO
-from cecilia.core.exceptions import InvalidFileError
-from .errors import EmptyFileError, InvalidFileType
-from .responses import FileData
-import magic
+from .errors import EmptyFileError
 
 # TODO: Add more audio validations
 class AudioValidator:
