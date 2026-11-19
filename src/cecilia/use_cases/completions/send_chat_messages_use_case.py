@@ -5,8 +5,8 @@ from cecilia.services import MessageService
 
 # Integrations
 from cecilia.integrations import Completions, R2
-from cecilia.integrations.hackclub_ai import errors as hcai_errors
-from cecilia.integrations.hackclub_ai.types.messages import (
+from cecilia.integrations.openrouter import errors as openrouter_errors
+from cecilia.integrations.openrouter.types.messages import (
     Effort
 )
 
@@ -41,7 +41,7 @@ class SendChatMessagesUseCase:
         db_messages = self.message_service.get_all_by_chat_id(chat_id)
 
         if not db_messages:
-            raise hcai_errors.MessagesEmptyError(db_messages)
+            raise openrouter_errors.MessagesEmptyError(db_messages)
 
         messages = [
             await self.db_to_openrouter_message_builder(message)

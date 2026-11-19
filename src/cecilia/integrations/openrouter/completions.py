@@ -96,7 +96,7 @@ class Completions:
                 matches = difflib.get_close_matches(error_message, error_cases, n=1, cutoff=0.4)
         
                 if not matches:
-                    print("HackClub AI (Completions): matches not found")
+                    print("Openrouter AI (Completions): matches not found")
                     print("Err: ", error_message, status_code)
                     raise InternalError()
 

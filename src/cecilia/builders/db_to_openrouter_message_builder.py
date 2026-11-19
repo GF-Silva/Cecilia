@@ -5,8 +5,8 @@ from cecilia.models.tables import (
     Attachment as DBAttachment,
     Message as DBMessage
 )
-from cecilia.integrations.hackclub_ai.types.messages import (
-    Message as HcaiMessage, 
+from cecilia.integrations.openrouter.types.messages import (
+    Message as OpenrouterMessage, 
     TextContent, 
     AudioContent,
     Content,
@@ -37,7 +37,7 @@ class DBToOpenrouterMessageBuilder:
             if reasoning.type in ['encrypted', 'summary', 'text']
         ] if db_message.reasonings else None
 
-        message = HcaiMessage(
+        message = OpenrouterMessage(
             role="user" if db_message.is_user else "assistant",
             content=await self._build_content(db_message),
             reasoning_details=reasonings

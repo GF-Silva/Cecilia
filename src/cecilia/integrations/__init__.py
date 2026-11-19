@@ -1,11 +1,11 @@
-from .hackclub_ai.completions import Completions
+from .openrouter.completions import Completions
 from .cloudflare.r2 import R2, R2Manager
 from .cloudflare.clients import r2_manager
-from .dependencies import HCAICompletionIntegrationDep, R2IntegrationDep
+from .dependencies import OpenrouterCompletionIntegrationDep, R2IntegrationDep
 
 __all__ = [
     'Completions',
-    'HCAICompletionIntegrationDep',
+    'OpenrouterCompletionIntegrationDep',
     'R2',
     'R2Manager',
     'r2_manager',

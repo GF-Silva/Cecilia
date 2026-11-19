@@ -1,8 +1,8 @@
 from cecilia.services import MessageService, ReasoningService
 from cecilia.models.reasoning_model import ReasoningCreate
 from cecilia.models.message_model import MessageCreate
-from cecilia.integrations.hackclub_ai.types.responses import (
-    Reasoning as HcaiReasoning, 
+from cecilia.integrations.openrouter.types.responses import (
+    Reasoning as OpenrouterReasoning, 
     SSEResponse,
     Response
 )
@@ -29,7 +29,7 @@ class CompletionCollector:
         if chunk.reasoning:
             for reasoning in chunk.reasoning: self._handle_reasoning(reasoning)
 
-    def _handle_reasoning(self, reasoning: HcaiReasoning):
+    def _handle_reasoning(self, reasoning: OpenrouterReasoning):
         last_el = self.response.reasonings[-1] if self.response.reasonings else None
 
         should_merge = last_el is not None and (
@@ -40,7 +40,7 @@ class CompletionCollector:
         )
 
         if not should_merge or not last_el:
-            hcai_reasoning = HcaiReasoning(
+            openrouter_reasoning = OpenrouterReasoning(
                 type=reasoning.type,
                 text=reasoning.text,
                 format=reasoning.format,
@@ -53,7 +53,7 @@ class CompletionCollector:
             if self.response.reasonings is None:
                 self.response.reasonings = []
 
-            self.response.reasonings.append(hcai_reasoning)
+            self.response.reasonings.append(openrouter_reasoning)
             return
             
         last_el.text = last_el.text + reasoning.text if reasoning.text and last_el.text else last_el.text
