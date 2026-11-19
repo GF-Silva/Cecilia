@@ -41,3 +41,10 @@ class Chat(ChatBase, table=True):
         }
     )
     # TODO: Add a relationship attribute and cascade delete
+
+__all__ = [
+    'Chat',
+    'Message',
+    'Reasoning',
+    'Attachment'
+]
