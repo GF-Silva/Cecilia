@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from cecilia.integrations.hackclub_ai.types.responses import Event
+from cecilia.integrations.openrouter.types.responses import Event
 
 class Response(BaseModel):
     event: Event

@@ -4,7 +4,7 @@ from cecilia.models.attachment_model import AttachmentCreate
 from cecilia.models.tables import Message
 from cecilia.integrations.cloudflare.r2 import R2
 from cecilia.validators import FileValidator
-from cecilia.integrations.hackclub_ai.rules import ACCEPTED_MIME_TYPES
+from cecilia.integrations.openrouter.rules import ACCEPTED_MIME_TYPES
 
 from dataclasses import dataclass
 from fastapi import UploadFile

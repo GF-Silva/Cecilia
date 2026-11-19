@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from cecilia.integrations.hackclub_ai.types.messages import Effort
+from cecilia.integrations.openrouter.types.messages import Effort
 from .validations import AIModelName
 
 class ChatPayload(BaseModel):
