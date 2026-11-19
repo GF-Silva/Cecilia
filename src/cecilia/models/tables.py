@@ -11,12 +11,12 @@ class Attachment(AttachmentBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     size: int | None = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    message_id: int = Field(foreign_key="message.id", index=True)
+    message_id: int = Field(foreign_key="message.id", index=True, ondelete='CASCADE')
     message: Message = Relationship(back_populates="attachments")
 
 class Reasoning(ReasoningBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    message_id: int = Field(foreign_key='message.id', index=True)
+    message_id: int = Field(foreign_key='message.id', index=True, ondelete='CASCADE')
     message: Message = Relationship(back_populates='reasonings')
     type: str # summary, text, encrypted
     format: str
@@ -27,7 +27,7 @@ class Reasoning(ReasoningBase, table=True):
 
 class Message(MessageBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    chat_id: uuid.UUID = Field(foreign_key="chat.id")
+    chat_id: uuid.UUID = Field(foreign_key="chat.id") # TODO: configure ondelete='CASCADE'
     attachments: list[Attachment] | None = Relationship(back_populates="message", cascade_delete=True)
     reasonings: list[Reasoning] | None = Relationship(back_populates='message', cascade_delete=True)
 
@@ -40,3 +40,4 @@ class Chat(ChatBase, table=True):
             "onupdate": lambda: datetime.now(UTC)
         }
     )
+    # TODO: Add a relationship attribute and cascade delete
