@@ -3,8 +3,7 @@ import httpx
 
 class OpenrouterSettings(BaseSettings):
     api_key: str
-    server_url: str = "https://ai.hackclub.com/proxy/v1" # TODO: Put into .env
-    completions_url: str = f"{server_url}/chat/completions"
+    server_url: str
 
 class R2Settings(BaseSettings):
     access_key: str

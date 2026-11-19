@@ -6,6 +6,7 @@ from pydantic import TypeAdapter
 import json
 
 # Own libs / modules
+from cecilia.core.settings import settings
 from cecilia.core.exceptions import InternalError
 from .types.payload import CompletionEvent, TextReasoning, EncryptedReasoning, SummaryReasoning
 from .types.responses import SSEResponse, Reasoning, Event
@@ -34,12 +35,10 @@ class Completions:
     def __init__(
         self, 
         api_key: str,
-        api_client: AsyncClient,
-        completions_url: str
+        api_client: AsyncClient
     ):
         self.api_key = api_key
         self.api_client = api_client
-        self.completions_url = completions_url
     
     async def create(
         self, 
@@ -65,7 +64,7 @@ class Completions:
         async with aconnect_sse(
             client=self.api_client,
             method='POST',
-            url=self.completions_url,
+            url=f"{settings.openrouter.server_url}/chat/completions",
             headers=headers,
             json=payload
         ) as event_source:

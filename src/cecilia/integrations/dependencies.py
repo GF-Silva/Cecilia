@@ -9,7 +9,6 @@ from cecilia.core.exceptions import InternalError
 def get_openrouter_completion_integration():
     return Completions(
         api_key=settings.openrouter.api_key,
-        completions_url=settings.openrouter.completions_url,
         api_client=settings.api_client
     )
 
