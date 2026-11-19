@@ -1,20 +1,13 @@
 from cecilia.services import AttachmentService
 from cecilia.core.settings import settings
-from cecilia.adapters.ffprobe.ffprobe_adapter import FFProbeAdapter
 from cecilia.models.attachment_model import AttachmentCreate
 from cecilia.models.tables import Message
 from cecilia.integrations.cloudflare.r2 import R2
-from cecilia.validators import ImageValidator, AudioValidator
-from cecilia.core.exceptions import (
-    UnsupportedFileFormatError, 
-    FileTooBigError,
-    InvalidFileError
-)
+from cecilia.validators import FileValidator
+from cecilia.integrations.hackclub_ai.rules import ACCEPTED_MIME_TYPES
 
 from dataclasses import dataclass
 from fastapi import UploadFile
-import asyncio
-import filetype
 
 @dataclass
 class FileData:
@@ -28,15 +21,11 @@ class CreateAttachmentsUseCase:
         self,
         attachment_service: AttachmentService,
         r2_integration: R2,
-        ffprobe_adapter: FFProbeAdapter,
-        image_validator: ImageValidator,
-        audio_validator: AudioValidator
+        file_validator: FileValidator
     ):
         self.attachment_service = attachment_service
         self.r2_integration = r2_integration
-        self.ffprobe_adapter = ffprobe_adapter
-        self.image_validator = image_validator
-        self.audio_validator = audio_validator
+        self.file_validator = file_validator
 
     async def __call__(
         self,
@@ -76,48 +65,21 @@ class CreateAttachmentsUseCase:
         files_data: list[FileData] = []
 
         for file in files:
-            # Valida a extensao do arquivo
-            self.attachment_service.validate_mime_type(file.headers['content-type'])
-            file.size = file.size or 0
-
-            # Valida o tamanho do arquivo
-            if file.size > self.r2_integration.MAX_FILE_SIZE:
-                raise FileTooBigError(
-                    values = {
-                        "size": file.size,
-                        "filename": file.filename,
-                        "max_file_size": self.r2_integration.MAX_FILE_SIZE
-                    }
-                )
-
-            file_type = filetype.guess(await file.read(2048))
-
-            if not file_type:
-                print("not file type")
-                raise InvalidFileError()
+            validated_file = await self.file_validator(
+                stream=file.file, 
+                filename=file.filename, 
+                max_size=self.r2_integration.MAX_FILE_SIZE,
+                allowed_types=ACCEPTED_MIME_TYPES
+            )
+            assert validated_file.mime_type
+            assert validated_file.size
             
             files_data.append(FileData(
                 file=file,
-                mime_type=file_type.mime,
-                size=file.size,
+                mime_type=validated_file.mime_type,
+                size=validated_file.size,
                 filename=file.filename
             ))
-            
-            # TODO: Adicionar yield aq pra processar em paralelo
-            if file_type.mime.startswith('audio/'):
-                await self.audio_validator(file.file)
-
-            elif file_type.mime.startswith('image/'):
-                await asyncio.to_thread(self.image_validator, file.file)
-
-            else:
-                raise UnsupportedFileFormatError(
-                    message="Unsuported file format",
-                    values = {
-                        "format": file_type,
-                        "filename": file.filename
-                    }
-                )
 
         return files_data
 

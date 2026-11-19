@@ -2,30 +2,9 @@ from cecilia.repositories import AttachmentRepository
 from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic, AttachmentUpdate
 from cecilia.models.tables import Attachment, Message
 from collections.abc import Sequence
-from cecilia.core.exceptions import NotFoundError, UnsupportedFileFormatError, RuleError
+from cecilia.core.exceptions import NotFoundError, RuleError
 
 class AttachmentService:
-    # TODO: The service must not know the accepted types, this should be at openrouter / r2 integration
-    ACCEPTED_FILE_TYPES = {
-        "mp3": 'audio/mpeg',
-        'aiff': 'audio/x-aiff',
-        'aac': 'audio/aac',
-        'ogg': 'audio/ogg',
-        'jpg': 'image/jpeg', 
-        'jpeg': 'image/jpeg',
-        'png': 'image/png',
-        'webp': 'image/webp',
-        'avif': 'image/avif'
-    }
-
-    ACCEPTED_MIME_TYPES = ACCEPTED_FILE_TYPES.values()
-    
-    ACCEPTED_IMAGE_TYPES = frozenset([
-        i.upper()
-        for i, v in ACCEPTED_FILE_TYPES.items()
-        if v.startswith('image/')
-    ])
-
     def __init__(
             self, 
             attachment_repository: AttachmentRepository
@@ -55,19 +34,12 @@ class AttachmentService:
                 }
             )
 
-        self.validate_mime_type(attachment.mime_type)
         db_attachment = self.attachment_repository.create(attachment)
         return self._to_attachment_public(db_attachment)
 
     def create_list(self, attachments: list[AttachmentCreate], message: Message) -> list[Attachment]:
         self.validate_message_role(message)
-
-        # Validate the file
-        for attachment in attachments:
-            self.validate_mime_type(attachment.mime_type)
-
         db_attachments = self.attachment_repository.create_list(attachments)
-            
         return db_attachments
 
     def validate_message_role(self, message: Message):
@@ -76,26 +48,6 @@ class AttachmentService:
                 message = 'Attachments can only be added to user messages',
                 values={
                     "message_role": 'user' if message.is_user else 'assistant'
-                }
-            )
-
-    def validate_mime_type(self, mime_type: str):
-        if not mime_type in self.ACCEPTED_MIME_TYPES:
-            raise UnsupportedFileFormatError(
-                message=f"{mime_type} is not supported",
-                values={
-                    "supported_types": list(self.ACCEPTED_MIME_TYPES),
-                    "mime_type": mime_type
-                }
-            )
-
-    def validate_file_type(self, type: str):
-        if not type in self.ACCEPTED_FILE_TYPES:
-            raise UnsupportedFileFormatError(
-                message=f"{type} is not supported",
-                values={
-                    "supported_types": list(self.ACCEPTED_MIME_TYPES),
-                    "file_type": type
                 }
             )
 
