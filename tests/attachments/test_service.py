@@ -20,7 +20,6 @@ def test_validate_message(mocker, message, is_user, should_work):
         with pytest.raises(exceptions.RuleError):
             service.validate_message_role(gen_message)
 
-
 def test_show_success(attachment_service, attachment):
     gen_attachment = attachment(id=1, message_id=1)
     attachment_service.attachment_repository.storage[gen_attachment.id] = gen_attachment
@@ -33,3 +32,37 @@ def test_show_returns_not_found(attachment_service, attachment):
     
     with pytest.raises(exceptions.NotFoundError):
         attachment_service.show(id=2, message_id=1)
+
+@pytest.mark.parametrize(
+    'is_user, should_work',
+    [
+        (True, True),
+        (False, False)
+    ]
+)
+def test_create(create_attachment, attachment_service, message, is_user, should_work):
+    if should_work:
+        attachment_service.create(attachment=create_attachment(), message=message(is_user=is_user))
+    else:
+        with pytest.raises(exceptions.RuleError):
+            attachment_service.create(attachment=create_attachment(), message=message(is_user=is_user))
+
+@pytest.mark.parametrize(
+    'is_user, should_work',
+    [
+        (True, True),
+        (False, False)
+    ]
+)
+def test_create_list(create_attachment, attachment_service, message, is_user, should_work):
+    attachments = [
+        create_attachment(),
+        create_attachment(),
+        create_attachment()
+    ]
+
+    if should_work:
+        attachment_service.create_list(attachments=attachments, message=message(is_user=is_user))
+    else:
+        with pytest.raises(exceptions.RuleError):
+            attachment_service.create_list(attachments=attachments, message=message(is_user=is_user))
