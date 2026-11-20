@@ -1,21 +1,25 @@
 from cecilia.core import exceptions
 from cecilia.services import AttachmentService
-import uuid
 import pytest
 
-def test_validate_message_role_rejects_assistant(mocker, message):
+@pytest.mark.parametrize(
+    'is_user, should_work',
+    [
+        (False, False),
+        (True, True)
+    ]
+)
+def test_validate_message(mocker, message, is_user, should_work):
     mocker_repo = mocker.MagicMock()
     service = AttachmentService(attachment_repository=mocker_repo)
-    gen_message = message(is_user=False)
+    gen_message = message(is_user=is_user)
 
-    with pytest.raises(exceptions.RuleError):
+    if should_work:
         service.validate_message_role(gen_message)
+    else:
+        with pytest.raises(exceptions.RuleError):
+            service.validate_message_role(gen_message)
 
-def test_validate_message_role_accepts_user(mocker, message):
-    mocker_repo = mocker.MagicMock()
-    service = AttachmentService(attachment_repository=mocker_repo)
-    gen_message = message(is_user=True)
-    service.validate_message_role(gen_message)
 
 def test_show_success(attachment_service, attachment):
     gen_attachment = attachment(id=1, message_id=1)
