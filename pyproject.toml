@@ -1,7 +1,7 @@
 [project]
 name = "cecilia"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.8.0"
+description = "An chatbot with reasoning / audio | image input / model selection"
 readme = "README.md"
 authors = [
     { name = "GS-Silva", email = "gabriel.ferreira.profile@gmail.com" }
@@ -20,6 +20,7 @@ dependencies = [
     "pillow>=13.0.0",
     "pydantic-settings>=2.15.0",
     "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
     "pytest-mock>=3.17.0",
     "python-magic>=0.4.27",
     "python-multipart>=0.0.32",
@@ -28,6 +29,25 @@ dependencies = [
     "types-aiobotocore[essential]>=3.10.0",
     "uv>=0.13.1",
 ]
+
+[tool.pytest.ini_options]
+testpaths =["tests"]
+pythonpath = ["src/cecilia"]
+addopts = ["--import-mode=importlib"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+markers = [
+    "slow: Testes lentos",
+    "integration: testes de integração",
+    "use_cases: testes de casos de uso"
+]
+
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+log_cli = true
 
 [project.scripts]
 cecilia = "cecilia:main"
