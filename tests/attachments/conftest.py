@@ -1,0 +1,69 @@
+from datetime import datetime, UTC
+import pytest
+import uuid
+
+from tests.fakes.repositories import FakeAttachmentRepository
+from cecilia.services import AttachmentService
+from cecilia.models.tables import Attachment, Message
+from cecilia.models.attachment_model import AttachmentCreate
+
+@pytest.fixture
+def fake_attachment_repo():
+    return FakeAttachmentRepository()
+
+@pytest.fixture
+def attachment_service(fake_attachment_repo):
+    return AttachmentService(attachment_repository=fake_attachment_repo)
+
+@pytest.fixture
+def create_attachment():
+    def _factory(
+        mime_type: str = 'audio/mpeg',
+        message_id: int = 1,
+        size: int | None = None,
+        filename: uuid.UUID | None = None,
+        public_filename: str | None = None,
+        is_valid: bool | None = None
+    ):
+        return AttachmentCreate(
+            mime_type=mime_type, 
+            message_id=message_id, 
+            size=size, 
+            filename=filename if filename is not None else uuid.uuid7(),
+            public_filename=public_filename,
+            is_valid=is_valid
+        )
+    
+    return _factory
+
+@pytest.fixture
+def attachment(create_attachment):
+    def _factory(
+        created_at: datetime | None = None,
+        id: int = 1,
+        **kwargs
+    ):
+        return Attachment(
+            **create_attachment(**kwargs).model_dump(),
+            created_at=created_at if created_at is not None else datetime.now(UTC),
+            id=id
+        )
+    
+    return _factory
+
+@pytest.fixture
+def message():
+    def _factory(
+        chat_id: uuid.UUID | None = None,
+        is_user: bool = True,
+        text: str | None = None,
+        id: int = 1
+    ):
+        return Message(
+            is_user=is_user, 
+            chat_id=chat_id if chat_id else uuid.uuid7(),
+            text=text,
+            id=id
+        )
+
+    return _factory
