@@ -26,14 +26,7 @@ class AttachmentService:
         return self.attachment_repository.index(offset, limit)
 
     def create(self, attachment: AttachmentCreate, message: Message) -> AttachmentPublic:
-        if not message.is_user:
-            raise RuleError(
-                message = 'Attachments can only be added to user messages',
-                values={
-                    "message_role": 'user' if message.is_user else 'assistant'
-                }
-            )
-
+        self.validate_message_role(message)
         db_attachment = self.attachment_repository.create(attachment)
         return self._to_attachment_public(db_attachment)
 
