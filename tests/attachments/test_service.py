@@ -19,12 +19,14 @@ def test_validate_message_role_accepts_user(mocker):
     service.validate_message_role(message)
 
 def test_show_success(attachment_service, attachment):
-    attachment_service.attachment_repository.storage[attachment.id] = attachment
-    result = attachment_service.show(message_id=attachment.message_id, id=attachment.id)
-    assert result == attachment
+    gen_attch = attachment(id=1, message_id=1)
+    attachment_service.attachment_repository.storage[gen_attch.id] = gen_attch
+    result = attachment_service.show(message_id=gen_attch.message_id, id=gen_attch.id)
+    assert result == gen_attch
 
 def test_show_returns_not_found(attachment_service, attachment):
-    attachment_service.attachment_repository.storage[attachment.id] = attachment
+    gen_atach = attachment(id=1, message_id=1)
+    attachment_service.attachment_repository.storage[gen_atach.id] = gen_atach
     
     with pytest.raises(exceptions.NotFoundError):
         attachment_service.show(id=2, message_id=1)
