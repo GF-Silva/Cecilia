@@ -1,5 +1,6 @@
 from cecilia.core import exceptions
 from cecilia.services import AttachmentService
+from cecilia.models.attachment_model import AttachmentUpdate
 import pytest
 
 @pytest.mark.parametrize(
@@ -77,3 +78,21 @@ def test_delete_error_not_found(attachment_service, attachment):
     attachment_service.attachment_repository.storage[gen_attachment.id] = gen_attachment
     with pytest.raises(exceptions.NotFoundError):
         attachment_service.delete(id=2, message_id=1)
+
+@pytest.mark.parametrize(
+    'id, message_id, update_fields, should_work',
+    [
+        (1, 2, AttachmentUpdate(mime_type='test/test', message_id=10, is_valid=True), True),
+        (10, 2, AttachmentUpdate(mime_type='test/test', message_id=10, is_valid=True), False)
+    ]
+)
+def test_update(attachment_service, attachment, id, message_id, update_fields, should_work):
+    gen_attachment = attachment(id=1, message_id=2)
+    attachment_service.attachment_repository.storage[gen_attachment.id] = gen_attachment
+
+    if should_work:
+        updated_attachment = attachment_service.update(id=id, message_id=message_id, attachment_update=update_fields)
+        assert updated_attachment.model_dump(include=update_fields.model_dump(exclude_unset=True)) == update_fields.model_dump(exclude_unset=True)
+    else:
+        with pytest.raises(exceptions.NotFoundError):
+            attachment_service.update(id=id, message_id=message_id, attachment_update=update_fields)
