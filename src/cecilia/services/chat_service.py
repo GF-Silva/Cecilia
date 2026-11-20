@@ -15,7 +15,7 @@ class ChatService:
     def index(self) -> Sequence[Chat]:
         return self.chat_repository.index()
 
-    def show(self, id: UUID) -> ChatPublic:
+    def show(self, id: UUID) -> Chat:
         db_chat = self.chat_repository.show(id)
 
         if not db_chat:
@@ -24,26 +24,17 @@ class ChatService:
                 item=id
             )
 
-        return self._to_public_chat(db_chat)
+        return db_chat
 
     def create(self, chat_data: ChatCreate) -> ChatPublic:
         # Tenho q validar se o user existe usando o user repository | service
         db_chat = self.chat_repository.create(chat_data)
-        
         return self._to_public_chat(db_chat)
 
     # Tenho q validar se o user existe usando o user service
     def update(self, id: UUID, chat_update: ChatUpdate) -> ChatPublic:
-        db_chat = self.chat_repository.show(id)
-
-        if not db_chat:
-            raise NotFoundError(
-                resource="chat",
-                item=id
-            )
-
+        db_chat = self.show(id)
         db_chat_updated = self.chat_repository.update(db_chat, chat_update)
-
         return self._to_public_chat(db_chat_updated)
 
     def get_all_by_user_id(self, user_id: int, offset: int = 0, limit: int = 100):
