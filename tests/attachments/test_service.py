@@ -41,12 +41,12 @@ def test_show_returns_not_found(attachment_service, attachment):
         (False, False)
     ]
 )
-def test_create(create_attachment, attachment_service, message, is_user, should_work):
+def test_create(attachment_create, attachment_service, message, is_user, should_work):
     if should_work:
-        attachment_service.create(attachment=create_attachment(), message=message(is_user=is_user))
+        attachment_service.create(attachment=attachment_create(), message=message(is_user=is_user))
     else:
         with pytest.raises(exceptions.RuleError):
-            attachment_service.create(attachment=create_attachment(), message=message(is_user=is_user))
+            attachment_service.create(attachment=attachment_create(), message=message(is_user=is_user))
 
 @pytest.mark.parametrize(
     'is_user, should_work',
@@ -55,11 +55,11 @@ def test_create(create_attachment, attachment_service, message, is_user, should_
         (False, False)
     ]
 )
-def test_create_list(create_attachment, attachment_service, message, is_user, should_work):
+def test_create_list(attachment_create, attachment_service, message, is_user, should_work):
     attachments = [
-        create_attachment(),
-        create_attachment(),
-        create_attachment()
+        attachment_create(),
+        attachment_create(),
+        attachment_create()
     ]
 
     if should_work:
