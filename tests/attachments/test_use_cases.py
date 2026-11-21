@@ -64,3 +64,41 @@ async def test_create_use_case_success(mocker, message, file):
     mock_r2_integration.create_file.assert_called_once()
     mock_attachment_service.create_list.assert_called_once()
     mock_attachment_service.validate_message_role.assert_called_once_with(gen_message)
+
+async def test_create_use_case_rejects_assistant_messages(mocker, message, file):
+    # Mock
+    mock_attachment_service = mocker.MagicMock()
+    mock_r2_integration = mocker.AsyncMock()
+    mock_file_validator = mocker.AsyncMock()
+
+    # Returns | Side effects set
+    mock_file_validator.side_effect = FileError('Erro simulado') # TODO: Substituir por SimulatedError
+    mock_attachment_service.validate_message_role.side_effect = FileError('Erro simulado')
+
+    # Generations
+    gen_message = message(is_user=False)
+    gen_file = next(file(
+        mime_type='audio/mpeg',
+        type='mp3'
+    ))
+
+    # Creating instances
+    create_attachments_use_case = CreateAttachmentsUseCase(
+        attachment_service=mock_attachment_service,
+        r2_integration=mock_r2_integration,
+        file_validator=mock_file_validator
+    )
+
+    # Testing
+    with pytest.raises(FileError):
+        await create_attachments_use_case(
+            message_id=1,
+            message=gen_message,
+            files=[UploadFile(gen_file.stream)]
+        )
+
+    # Assertions
+    mock_attachment_service.validate_message_role.assert_called_once_with(gen_message)    
+    mock_file_validator.assert_not_called()
+    mock_r2_integration.create_file.assert_not_called()
+    mock_attachment_service.create_list.assert_not_called()
