@@ -56,7 +56,7 @@ class CreateAttachmentsUseCase:
     
         db_attachments = self.attachment_service.create_list(
             attachments=attachments_create,
-            message=message
+            message_id=message_id
         )
     
         return db_attachments

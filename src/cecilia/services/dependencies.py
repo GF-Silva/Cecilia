@@ -4,12 +4,18 @@ from .chat_service import ChatService
 from .reasoning_service import ReasoningService
 from fastapi import Depends
 from typing import Annotated
-from cecilia.repositories import AttachmentRepositoryDep, MessageRepositoryDep, ChatRepositoryDep, ReasoningRepositoryDep
+from cecilia.repositories import (
+    AttachmentRepositoryDep, 
+    MessageRepositoryDep, 
+    ChatRepositoryDep, 
+    ReasoningRepositoryDep
+)
 
 def get_attachment_service(
-    attachment_repo: AttachmentRepositoryDep
+    attachment_repo: AttachmentRepositoryDep,
+    message_repo: MessageRepositoryDep
 ):
-    return AttachmentService(attachment_repo)
+    return AttachmentService(attachment_repository=attachment_repo, message_repository=message_repo)
 
 def get_chat_service(chat_repository: ChatRepositoryDep):
     return ChatService(chat_repository)

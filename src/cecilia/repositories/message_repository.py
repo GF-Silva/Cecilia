@@ -17,10 +17,10 @@ class MessageRepository:
             .limit(limit)
         ).all()
 
-    def show(self, id: int, chat_id: UUID) -> Message | None:
+    def show(self, id: int, chat_id: UUID | None = None) -> Message | None:
         return self.session.exec(
             select(Message)
-            .where(Message.id == id, Message.chat_id == chat_id)
+            .where(Message.id == id, chat_id is not None and Message.chat_id == chat_id)
         ).one_or_none()
 
     def get_all_by_chat_id(

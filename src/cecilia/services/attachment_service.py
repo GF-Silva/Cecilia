@@ -1,15 +1,13 @@
-from cecilia.repositories import AttachmentRepository
+from cecilia.repositories import AttachmentRepository, MessageRepository
 from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic, AttachmentUpdate
 from cecilia.models.tables import Attachment, Message
 from collections.abc import Sequence
 from cecilia.core.exceptions import NotFoundError, RuleError
 
 class AttachmentService:
-    def __init__(
-            self, 
-            attachment_repository: AttachmentRepository
-        ):
+    def __init__(self, attachment_repository: AttachmentRepository, message_repository: MessageRepository):
         self.attachment_repository = attachment_repository
+        self.message_repository = message_repository
 
     def show(self, id: int, message_id: int) -> Attachment:
         attachment = self.attachment_repository.show(id, message_id)
@@ -25,12 +23,18 @@ class AttachmentService:
     def index(self, offset: int = 0, limit: int = 100) -> Sequence[Attachment]:
         return self.attachment_repository.index(offset, limit)
 
-    def create(self, attachment: AttachmentCreate, message: Message) -> AttachmentPublic:
+    def create(self, attachment: AttachmentCreate, message_id: int) -> AttachmentPublic:
+        message = self.message_repository.show(id=message_id)
+        if not message: raise NotFoundError(resource='message', item=message_id)
+
         self.validate_message_role(message)
         db_attachment = self.attachment_repository.create(attachment)
         return self._to_attachment_public(db_attachment)
 
-    def create_list(self, attachments: list[AttachmentCreate], message: Message) -> list[Attachment]:
+    def create_list(self, attachments: list[AttachmentCreate], message_id: int) -> list[Attachment]:
+        message = self.message_repository.show(id=message_id)
+        if not message: raise NotFoundError(resource='message', item=message_id)
+        
         self.validate_message_role(message)
         db_attachments = self.attachment_repository.create_list(attachments)
         return db_attachments
