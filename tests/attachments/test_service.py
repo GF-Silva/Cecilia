@@ -22,18 +22,47 @@ def test_validate_message(mocker, message, is_user, should_work):
         with pytest.raises(exceptions.RuleError):
             service.validate_message_role(gen_message)
 
-def test_show_success(attachment_service, attachment):
+def test_show_success(mocker, attachment):
+    # Generations
     gen_attachment = attachment(id=1, message_id=1)
-    attachment_service.attachment_repository.storage[gen_attachment.id] = gen_attachment
+
+    # Mocks
+    mock_attachment_repo = mocker.MagicMock()
+    mock_message_repo = mocker.MagicMock()
+
+    # Return values
+    mock_attachment_repo.show.return_value = gen_attachment
+
+    # Creating instances
+    attachment_service = AttachmentService(
+        attachment_repository=mock_attachment_repo,
+        message_repository=mock_message_repo
+    )
+
     result = attachment_service.show(message_id=gen_attachment.message_id, id=gen_attachment.id)
     assert result == gen_attachment
+    mock_attachment_repo.show.assert_called_once_with(id=gen_attachment.id, message_id=gen_attachment.message_id)
 
-def test_show_returns_not_found(attachment_service, attachment):
-    gen_attachment = attachment(id=1, message_id=1)
-    attachment_service.attachment_repository.storage[gen_attachment.id] = gen_attachment
+def test_show_returns_not_found(mocker, attachment):
+    # Mocks
+    mock_attachment_repo = mocker.MagicMock()
+    mock_message_repo = mocker.MagicMock()
+
+    # Return values
+    mock_attachment_repo.show.return_value = None
+
+    # Creating instances
+    attachment_service = AttachmentService(
+        attachment_repository=mock_attachment_repo,
+        message_repository=mock_message_repo
     
+    )
+    
+    # Testing
     with pytest.raises(exceptions.NotFoundError):
         attachment_service.show(id=2, message_id=1)
+
+    mock_attachment_repo.show.assert_called_once_with(id=2, message_id=1)
 
 # TODO: Checks if it calls and gets the message, and treat message not found error, and treat invalid role error
 @pytest.mark.parametrize(

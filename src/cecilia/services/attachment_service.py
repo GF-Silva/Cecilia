@@ -10,7 +10,7 @@ class AttachmentService:
         self.message_repository = message_repository
 
     def show(self, id: int, message_id: int) -> Attachment:
-        attachment = self.attachment_repository.show(id, message_id)
+        attachment = self.attachment_repository.show(id=id, message_id=message_id)
 
         if not attachment:
             raise NotFoundError(
