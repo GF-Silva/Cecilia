@@ -115,3 +115,32 @@ def test_create_list_success(mocker, attachment_create, attachment, message):
     assert result == gen_attachments
     mock_message_repo.show.assert_called_once_with(id=gen_message.id)
     mock_attachment_repo.create_list.assert_called_once_with(gen_attachments_create)
+
+def test_create_list_rejects_all_if_create_to_assistant_messages(mocker, attachment_create, message):
+    # Generations
+    gen_message = message(is_user=False)
+
+    gen_attachments_create = [
+        attachment_create(message_id=gen_message.id),
+        attachment_create(message_id=gen_message.id),
+        attachment_create(message_id=gen_message.id)
+    ]
+
+    # Mocks 
+    mock_attachment_repo = mocker.MagicMock()
+    mock_message_repo = mocker.MagicMock()
+
+    # Return values
+    mock_message_repo.show.return_value = gen_message
+
+    # Creating instances
+    attachment_service = AttachmentService(
+        attachment_repository=mock_attachment_repo,
+        message_repository=mock_message_repo
+    )
+
+    with pytest.raises(exceptions.RuleError):
+        attachment_service.create_list(attachments=gen_attachments_create, message_id=gen_message.id)
+        
+    mock_message_repo.show.assert_called_once_with(id=gen_message.id)
+    mock_attachment_repo.create_list.assert_not_called()
