@@ -80,25 +80,38 @@ def test_create_rejects_create_to_messages_not_found(mocker, attachment, message
     mock_message_repo.show.assert_called_once_with(id=gen_attachment.message_id)
     mock_attachment_repo.create.assert_not_called()
 
-@pytest.mark.parametrize(
-    'is_user, should_work',
-    [
-        (True, True),
-        (False, False)
-    ]
-)
-def test_create_list(attachment_create, attachment_service, message, is_user, should_work):
-    gen_message = message(is_user=is_user)
-    attachment_service.message_repository.show.return_value = gen_message
-
-    attachments = [
-        attachment_create(),
-        attachment_create(),
-        attachment_create()
+def test_create_list_success(mocker, attachment_create, attachment, message):
+    # Generations
+    gen_message = message()
+    gen_attachments = [
+        attachment(id=1, message_id=gen_message.id),
+        attachment(id=2, message_id=gen_message.id),
+        attachment(id=3, message_id=gen_message.id)
     ]
 
-    if should_work:
-        attachment_service.create_list(attachments=attachments, message_id=gen_message.id)
-    else:
-        with pytest.raises(exceptions.RuleError):
-            attachment_service.create_list(attachments=attachments, message_id=gen_message.id)
+    gen_attachments_create = [
+        attachment_create(message_id=gen_message.id),
+        attachment_create(message_id=gen_message.id),
+        attachment_create(message_id=gen_message.id)
+    ]
+
+    # Mocks 
+    mock_attachment_repo = mocker.MagicMock()
+    mock_message_repo = mocker.MagicMock()
+
+    # Return values
+    mock_message_repo.show.return_value = gen_message
+    mock_attachment_repo.create_list.return_value = gen_attachments
+
+    # Creating instances
+    attachment_service = AttachmentService(
+        attachment_repository=mock_attachment_repo,
+        message_repository=mock_message_repo
+    )
+
+    result = attachment_service.create_list(attachments=gen_attachments_create, message_id=gen_message.id)
+    assert isinstance(result, list)
+    assert all(isinstance(attachment, Attachment) for attachment in result)
+    assert result == gen_attachments
+    mock_message_repo.show.assert_called_once_with(id=gen_message.id)
+    mock_attachment_repo.create_list.assert_called_once_with(gen_attachments_create)

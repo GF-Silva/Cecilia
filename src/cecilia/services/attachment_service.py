@@ -27,16 +27,13 @@ class AttachmentService:
         message = self.message_repository.show(id=message_id)
         if not message: raise RuleError(message='Message not found for the given message_id',values={"message_id": message_id})
         self.validate_message_role(message)
-        db_attachment = self.attachment_repository.create(attachment)
-        return db_attachment
+        return self.attachment_repository.create(attachment)
 
     def create_list(self, attachments: list[AttachmentCreate], message_id: int) -> list[Attachment]:
         message = self.message_repository.show(id=message_id)
-        if not message: raise NotFoundError(resource='message', item=message_id)
-        
+        if not message: raise RuleError(message='Message not found for the given message_id',values={"message_id": message_id})
         self.validate_message_role(message)
-        db_attachments = self.attachment_repository.create_list(attachments)
-        return db_attachments
+        return self.attachment_repository.create_list(attachments)
 
     def validate_message_role(self, message: Message):
         if not message.is_user:
