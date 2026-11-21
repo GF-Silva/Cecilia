@@ -104,9 +104,11 @@ async def test_create_use_case_accepts_multiple_files(mocker, message, file):
 
     # Assertions
     mock_r2_integration.create_file.assert_called()
-    mock_attachment_service.create_list.assert_called()
-    mock_attachment_service.validate_message_role.assert_called_once_with(gen_message)
+    assert mock_r2_integration.create_file.call_count == len(gen_files)
+    mock_attachment_service.create_list.assert_called_once()
     mock_file_validator.assert_called()
+    assert mock_file_validator.call_count == len(gen_files)
+    mock_attachment_service.validate_message_role.assert_called_once_with(gen_message)
 
 async def test_create_use_case_rejects_assistant_messages(mocker, message, file):
     # Mock
@@ -216,6 +218,7 @@ async def test_create_use_case_rejects_all_if_invalid_files(mocker, message, fil
 
     # Assertions
     mock_file_validator.assert_called()
+    assert mock_file_validator.call_count == 2
     mock_attachment_service.validate_message_role.assert_called_once_with(gen_message)
     mock_r2_integration.create_file.assert_not_called()
     mock_attachment_service.create_list.assert_not_called()
