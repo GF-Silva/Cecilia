@@ -37,6 +37,33 @@ class CreateAttachmentsUseCase:
         if not files:
             raise RuleError(message='At least 1 file should be uploaded', values={"files": files})
 
+        if not isinstance(message_id, int):
+            raise RuleError(
+                message='The message_id field must be of type int', 
+                values={
+                    "message_id": message_id,
+                    "message_id_type": type(message_id)
+                }
+            )
+
+        if not isinstance(message, Message):
+            raise RuleError(
+                message='The message field must be of type Message', 
+                values={
+                    "message": message,
+                    "message_type": type(message)
+                }
+            )
+        
+        if not isinstance(files, list) or not all(isinstance(file, UploadFile) for file in files):
+            raise RuleError(
+                message='The files field must be of type list[UploadFile]', 
+                values={
+                    "files": files,
+                    "files_type": type(files)
+                }
+            )
+
         self.attachment_service.validate_message_role(message)
         files_data = await self._validate_files(files)
     
