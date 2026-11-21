@@ -14,10 +14,10 @@ class FileData:
 @pytest.fixture
 def file():
     def _factory(
-        mime_type: str = 'audio/mpeg',
-        type: str = 'mp3',
-        filename: str = 'audio',
-        public_filename: str = 'audio of something'
+        mime_type: str,                                 # Mime type of the file     - also the directory searched
+        type: str,                                      # Type of the file          - Also the file extension
+        filename: str = 'file',                         # Name of the searched file - the name of the searched file
+        public_filename: str = 'audio of something'     # Public name of the file   - just to display
     ):
         file = open(f'tests/fixtures/{mime_type}/{filename}.{type}', 'rb')
         file.seek(0, 2)
