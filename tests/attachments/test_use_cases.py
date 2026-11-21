@@ -65,6 +65,7 @@ async def test_create_use_case_accepts_single_file(mocker, message, file):
     mock_r2_integration.create_file.assert_called_once()
     mock_attachment_service.create_list.assert_called_once()
     mock_attachment_service.validate_message_role.assert_called_once_with(gen_message)
+    mock_file_validator.assert_called_once()
 
 async def test_create_use_case_accepts_multiple_files(mocker, message, file):
     # Mock
@@ -104,7 +105,8 @@ async def test_create_use_case_accepts_multiple_files(mocker, message, file):
     # Assertions
     mock_r2_integration.create_file.assert_called()
     mock_attachment_service.create_list.assert_called()
-    mock_attachment_service.validate_message_role.assert_called_with(gen_message)
+    mock_attachment_service.validate_message_role.assert_called_once_with(gen_message)
+    mock_file_validator.assert_called()
 
 async def test_create_use_case_rejects_assistant_messages(mocker, message, file):
     # Mock
@@ -144,7 +146,7 @@ async def test_create_use_case_rejects_assistant_messages(mocker, message, file)
     mock_r2_integration.create_file.assert_not_called()
     mock_attachment_service.create_list.assert_not_called()
 
-async def test_create_use_case_refuses_unsupported_files(mocker, message, file):
+async def test_create_use_case_rejects_unsupported_files(mocker, message, file):
     # Mock
     mock_attachment_service = mocker.MagicMock()
     mock_r2_integration = mocker.AsyncMock()
@@ -163,7 +165,6 @@ async def test_create_use_case_refuses_unsupported_files(mocker, message, file):
         r2_integration=mock_r2_integration,
         file_validator=mock_file_validator
     )
-
     mock_file_validator.side_effect = FileError('Erro simulado')
 
     with pytest.raises(FileError):
@@ -178,3 +179,43 @@ async def test_create_use_case_refuses_unsupported_files(mocker, message, file):
     mock_file_validator.assert_called_once()
     mock_attachment_service.create_list.assert_not_called()
     mock_r2_integration.create_file.assert_not_called()
+
+async def test_create_use_case_rejects_all_if_invalid_files(mocker, message, file):
+    # Mock
+    mock_attachment_service = mocker.MagicMock()
+    mock_r2_integration = mocker.AsyncMock()
+    mock_file_validator = mocker.AsyncMock()
+
+    # Generations
+    gen_message = message(is_user=True)
+    gen_files = [
+        next(file(mime_type='audio/mpeg', type='mp3')),
+        next(file(mime_type='application/json', type='json')),
+        next(file(mime_type='image/jpeg', type='jpg'))
+    ]
+
+    mock_file_validator.side_effect = [
+        gen_files[0],
+        FileError('Simulated refused invalid file'),
+        gen_files[2]
+    ]
+
+    # Creating instances
+    create_attachments_use_case = CreateAttachmentsUseCase(
+        attachment_service=mock_attachment_service,
+        r2_integration=mock_r2_integration,
+        file_validator=mock_file_validator
+    )
+
+    with pytest.raises(FileError):
+        await create_attachments_use_case(
+            message_id=1,
+            message=gen_message,
+            files=[UploadFile(gen_file.stream) for gen_file in gen_files]
+        )
+
+    # Assertions
+    mock_file_validator.assert_called()
+    mock_attachment_service.validate_message_role.assert_called_once_with(gen_message)
+    mock_r2_integration.create_file.assert_not_called()
+    mock_attachment_service.create_list.assert_not_called()
