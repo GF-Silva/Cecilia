@@ -1,6 +1,7 @@
 from cecilia.integrations import R2 
 from cecilia.services import AttachmentService
 from cecilia.models.attachment_model import AttachmentUpdate
+from cecilia.core.exceptions import RuleError
 
 class DeleteAttachmentUseCase:
     def __init__(
@@ -12,6 +13,12 @@ class DeleteAttachmentUseCase:
         self.attachments_service = attachments_service
 
     async def __call__(self, attachment_id: int, message_id: int):
+        if not isinstance(attachment_id, int):
+            raise RuleError(message='The attachment_id field must be of the type int', values={"type": type(attachment_id)})
+
+        if not isinstance(message_id, int):
+                raise RuleError(message='The message_id field must be of the type int', values={"type": type(message_id)})
+
         # TODO:
         # O attachments.invalidate_file invalida o arquivo internamente no attachments,
         # ent ele tenta deletar? Aq ele pode ou deletar ou mandar pra um background worker fazer isso
