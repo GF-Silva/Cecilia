@@ -91,6 +91,31 @@ def test_create_success(mocker, attachment_create, attachment, message):
     mock_message_repo.show.assert_called_once_with(id=gen_attachment.message_id)
     mock_attachment_repo.create.assert_called_once_with(gen_attachment_create)
 
+def test_create_rejects_create_to_assistant_messages(mocker, attachment_create, attachment, message):
+    # Generations
+    gen_attachment = attachment(id=1, message_id=1)
+    gen_message = message(is_user=False)
+    gen_attachment_create = attachment_create()
+
+    # Mocks
+    mock_attachment_repo = mocker.MagicMock()
+    mock_message_repo = mocker.MagicMock()
+
+    # Return values
+    mock_message_repo.show.return_value = gen_message
+
+    # Creating instances
+    attachment_service = AttachmentService(
+        attachment_repository=mock_attachment_repo,
+        message_repository=mock_message_repo
+    )
+
+    with pytest.raises(exceptions.RuleError):
+        attachment_service.create(attachment=gen_attachment_create, message_id=gen_message.id)
+    
+    mock_message_repo.show.assert_called_once_with(id=gen_attachment.message_id)
+    mock_attachment_repo.create.assert_not_called()
+
 @pytest.mark.parametrize(
     'is_user, should_work',
     [
