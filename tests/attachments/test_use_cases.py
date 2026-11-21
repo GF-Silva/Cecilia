@@ -31,28 +31,28 @@ async def test_delete_use_case(mocker, attachment):
 
     # TODO: Finish the features requests based on Test-Driven-Development
 
-# TODO? : Validate multi attachments
-async def test_create_use_case_success(mocker, message, file):
+async def test_create_use_case_accepts_single_file(mocker, message, file):
+    # Generations
+    gen_message = message(is_user=True)
+    gen_file = next(file(mime_type='audio/mpeg', type='mp3'))
+
     # Mock
     mock_attachment_service = mocker.MagicMock()
     mock_r2_integration = mocker.AsyncMock()
     mock_file_validator = mocker.AsyncMock()
 
-    # Generations
-    gen_message = message(is_user=True)
-    gen_file = next(file(mime_type='audio/mpeg', type='mp3'))
+    # Return values
+    mock_file_validator.return_value = FileData(
+        stream=gen_file.stream,
+        mime_type=gen_file.mime_type,
+        size=gen_file.size
+    )
 
     # Creating instances
     create_attachments_use_case = CreateAttachmentsUseCase(
         attachment_service=mock_attachment_service,
         r2_integration=mock_r2_integration,
         file_validator=mock_file_validator
-    )
-
-    mock_file_validator.return_value = FileData(
-        stream=gen_file.stream,
-        mime_type=gen_file.mime_type,
-        size=gen_file.size
     )
 
     await create_attachments_use_case(
@@ -65,6 +65,46 @@ async def test_create_use_case_success(mocker, message, file):
     mock_r2_integration.create_file.assert_called_once()
     mock_attachment_service.create_list.assert_called_once()
     mock_attachment_service.validate_message_role.assert_called_once_with(gen_message)
+
+async def test_create_use_case_accepts_multiple_files(mocker, message, file):
+    # Mock
+    mock_attachment_service = mocker.MagicMock()
+    mock_r2_integration = mocker.AsyncMock()
+    mock_file_validator = mocker.AsyncMock()
+
+    # Generations
+    gen_message = message(is_user=True)
+    gen_files = [
+        next(file(mime_type='audio/mpeg', type='mp3')),
+        next(file(mime_type='image/png', type='png')),
+        next(file(mime_type='image/jpeg', type='jpg'))
+    ]
+
+    mock_file_validator.side_effect = [
+        FileData(
+            stream=gen_file.stream,
+            mime_type=gen_file.mime_type,
+            size=gen_file.size
+        ) for gen_file in gen_files
+    ]
+
+    # Creating instances
+    create_attachments_use_case = CreateAttachmentsUseCase(
+        attachment_service=mock_attachment_service,
+        r2_integration=mock_r2_integration,
+        file_validator=mock_file_validator
+    )
+
+    await create_attachments_use_case(
+        message_id=1,
+        message=gen_message,
+        files=[UploadFile(gen_file.stream) for gen_file in gen_files]
+    )
+
+    # Assertions
+    mock_r2_integration.create_file.assert_called()
+    mock_attachment_service.create_list.assert_called()
+    mock_attachment_service.validate_message_role.assert_called_with(gen_message)
 
 async def test_create_use_case_rejects_assistant_messages(mocker, message, file):
     # Mock
