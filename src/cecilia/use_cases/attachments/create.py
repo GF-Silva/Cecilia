@@ -31,7 +31,7 @@ class CreateAttachmentsUseCase:
         self,
         message_id: int,
         message: Message,
-        files: list[UploadFile],
+        files: list[UploadFile], # TODO: Substituir o maldito por BinaryIO (facilita os testes)
     ):
         self.attachment_service.validate_message_role(message)
         files_data = await self._validate_files(files)
