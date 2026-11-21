@@ -12,8 +12,9 @@ def fake_attachment_repo():
     return FakeAttachmentRepository()
 
 @pytest.fixture
-def attachment_service(fake_attachment_repo):
-    return AttachmentService(attachment_repository=fake_attachment_repo)
+def attachment_service(fake_attachment_repo, mocker): # TODO: Substituir esse repo por um veridico
+    mock_message_repo = mocker.MagicMock()
+    return AttachmentService(attachment_repository=fake_attachment_repo, message_repository=mock_message_repo)
 
 @pytest.fixture
 def attachment_create():

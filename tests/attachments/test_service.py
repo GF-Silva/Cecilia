@@ -12,7 +12,8 @@ import pytest
 )
 def test_validate_message(mocker, message, is_user, should_work):
     mocker_repo = mocker.MagicMock()
-    service = AttachmentService(attachment_repository=mocker_repo)
+    mock_message_repo = mocker.MagicMock()
+    service = AttachmentService(attachment_repository=mocker_repo, message_repository=mock_message_repo)
     gen_message = message(is_user=is_user)
 
     if should_work:
@@ -34,6 +35,7 @@ def test_show_returns_not_found(attachment_service, attachment):
     with pytest.raises(exceptions.NotFoundError):
         attachment_service.show(id=2, message_id=1)
 
+# TODO: Checks if it calls and gets the message, and treat message not found error, and treat invalid role error
 @pytest.mark.parametrize(
     'is_user, should_work',
     [
@@ -42,11 +44,14 @@ def test_show_returns_not_found(attachment_service, attachment):
     ]
 )
 def test_create(attachment_create, attachment_service, message, is_user, should_work):
+    gen_message = message(is_user=is_user)
+    attachment_service.message_repository.show.return_value = gen_message
+
     if should_work:
-        attachment_service.create(attachment=attachment_create(), message=message(is_user=is_user))
+        attachment_service.create(attachment=attachment_create(), message_id=gen_message.id)
     else:
         with pytest.raises(exceptions.RuleError):
-            attachment_service.create(attachment=attachment_create(), message=message(is_user=is_user))
+            attachment_service.create(attachment=attachment_create(), message_id=gen_message.id)
 
 @pytest.mark.parametrize(
     'is_user, should_work',
@@ -56,6 +61,9 @@ def test_create(attachment_create, attachment_service, message, is_user, should_
     ]
 )
 def test_create_list(attachment_create, attachment_service, message, is_user, should_work):
+    gen_message = message(is_user=is_user)
+    attachment_service.message_repository.show.return_value = gen_message
+
     attachments = [
         attachment_create(),
         attachment_create(),
@@ -63,10 +71,10 @@ def test_create_list(attachment_create, attachment_service, message, is_user, sh
     ]
 
     if should_work:
-        attachment_service.create_list(attachments=attachments, message=message(is_user=is_user))
+        attachment_service.create_list(attachments=attachments, message_id=gen_message.id)
     else:
         with pytest.raises(exceptions.RuleError):
-            attachment_service.create_list(attachments=attachments, message=message(is_user=is_user))
+            attachment_service.create_list(attachments=attachments, message_id=gen_message.id)
 
 def test_delete_success(attachment_service, attachment):
     gen_attachment = attachment(id=1, message_id=1)
