@@ -4,8 +4,7 @@ from cecilia.models.attachment_model import AttachmentUpdate
 from cecilia.models.tables import Attachment
 from fastapi import UploadFile
 from cecilia.validators.responses import FileData
-from cecilia.core.exceptions import RuleError
-from cecilia.validators.errors import FileError
+from cecilia.core.exceptions import RuleError, SimulatedError
 
 async def test_delete(mocker, attachment):
     gen_attachment = attachment(id=1, message_id=1, is_valid=None)
@@ -118,8 +117,8 @@ async def test_create_rejects_assistant_messages(mocker, message, file):
     mock_file_validator = mocker.AsyncMock()
 
     # Returns | Side effects set
-    mock_file_validator.side_effect = FileError('Erro simulado') # TODO: Substituir por SimulatedError
-    mock_attachment_service.validate_message_role.side_effect = FileError('Erro simulado')
+    mock_file_validator.side_effect = SimulatedError()
+    mock_attachment_service.validate_message_role.side_effect = SimulatedError()
 
     # Generations
     gen_message = message(is_user=False)
@@ -136,7 +135,7 @@ async def test_create_rejects_assistant_messages(mocker, message, file):
     )
 
     # Testing
-    with pytest.raises(FileError):
+    with pytest.raises(SimulatedError):
         await create_attachments_use_case(
             message_id=1,
             message=gen_message,
@@ -168,9 +167,9 @@ async def test_create_rejects_invalid_files(mocker, message, file):
         r2_integration=mock_r2_integration,
         file_validator=mock_file_validator
     )
-    mock_file_validator.side_effect = FileError('Erro simulado')
+    mock_file_validator.side_effect = SimulatedError()
 
-    with pytest.raises(FileError):
+    with pytest.raises(SimulatedError):
         await create_attachments_use_case(
             message_id=1,
             message=gen_message,
@@ -183,6 +182,7 @@ async def test_create_rejects_invalid_files(mocker, message, file):
     mock_attachment_service.create_list.assert_not_called()
     mock_r2_integration.create_file.assert_not_called()
 
+# TODO: The creation should skip invalid files and return when some error happens
 async def test_create_rejects_all_if_invalid_files(mocker, message, file):
     # Mock
     mock_attachment_service = mocker.MagicMock()
@@ -199,7 +199,7 @@ async def test_create_rejects_all_if_invalid_files(mocker, message, file):
 
     mock_file_validator.side_effect = [
         gen_files[0],
-        FileError('Simulated refused invalid file'),
+        SimulatedError(),
         gen_files[2]
     ]
 
@@ -210,7 +210,7 @@ async def test_create_rejects_all_if_invalid_files(mocker, message, file):
         file_validator=mock_file_validator
     )
 
-    with pytest.raises(FileError):
+    with pytest.raises(SimulatedError):
         await create_attachments_use_case(
             message_id=1,
             message=gen_message,
