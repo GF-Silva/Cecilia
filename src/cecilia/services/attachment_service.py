@@ -23,13 +23,12 @@ class AttachmentService:
     def index(self, offset: int = 0, limit: int = 100) -> Sequence[Attachment]:
         return self.attachment_repository.index(offset, limit)
 
-    def create(self, attachment: AttachmentCreate, message_id: int) -> AttachmentPublic:
+    def create(self, attachment: AttachmentCreate, message_id: int) -> Attachment:
         message = self.message_repository.show(id=message_id)
-        if not message: raise NotFoundError(resource='message', item=message_id)
-
+        if not message: raise RuleError(message='Message not found for the given message_id',values={"message_id": message_id})
         self.validate_message_role(message)
         db_attachment = self.attachment_repository.create(attachment)
-        return self._to_attachment_public(db_attachment)
+        return db_attachment
 
     def create_list(self, attachments: list[AttachmentCreate], message_id: int) -> list[Attachment]:
         message = self.message_repository.show(id=message_id)
