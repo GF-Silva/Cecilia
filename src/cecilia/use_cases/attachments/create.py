@@ -66,8 +66,8 @@ class CreateAttachmentsUseCase:
 
         for file in files:
             validated_file = await self.file_validator(
-                stream=file.file, 
-                filename=file.filename, 
+                stream=file.file,
+                filename=file.filename,
                 max_size=self.r2_integration.MAX_FILE_SIZE,
                 allowed_types=ACCEPTED_MIME_TYPES
             )

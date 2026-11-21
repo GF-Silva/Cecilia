@@ -31,6 +31,7 @@ async def test_delete_use_case(mocker, attachment):
 
     # TODO: Finish the features requests based on Test-Driven-Development
 
+# TODO? : Validate multi attachments
 async def test_create_use_case_success(mocker, message, file):
     # Mock
     mock_attachment_service = mocker.MagicMock()
@@ -102,3 +103,38 @@ async def test_create_use_case_rejects_assistant_messages(mocker, message, file)
     mock_file_validator.assert_not_called()
     mock_r2_integration.create_file.assert_not_called()
     mock_attachment_service.create_list.assert_not_called()
+
+async def test_create_use_case_refuses_unsupported_files(mocker, message, file):
+    # Mock
+    mock_attachment_service = mocker.MagicMock()
+    mock_r2_integration = mocker.AsyncMock()
+    mock_file_validator = mocker.AsyncMock()
+
+    # Generations
+    gen_message = message(is_user=True)
+    gen_file = next(file(
+        mime_type='application/json',
+        type='json'
+    ))
+
+    # Creating instances
+    create_attachments_use_case = CreateAttachmentsUseCase(
+        attachment_service=mock_attachment_service,
+        r2_integration=mock_r2_integration,
+        file_validator=mock_file_validator
+    )
+
+    mock_file_validator.side_effect = FileError('Erro simulado')
+
+    with pytest.raises(FileError):
+        await create_attachments_use_case(
+            message_id=1,
+            message=gen_message,
+            files=[UploadFile(gen_file.stream)]
+        )
+
+    # Assertions
+    mock_attachment_service.validate_message_role.assert_called_once_with(gen_message)
+    mock_file_validator.assert_called_once()
+    mock_attachment_service.create_list.assert_not_called()
+    mock_r2_integration.create_file.assert_not_called()
