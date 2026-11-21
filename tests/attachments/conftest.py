@@ -12,11 +12,12 @@ def fake_attachment_repo():
     return FakeAttachmentRepository()
 
 @pytest.fixture
-def attachment_service(fake_attachment_repo):
-    return AttachmentService(attachment_repository=fake_attachment_repo)
+def attachment_service(fake_attachment_repo, mocker): # TODO: Substituir esse repo por um veridico
+    mock_message_repo = mocker.MagicMock()
+    return AttachmentService(attachment_repository=fake_attachment_repo, message_repository=mock_message_repo)
 
 @pytest.fixture
-def create_attachment():
+def attachment_create():
     def _factory(
         mime_type: str = 'audio/mpeg',
         message_id: int = 1,
@@ -37,14 +38,14 @@ def create_attachment():
     return _factory
 
 @pytest.fixture
-def attachment(create_attachment):
+def attachment(attachment_create):
     def _factory(
         created_at: datetime | None = None,
         id: int = 1,
         **kwargs
     ):
         return Attachment(
-            **create_attachment(**kwargs).model_dump(),
+            **attachment_create(**kwargs).model_dump(),
             created_at=created_at if created_at is not None else datetime.now(UTC),
             id=id
         )

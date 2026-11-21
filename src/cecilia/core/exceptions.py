@@ -24,6 +24,29 @@ class BaseError(Exception):
             "status_code": status_code
         })
 
+class SimulatedError(BaseError):
+    def __init__(
+        self,
+        title: str = 'Simulated Error',
+        message: str = 'A simulated error ocurred',
+        status_code: int = 500,
+        error_code: str = 'SIMULATED_ERROR', 
+        values: dict[str, Any] | None = None
+    ):
+        self.title=title
+        self.message=message
+        self.status_code=status_code
+        self.error_code=error_code
+        self.values=values
+
+        super().__init__(
+            title=title,
+            message=message,
+            status_code=status_code,
+            error_code=error_code,
+            values=values
+        )
+
 class InternalError(BaseError):
     def __init__(
         self, 
