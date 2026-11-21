@@ -7,7 +7,7 @@ from cecilia.validators.responses import FileData
 from cecilia.core.exceptions import RuleError
 from cecilia.validators.errors import FileError
 
-async def test_delete_use_case(mocker, attachment):
+async def test_delete(mocker, attachment):
     gen_attachment = attachment(id=1, message_id=1, is_valid=None)
     mock_r2_integration = mocker.AsyncMock()
     mock_attachments_service = mocker.Mock()
@@ -32,7 +32,7 @@ async def test_delete_use_case(mocker, attachment):
 
     # TODO: Finish the features requests based on Test-Driven-Development
 
-async def test_create_use_case_accepts_single_file(mocker, message, file):
+async def test_create_accepts_single_file(mocker, message, file):
     # Generations
     gen_message = message(is_user=True)
     gen_file = next(file(mime_type='audio/mpeg', type='mp3'))
@@ -68,7 +68,7 @@ async def test_create_use_case_accepts_single_file(mocker, message, file):
     mock_attachment_service.validate_message_role.assert_called_once_with(gen_message)
     mock_file_validator.assert_called_once()
 
-async def test_create_use_case_accepts_multiple_files(mocker, message, file):
+async def test_create_accepts_multiple_files(mocker, message, file):
     # Mock
     mock_attachment_service = mocker.MagicMock()
     mock_r2_integration = mocker.AsyncMock()
@@ -111,7 +111,7 @@ async def test_create_use_case_accepts_multiple_files(mocker, message, file):
     assert mock_file_validator.call_count == len(gen_files)
     mock_attachment_service.validate_message_role.assert_called_once_with(gen_message)
 
-async def test_create_use_case_rejects_assistant_messages(mocker, message, file):
+async def test_create_rejects_assistant_messages(mocker, message, file):
     # Mock
     mock_attachment_service = mocker.MagicMock()
     mock_r2_integration = mocker.AsyncMock()
@@ -149,7 +149,7 @@ async def test_create_use_case_rejects_assistant_messages(mocker, message, file)
     mock_r2_integration.create_file.assert_not_called()
     mock_attachment_service.create_list.assert_not_called()
 
-async def test_create_use_case_rejects_invalid_files(mocker, message, file):
+async def test_create_rejects_invalid_files(mocker, message, file):
     # Mock
     mock_attachment_service = mocker.MagicMock()
     mock_r2_integration = mocker.AsyncMock()
@@ -183,7 +183,7 @@ async def test_create_use_case_rejects_invalid_files(mocker, message, file):
     mock_attachment_service.create_list.assert_not_called()
     mock_r2_integration.create_file.assert_not_called()
 
-async def test_create_use_case_rejects_all_if_invalid_files(mocker, message, file):
+async def test_create_rejects_all_if_invalid_files(mocker, message, file):
     # Mock
     mock_attachment_service = mocker.MagicMock()
     mock_r2_integration = mocker.AsyncMock()
@@ -224,13 +224,25 @@ async def test_create_use_case_rejects_all_if_invalid_files(mocker, message, fil
     mock_r2_integration.create_file.assert_not_called()
     mock_attachment_service.create_list.assert_not_called()
 
-async def test_create_use_case_rejects_zero_files_input(mocker, message, file):
+@pytest.mark.parametrize(
+    'type',
+    [
+        (True),
+        ([]),
+        (None),
+        ([None]),
+        (1),
+        ("String")
+    ]
+)
+async def test_create_rejects_input_types_different_from_expected(mocker, message, type):
     # Mock
     mock_attachment_service = mocker.MagicMock()
     mock_r2_integration = mocker.AsyncMock()
     mock_file_validator = mocker.AsyncMock()
 
     # Creating instances
+    # TODO: Criar uma fixture disso
     create_attachments_use_case = CreateAttachmentsUseCase(
         attachment_service=mock_attachment_service,
         r2_integration=mock_r2_integration,
@@ -241,7 +253,7 @@ async def test_create_use_case_rejects_zero_files_input(mocker, message, file):
         await create_attachments_use_case(
             message_id=1,
             message=message(is_user=True),
-            files=[]
+            files=type
         )
 
     # Assertions
