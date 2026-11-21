@@ -5,6 +5,7 @@ from cecilia.models.tables import Message
 from cecilia.integrations.cloudflare.r2 import R2
 from cecilia.validators import FileValidator
 from cecilia.integrations.openrouter.rules import ACCEPTED_MIME_TYPES
+from cecilia.core.exceptions import RuleError
 
 from dataclasses import dataclass
 from fastapi import UploadFile
@@ -33,6 +34,9 @@ class CreateAttachmentsUseCase:
         message: Message,
         files: list[UploadFile], # TODO: Substituir o maldito por BinaryIO (facilita os testes)
     ):
+        if not files:
+            raise RuleError(message='At least 1 file should be uploaded', values={"files": files})
+
         self.attachment_service.validate_message_role(message)
         files_data = await self._validate_files(files)
     

@@ -4,6 +4,7 @@ from cecilia.models.attachment_model import AttachmentUpdate
 from cecilia.models.tables import Attachment
 from fastapi import UploadFile
 from cecilia.validators.responses import FileData
+from cecilia.core.exceptions import RuleError
 from cecilia.validators.errors import FileError
 
 async def test_delete_use_case(mocker, attachment):
@@ -148,7 +149,7 @@ async def test_create_use_case_rejects_assistant_messages(mocker, message, file)
     mock_r2_integration.create_file.assert_not_called()
     mock_attachment_service.create_list.assert_not_called()
 
-async def test_create_use_case_rejects_unsupported_files(mocker, message, file):
+async def test_create_use_case_rejects_invalid_files(mocker, message, file):
     # Mock
     mock_attachment_service = mocker.MagicMock()
     mock_r2_integration = mocker.AsyncMock()
@@ -222,3 +223,32 @@ async def test_create_use_case_rejects_all_if_invalid_files(mocker, message, fil
     mock_attachment_service.validate_message_role.assert_called_once_with(gen_message)
     mock_r2_integration.create_file.assert_not_called()
     mock_attachment_service.create_list.assert_not_called()
+
+async def test_create_use_case_rejects_zero_files_input(mocker, message, file):
+    # Mock
+    mock_attachment_service = mocker.MagicMock()
+    mock_r2_integration = mocker.AsyncMock()
+    mock_file_validator = mocker.AsyncMock()
+
+    # Creating instances
+    create_attachments_use_case = CreateAttachmentsUseCase(
+        attachment_service=mock_attachment_service,
+        r2_integration=mock_r2_integration,
+        file_validator=mock_file_validator
+    )
+
+    with pytest.raises(RuleError):
+        await create_attachments_use_case(
+            message_id=1,
+            message=message(is_user=True),
+            files=[]
+        )
+
+    # Assertions
+    mock_attachment_service.validate_message_role.assert_not_called()
+    mock_file_validator.assert_not_called()
+    mock_attachment_service.create_list.assert_not_called()
+    mock_r2_integration.create_file.assert_not_called()
+
+# TODO: Check if create file accepts upload types different from BinaryIO | UploadFile
+# TODO: Check if the file sent is valid
