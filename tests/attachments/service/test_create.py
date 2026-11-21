@@ -54,10 +54,8 @@ def test_create_rejects_create_to_assistant_messages(mocker, attachment_create, 
     mock_message_repo.show.assert_called_once_with(id=gen_attachment.message_id)
     mock_attachment_repo.create.assert_not_called()
 
-def test_create_rejects_create_to_messages_not_found(mocker, attachment, message, attachment_create):
+def test_create_rejects_create_to_message_not_found(mocker, attachment_create):
     # Generations
-    gen_attachment = attachment(id=1, message_id=1)
-    gen_message = message(is_user=True)
     gen_attachment_create = attachment_create()
 
     # Mocks
@@ -75,9 +73,9 @@ def test_create_rejects_create_to_messages_not_found(mocker, attachment, message
 
     # Tests
     with pytest.raises(exceptions.RuleError):
-        attachment_service.create(attachment=gen_attachment_create, message_id=gen_message.id)
+        attachment_service.create(attachment=gen_attachment_create, message_id=10)
     
-    mock_message_repo.show.assert_called_once_with(id=gen_attachment.message_id)
+    mock_message_repo.show.assert_called_once_with(id=10)
     mock_attachment_repo.create.assert_not_called()
 
 def test_create_list_success(mocker, attachment_create, attachment, message):
@@ -143,4 +141,31 @@ def test_create_list_rejects_all_if_create_to_assistant_messages(mocker, attachm
         attachment_service.create_list(attachments=gen_attachments_create, message_id=gen_message.id)
         
     mock_message_repo.show.assert_called_once_with(id=gen_message.id)
+    mock_attachment_repo.create_list.assert_not_called()
+
+def test_create_list_rejects_create_to_message_not_found(mocker, attachment_create, message):
+    # Generations
+    gen_attachments_create = [
+        attachment_create(message_id=1),
+        attachment_create(message_id=1),
+        attachment_create(message_id=1)
+    ]
+
+    # Mocks 
+    mock_attachment_repo = mocker.MagicMock()
+    mock_message_repo = mocker.MagicMock()
+
+    # Return values
+    mock_message_repo.show.return_value = None
+
+    # Creating instances
+    attachment_service = AttachmentService(
+        attachment_repository=mock_attachment_repo,
+        message_repository=mock_message_repo
+    )
+
+    with pytest.raises(exceptions.RuleError):
+        attachment_service.create_list(attachments=gen_attachments_create, message_id=1)
+        
+    mock_message_repo.show.assert_called_once_with(id=1)
     mock_attachment_repo.create_list.assert_not_called()
