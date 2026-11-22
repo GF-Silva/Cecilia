@@ -1,5 +1,5 @@
 from cecilia.repositories import AttachmentRepository, MessageRepository
-from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic, AttachmentUpdate
+from cecilia.models.attachment_model import AttachmentCreate, AttachmentUpdate
 from cecilia.models.tables import Attachment, Message
 from collections.abc import Sequence
 from cecilia.core.exceptions import NotFoundError, RuleError
@@ -52,6 +52,3 @@ class AttachmentService:
     def update(self, id: int, message_id: int, attachment_update: AttachmentUpdate):
         attachment = self.show(id, message_id)
         return self.attachment_repository.update(db_attachment=attachment, attachment_update=attachment_update)
-
-    def _to_attachment_public(self, attachment: Attachment) -> AttachmentPublic:
-        return AttachmentPublic.model_validate(attachment)
