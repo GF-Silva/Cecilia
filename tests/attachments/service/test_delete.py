@@ -23,8 +23,21 @@ def test_delete_success(attachment, mocker):
     mock_attachment_repo.show.assert_called_once_with(id=gen_attachment.id, message_id=gen_attachment.message_id)
     mock_attachment_repo.delete.assert_called_once_with(gen_attachment)
 
-def test_delete_error_not_found(attachment_service, attachment):
-    gen_attachment = attachment(id=1, message_id=1)
-    attachment_service.attachment_repository.storage[gen_attachment.id] = gen_attachment
+def test_delete_error_not_found(mocker):
+    # Mocks
+    mock_message_repo = mocker.MagicMock()
+    mock_attachment_repo = mocker.MagicMock()
+    mock_attachment_repo.show.return_value=None
+
+    # Creating instances
+    attachment_service = AttachmentService(
+        message_repository=mock_message_repo,
+        attachment_repository=mock_attachment_repo
+    )
+
+    # Testing
     with pytest.raises(exceptions.NotFoundError):
-        attachment_service.delete(id=2, message_id=1)
+        attachment_service.delete(id=1, message_id=1)
+    
+    mock_attachment_repo.show.assert_called_once_with(id=1, message_id=1)
+    mock_attachment_repo.delete.assert_not_called()
