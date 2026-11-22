@@ -1,5 +1,5 @@
 from cecilia.repositories import AttachmentRepository, MessageRepository
-from cecilia.models.attachment_model import AttachmentCreate, AttachmentPublic, AttachmentUpdate
+from cecilia.models.attachment_model import AttachmentCreate, AttachmentUpdate
 from cecilia.models.tables import Attachment, Message
 from collections.abc import Sequence
 from cecilia.core.exceptions import NotFoundError, RuleError

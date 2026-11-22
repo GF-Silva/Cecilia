@@ -1,6 +1,5 @@
 from cecilia.core import exceptions
 from cecilia.services import AttachmentService
-from cecilia.models.attachment_model import AttachmentUpdate
 import pytest
 
 def test_delete_success(attachment, mocker):
