@@ -52,6 +52,3 @@ class AttachmentService:
     def update(self, id: int, message_id: int, attachment_update: AttachmentUpdate):
         attachment = self.show(id, message_id)
         return self.attachment_repository.update(db_attachment=attachment, attachment_update=attachment_update)
-
-    def _to_attachment_public(self, attachment: Attachment) -> AttachmentPublic:
-        return AttachmentPublic.model_validate(attachment)
