@@ -23,7 +23,8 @@ Nessa etapa pegamos as ações feitas e definimos as regras que ela deve seguir.
 
 1. **Usuários da ação:** Define-se quem poderá usufruir da ação. Nessa etapa, pense para quem a ação será exposta.
 2. **Regras gerais da ação:** Define-se o que os usuários da ação terão que seguir. Nessa etapa, pense em todas as regras que a ação exposta deve ter para garantir o functionamento, quais validações deverão ser feitas e como serão feitas.
-3. **Separação das regras:** Nessa etapa, separamos imutaveis (Todos seguem) das específicas (Depende de quem faz). Na hora de fazer a regra, pergunte-se: Quem faz essa ação? Para quem ele fará? Essa ação é universal para todos?
+3. **Separação das regras imutáveis:** Agrupamos as regras que não devem mutar nessa ação. Todos devem seguir as regras aqui feitas.
+4. **Separação das regras específicas:** Agrupamos as regras que dependem do contexto. Apenas alguns devem seguir essas regras, dependendo de seu contexto
 
 ### Definição de responsabilidades
 
@@ -33,3 +34,4 @@ Nessa etapa pegamos as ações feitas e definimos as regras que ela deve seguir.
 ### Finalização
 
 1. **Revisão:** Revisar o que foi feito, buscar melhorias e criticar as ideias
+2. **Planejar a ordem**: Com tudo pronto, é decidida a ordem com que as ações serão feitas
