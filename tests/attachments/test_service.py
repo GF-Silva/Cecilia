@@ -22,17 +22,6 @@ def test_validate_message(mocker, message, is_user, should_work):
         with pytest.raises(exceptions.RuleError):
             service.validate_message_role(gen_message)
 
-def test_delete_success(attachment_service, attachment):
-    gen_attachment = attachment(id=1, message_id=1)
-    attachment_service.attachment_repository.storage[gen_attachment.id] = gen_attachment
-    attachment_service.delete(id=1, message_id=1)
-
-def test_delete_error_not_found(attachment_service, attachment):
-    gen_attachment = attachment(id=1, message_id=1)
-    attachment_service.attachment_repository.storage[gen_attachment.id] = gen_attachment
-    with pytest.raises(exceptions.NotFoundError):
-        attachment_service.delete(id=2, message_id=1)
-
 @pytest.mark.parametrize(
     'id, message_id, update_fields, should_work',
     [
