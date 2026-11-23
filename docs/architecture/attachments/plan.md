@@ -34,10 +34,11 @@ Não terá upload de outros tipos de arquivo, nem retorno de mensagens de audio 
 14. O sistema deve criar e salvar apenas os arquivos validos
 15. O sistema deve mostrar quais arquivos estão inválidos e foram recusados
 16. O sistema deve ter um meio de invalidar arquivos já criados
+17. O usuário só pode criar um attachment para seu proprio chat e mensagem
 
 #### Não funcionais
 
-- A validação de arquivos deve assíncrona
+- A validação de arquivos deve ser assíncrona
 - Os arquivos devem ser validados de forma paralela
 
 ### Ações
@@ -279,3 +280,22 @@ Não terá upload de outros tipos de arquivo, nem retorno de mensagens de audio 
 #### Regras específicas de invalidar o arquivo já criado
 
 - O usuário deve ser o dono do attachment
+
+## Definição das responsabilidades
+
+### Definição dos agentes
+
+1. AttachmentService
+2. AttachmentRepository
+3. AttachmentModel
+4. AttachmentImageValidationPolicy.
+5. AttachmentAudioValidationPolicy.
+6. AttachmentValidationPolicyDispatcher
+7. AttachmentAccessPolicy
+8. OpenRouterCompletionsIntegration
+9. MessageService
+10. ChatService
+11. ImageValidator
+12. AudioValidator
+13. FileMetadataExtractor
+14. R2Integration
