@@ -39,10 +39,15 @@ Notice that they are for me to follow this architecture, so can be classified as
 - Redirecionam a chamada para o item certo
 - O nome é Domain + Action + Context + Dispatcher. Ex: AttachmentCreatePolicyDispatcher
 
-## Policies
+## Validation Policies
 
-- Aplicam regras de negocio para a ação específica
-- O nome é Domain + Action + Policy. Ex: AttachmentCreatePolicy
+- Aplicam regras de negocio de validação para o tipo específico.
+- O nome é Domain + Type + Validation + Policy. Ex: AttachmentImageValidationPolicy
+
+## Access Policies
+
+- Aplicam regras de acesso para o item especifico
+- O nome é Domain + Access + Policy. Ex: AttachmentAccessPolicy.
 
 ## Services
 
