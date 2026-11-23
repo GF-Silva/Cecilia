@@ -29,7 +29,7 @@ Nessa etapa pegamos as ações feitas e definimos as regras que ela deve seguir.
 ### Definição de responsabilidades
 
 1. **Definição dos agentes:** Dados os envolvidos, regras e ação, define-se quais partes do sistema tem envolvimento com essa ação específica. Aqui, pense em quem será chamado e qual domínio tem que ser respeitado para essa ação acontecer.
-2. **Agrupamento das regras:** As regras da ação são separadas por agente responsável. Aqui, é decidido a quem cada pertence cada regra especificada.
+2. **Agrupamento das tarefas dos agents:** As regras e ações são separadas por agente responsável. Aqui, é decidido a quem cada pertence cada item especificado.
 
 ### Finalização
 
