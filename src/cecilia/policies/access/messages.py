@@ -13,14 +13,16 @@ class MessageAccessPolicy:
             raise CannotAccessError(
                 resource='Messages', 
                 error_code=AccessError.THIS_IS_NOT_YOURS,
-                reason_code='THIS_MESSAGE_IS_NOT_YOURS'
+                reason_code='THIS_MESSAGE_IS_NOT_YOURS',
+                reason='this is not yours'
             )
 
         if requester_chat_id != message_chat_id:
             raise CannotAccessError(
                 resource='Messages', 
                 error_code=AccessError.THIS_IS_NOT_YOURS,
-                reason_code='THIS_CHAT_CANNOT_ACCESS_THIS_MESSAGE'
+                reason_code='THIS_CHAT_CANNOT_ACCESS_THIS_MESSAGE',
+                reason='this chat cannot access this message'
             )
     
         return True
@@ -38,21 +40,24 @@ class MessageAccessPolicy:
             raise CannotAccessError(
                 resource='Messages', 
                 error_code=AccessError.THIS_IS_NOT_YOURS,
-                reason_code='THIS_MESSAGE_IS_NOT_YOURS'
+                reason_code='THIS_MESSAGE_IS_NOT_YOURS',
+                reason='this is not yours'
             )
 
         if requester_chat_id != message_chat_id:
             raise CannotAccessError(
                 resource='Messages', 
                 error_code=AccessError.THIS_IS_NOT_YOURS,
-                reason_code='THIS_CHAT_CANNOT_ACCESS_THIS_MESSAGE'
+                reason_code='THIS_CHAT_CANNOT_ACCESS_THIS_MESSAGE',
+                reason='this chat cannot access this message'
             )
 
         if requester_is_user != message_is_user:
             raise CannotAccessError(
                 resource='Messages', 
                 error_code=AccessError.ROLES_MUST_BE_THE_SAME,
-                reason_code='THE_MESSAGES_ROLES_ARE_DIFFERENT'
+                reason_code='THE_MESSAGES_ROLES_ARE_DIFFERENT',
+                reason='the messages roles are different'
             )
 
         return True
