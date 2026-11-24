@@ -35,3 +35,14 @@ Nessa etapa pegamos as ações feitas e definimos as regras que ela deve seguir.
 
 1. **Revisão:** Revisar o que foi feito, buscar melhorias e criticar as ideias
 2. **Planejar a ordem**: Com tudo pronto, é decidida a ordem com que as ações serão feitas
+
+## Desenvolvimento
+
+### Testes unitários
+
+Para cada ação e regra, crie um teste seguindo a metodologia do TDD. Nessa ordem:
+
+1. Organize os itens por, primeiro, facilidade dos testes
+2. Depois, selecione aqueles com menos dependências
+3. Depois, selecione aqueles com mais regras de negócio
+4. Siga os teste por facilidade
