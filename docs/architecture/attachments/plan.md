@@ -309,13 +309,13 @@ Não terá upload de outros tipos de arquivo, nem retorno de mensagens de audio 
 
 ### Agrupamento das regras
 
-- [Builders](builders.md)
+- [Policies](policies.md)
 - [Dispatchers](dispatchers.md)
 - [Extractors](extractors.md)
-- [Integrations](integrations.md)
-- [Models](models.md)
-- [Policies](policies.md)
-- [Repositories](repositories.md)
-- [Services](services.md)
-- [UseCases](use_cases.md)
 - [Validators](validators.md)
+- [UseCases](use_cases.md)
+- [Builders](builders.md)
+- [Integrations](integrations.md)
+- [Services](services.md)
+- [Repositories](repositories.md)
+- [Models](models.md)
