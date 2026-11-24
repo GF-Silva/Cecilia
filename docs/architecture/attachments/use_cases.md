@@ -12,11 +12,11 @@
 - Chamar o `AttachmentAccessPolicy` para verificar se o user pode acessar o attachment ---- (Maybe not)
 - Chamar o `MessageAccessPolicy` para verificar se o user pode acessar a mensagem
 - Chamar o `ChatAccessPolicy` para verificar se o user pode acessar o chat
-- Verificar se o chat tem mensagens
 - Chamar o `MessageService` para obter as mensagens do chat
+- Verificar se o chat tem mensagens
 - Chamar o `DatabaseToOpenRouterMessageBuilder` para transformar as mensagens no modelo do openrouter
+- Enviar as mensagens para o `OpenRouterCompletionsIntegration` processar
 - Retornar a resposta em stream
-- Enviar as mensagens para a integration do openrouter
 
 ## AttachmentCreateUseCase
 
@@ -30,6 +30,7 @@
 
 - Chamar o `ChatAccessPolicy` para validar se o user_id pode acessar o chat
 - Chamar o `MessageAccessPolicy` para validar se o user pode acessar a mensagem desse chat
+- Chamar o `AttachmentAccessPolicy` para validar se o usuário pode executar a ação
 - Chamar o `FileMetadataExtractor` para extrar o mime type
 - Chamar o `AttachmentValidationPolicyDispatcher` para validar os arquivos
 - Chamar o `AttachmentService` para criar o attachment no database
@@ -48,6 +49,12 @@
 
 ### Ações ao atualizar um attachment
 
+- Chamar o `AttachmentValidationPolicyDispatcher` para validar os arquivos
+- Chamar o `FileMetadataExtractor` para extrar o mime type
+- Chamar o `AttachmentAccessPolicy` para verificar se o user pode acessar o attachment
+- Chamar o `MessageAccessPolicy` para verificar se o user pode acessar a mensagem
+- Chamar o `ChatAccessPolicy` para verificar se o user pode acessar o chat
+- Chamar o `AttachmentService` para pegar os dados de um attachment
 - Retornar os dados dos arquivos que deram certo na validação
 - Retornar os dados dos arquivos que deram errado na validação
 - Salvar os arquivos válidos

@@ -9,8 +9,9 @@
 
 ### Ações no acesso
 
-- Validar se quem solicita modificar um attachment pode criar um
-- Verificar se o role é válido e pode acessar o attachment
+- Validar a permissão para manipular um attachment
+- Para criar ou atualizar, validar se o role é de um usuário
+- Para criar ou atualizar, verificar se o role da mensagem alvo é o mesmo role de quem pede a ação
 - Verificar se quem pede é o dono do attachment
 
 ## MessageAccessPolicy
@@ -24,9 +25,11 @@
 
 ### Ações no acesso em mensagens
 
-- Verificar se o Role da mensagem é o mesmo role de quem chama
+- Para atualizar, verificar se o role da mensagem alvo é o mesmo de quem pede a ação
+- Verificar se a mensagem alvo é do usuário
 - Verificar se o chat pode acessar essa mensagem
 - Verificar se quem quer acessar é o dono da mensagem
+- Verificar se o usuário pode acessar essa mensagem
 
 ## ChatAccessPolicy
 
