@@ -1,1 +1,1 @@
-from .access import AttachmentsAccessPolicy
+from .access import AttachmentsAccessPolicy, MessageAccessPolicy

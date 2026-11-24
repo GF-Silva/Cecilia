@@ -1,1 +1,2 @@
 from .attachments import AttachmentsAccessPolicy
+from .messages import MessageAccessPolicy
