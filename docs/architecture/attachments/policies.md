@@ -4,8 +4,10 @@
 
 ### Regras no acesso
 
+- Apenas o usuário dono da mensagem acessa o attachment
+- Para modificar, o role do usuário deve ser o mesmo da mensagem alvo
 - Aquele que acessa deve ser o dono do attachment
-- Um attachment só pode ser criado por usuários (Não assistant)
+- Apenas users podem acessar
 
 ### Ações no acesso
 
@@ -35,7 +37,8 @@
 
 ### Regras do acesso ao chat
 
-- O usuário acessa apenas seu proprio chat
+- O usuário acessa seu próprio chat
+- O usuário não consegue acessar o chat de outros user
 
 ### Ações ao validar o acesso a um chat
 
