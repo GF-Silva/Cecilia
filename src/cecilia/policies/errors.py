@@ -3,7 +3,6 @@ from typing import Any
 from enum import StrEnum
 
 class AccessError(StrEnum):
-    CANNOT_ACCESS = 'CANNOT_ACCESS'
     THIS_IS_NOT_YOURS = 'CANNOT_ACCESS_OTHERS_ITEMS'
     ONLY_USERS_CAN_MODIFY = 'ONLY_USERS_CAN_MODIFY'
     ROLES_MUST_BE_THE_SAME = 'ROLES_MUST_BE_THE_SAME'
@@ -13,9 +12,9 @@ class CannotAccessError(BaseError):
         self,
         resource: str,
         reason_code: str,
+        reason: str, 
+        error_code: AccessError,
         status_code: int = 403,
-        reason: str | None = None, 
-        error_code: AccessError = AccessError.CANNOT_ACCESS,
         values: dict[str, Any] | None = None
     ):
         self.resource=resource

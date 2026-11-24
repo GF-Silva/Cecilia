@@ -69,6 +69,7 @@ def test_modify_rejecs_not_message_owner():
 
     assert exception.value.reason_code == 'THIS_MESSAGE_IS_NOT_YOURS'
     assert exception.value.error_code == 'CANNOT_ACCESS_OTHERS_ITEMS'
+    assert exception.value.status_code == 403
 
 def test_modify_rejecs_messages_from_other_chats():
     message_access_policy = MessageAccessPolicy()
@@ -85,6 +86,7 @@ def test_modify_rejecs_messages_from_other_chats():
 
     assert exception.value.reason_code == 'THIS_CHAT_CANNOT_ACCESS_THIS_MESSAGE'
     assert exception.value.error_code == 'CANNOT_ACCESS_OTHERS_ITEMS'
+    assert exception.value.status_code == 403
 
 def test_modify_rejecs_different_roles():
     message_access_policy = MessageAccessPolicy()
@@ -102,3 +104,4 @@ def test_modify_rejecs_different_roles():
 
     assert exception.value.reason_code == 'THE_MESSAGES_ROLES_ARE_DIFFERENT'
     assert exception.value.error_code == 'ROLES_MUST_BE_THE_SAME'
+    assert exception.value.status_code == 403
