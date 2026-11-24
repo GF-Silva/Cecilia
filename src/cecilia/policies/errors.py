@@ -12,6 +12,7 @@ class CannotAccessError(BaseError):
     def __init__(
         self,
         resource: str,
+        reason_code: str,
         status_code: int = 403,
         reason: str | None = None, 
         error_code: AccessError = AccessError.CANNOT_ACCESS,
@@ -21,6 +22,8 @@ class CannotAccessError(BaseError):
         self.status_code=status_code
         self.error_code=error_code
         self.values=values
+        self.reason=reason
+        self.reason_code=reason_code
 
         super().__init__(
             title=f'Cannot access {resource}',
