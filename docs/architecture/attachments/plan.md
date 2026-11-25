@@ -309,9 +309,9 @@ Não terá upload de outros tipos de arquivo, nem retorno de mensagens de audio 
 
 ### Agrupamento das regras
 
-- [Policies](policies.md)
-- [Dispatchers](dispatchers.md)
-- [Extractors](extractors.md)
+- [Policies](policies.md)           -- Feito
+- [Dispatchers](dispatchers.md)     -- Feito
+- [Extractors](extractors.md)       -- Fazendo
 - [Validators](validators.md)
 - [UseCases](use_cases.md)
 - [Builders](builders.md)
