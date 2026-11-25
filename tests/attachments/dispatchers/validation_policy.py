@@ -35,3 +35,22 @@ def test_dispatch_accepts_image(mocker, file):
     dispatcher(mime_type='image/png', file=gen_file)
     mock_attachment_audio_validation_policy.assert_not_called()
     mock_attachment_image_validation_policy.assert_called_once_with(file=gen_file)
+
+def test_dispatch_refuses_other_formats(mocker, file):
+    mock_attachment_image_validation_policy = mocker.MagicMock()
+    mock_attachment_audio_validation_policy = mocker.MagicMock()
+    gen_file = file(
+        mime_type='application/json',
+        type='json'
+    )
+
+    dispatcher = AttachmentValidationPolicyDispatcher(
+        attachment_image_validation_policy=mock_attachment_image_validation_policy,
+        attachment_audio_validation_policy=mock_attachment_audio_validation_policy
+    )
+
+    with pytest.raises(UnsupportedFileFormatError):
+        dispatcher(mime_type='application/json', file=gen_file)
+    
+    mock_attachment_audio_validation_policy.assert_not_called()
+    mock_attachment_image_validation_policy.assert_not_called()

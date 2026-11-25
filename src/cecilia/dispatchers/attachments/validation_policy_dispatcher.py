@@ -13,7 +13,9 @@ class AttachmentValidationPolicyDispatcher:
 
     def __call__(self, mime_type: str, file: BinaryIO):
         if mime_type.startswith('audio/'):
-            self.attachment_audio_validation_policy(file=file)
+            return self.attachment_audio_validation_policy(file=file)
 
         elif mime_type.startswith('image/'):
-            self.attachment_image_validation_policy(file=file)
+            return self.attachment_image_validation_policy(file=file)
+
+        raise UnsupportedFileFormatError(format=mime_type)
