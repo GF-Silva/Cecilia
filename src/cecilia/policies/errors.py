@@ -2,6 +2,8 @@ from cecilia.core.exceptions import BaseError
 from typing import Any
 from enum import StrEnum
 
+# TODO: Place into access folder
+
 class AccessError(StrEnum):
     THIS_IS_NOT_YOURS = 'CANNOT_ACCESS_OTHERS_ITEMS'
     ONLY_USERS_CAN_MODIFY = 'ONLY_USERS_CAN_MODIFY'

@@ -1,1 +1,2 @@
 from .attachments import AttachmentImageValidationPolicy, AttachmentAudioValidationPolicy
+from .errors import FileTooBigError
