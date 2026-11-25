@@ -16,7 +16,7 @@ def file():
     def _factory(
         mime_type: str,                                 # Mime type of the file     - also the directory searched
         type: str,                                      # Type of the file          - Also the file extension
-        filename: str = 'file',                         # Name of the searched file - the name of the searched file
+        filename: str = 'file1',                         # Name of the searched file - the name of the searched file
         public_filename: str = 'audio of something'     # Public name of the file   - just to display
     ):
         file = open(f'tests/fixtures/{mime_type}/{filename}.{type}', 'rb')
