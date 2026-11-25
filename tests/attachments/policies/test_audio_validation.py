@@ -16,7 +16,7 @@ async def test_success(file, mocker):
 
     mock_audio_validator.assert_called_once()
 
-async def test_refuses_files_bigger_than_20_mb(file, mocker):
+async def test_refuses_files_bigger_than_100_mb(file, mocker):
     gen_file = next(file(
         mime_type='audio/mpeg',
         type='mp3'
