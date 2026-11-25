@@ -1,6 +1,6 @@
 from PIL import Image, UnidentifiedImageError
 from typing import BinaryIO
-from cecilia.core.exceptions import InvalidFileError, FileTooBigError, InternalError
+from .errors import FileError, InvalidFileError, FileTooBigError
 
 # TODO: Add more validations using magic / file content / etc
 class ImageValidator:
@@ -22,4 +22,4 @@ class ImageValidator:
 
         except Exception as err:
             print("Attachments (CreateUseCase) - err: ", err)
-            raise InternalError()
+            raise FileError()
