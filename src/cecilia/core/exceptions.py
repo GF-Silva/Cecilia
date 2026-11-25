@@ -158,6 +158,7 @@ class RuleError(BaseError):
             values=values
         )
 
+# TODO: Let just the dispatcher calls it, and remove it from here
 class UnsupportedFileFormatError(BaseError):
     def __init__(
         self,
