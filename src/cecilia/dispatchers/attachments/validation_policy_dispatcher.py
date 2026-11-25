@@ -13,7 +13,7 @@ class AttachmentValidationPolicyDispatcher:
 
     def __call__(self, mime_type: str, file: BinaryIO, size: int):
         if mime_type.startswith('audio/'):
-            return self.attachment_audio_validation_policy(file=file)
+            return self.attachment_audio_validation_policy(file=file, size=size)
 
         elif mime_type.startswith('image/'):
             return self.attachment_image_validation_policy(file=file, size=size)
