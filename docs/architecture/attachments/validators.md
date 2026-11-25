@@ -19,7 +19,7 @@
 
 ### Ações ao validar a integridade um audio
 
-- Usar o `Pillow` para validar a imagem
+- Usar o `FFProbeAdapter` para validar o audio
 - Retornar se deu certo ou errado
 
 ## AttachmentImageValidationPolicy
