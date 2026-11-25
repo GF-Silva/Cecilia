@@ -311,9 +311,9 @@ Não terá upload de outros tipos de arquivo, nem retorno de mensagens de audio 
 
 - [Policies](policies.md)           -- Feito
 - [Dispatchers](dispatchers.md)     -- Feito
-- [Extractors](extractors.md)       -- Fazendo
-- [Validators](validators.md)
-- [UseCases](use_cases.md)
+- [Extractors](extractors.md)       -- Feito
+- [Validators](validators.md)       -- Feito
+- [UseCases](use_cases.md)          -- Fazendo
 - [Builders](builders.md)
 - [Integrations](integrations.md)
 - [Services](services.md)

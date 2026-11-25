@@ -4,10 +4,7 @@ from .errors import EmptyFileError
 
 # TODO: Add more audio validations
 class AudioValidator:
-    def __init__(
-        self,
-        ffprobe_adapter: FFProbeAdapter
-    ):
+    def __init__(self, ffprobe_adapter: FFProbeAdapter):
         self.ffprobe_adapter = ffprobe_adapter
 
     async def __call__(self, stream: BinaryIO):
@@ -17,4 +14,4 @@ class AudioValidator:
         if not data:
             raise EmptyFileError()
 
-        await self.ffprobe_adapter.validate_file_from_buffer(data)
+        return await self.ffprobe_adapter.validate_file_from_buffer(data)

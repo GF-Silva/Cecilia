@@ -1,5 +1,5 @@
 from .errors import UnsupportedFileFormatError
-from cecilia.policies.validators import AttachmentImageValidationPolicy, AttachmentAudioValidationPolicy
+from cecilia.policies import AttachmentImageValidationPolicy, AttachmentAudioValidationPolicy
 from typing import BinaryIO
 
 class AttachmentValidationPolicyDispatcher:
@@ -11,11 +11,11 @@ class AttachmentValidationPolicyDispatcher:
         self.attachment_image_validation_policy=attachment_image_validation_policy
         self.attachment_audio_validation_policy=attachment_audio_validation_policy
 
-    def __call__(self, mime_type: str, file: BinaryIO):
+    def __call__(self, mime_type: str, file: BinaryIO, size: int):
         if mime_type.startswith('audio/'):
-            return self.attachment_audio_validation_policy(file=file)
+            return self.attachment_audio_validation_policy(file=file, size=size)
 
         elif mime_type.startswith('image/'):
-            return self.attachment_image_validation_policy(file=file)
+            return self.attachment_image_validation_policy(file=file, size=size)
 
         raise UnsupportedFileFormatError(format=mime_type)
