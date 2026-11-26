@@ -63,10 +63,7 @@
 
 ### Ações ao acessar um attachment
 
-- Chamar o `AttachmentAccessPolicy` para verificar se o user pode acessar o attachment
-- Chamar o `MessageAccessPolicy` para verificar se o user pode acessar a mensagem
-- Chamar o `ChatAccessPolicy` para verificar se o user pode acessar o chat
-- Chamar o `AttachmentService` para pegar os dados de um attachment
+- Chamar a `AttachmentShowFacade` para validar a permissao de show
 - TODO: Se for buscar os dados do arquivo no database, chamar a `R2Integration` para buscar o arquivo no database
 
 ## AttachmentDeleteUseCase

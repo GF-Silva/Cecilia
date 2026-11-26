@@ -106,3 +106,8 @@ Notice that they are for me to follow this architecture, so can be classified as
 
 - Pegam um input e o constroi no formato necessário
 - O nome é DomainInputItem + To + DomainOutputItem + Builder. Ex: DatabaseToOpenRouterMessageBuilder
+
+## Facades
+
+- Criam uma fachada que centraliza regras de acesso ou validação.
+- O Nomme é Domain + Action + Facade. Ex: AttachmentAccessFacade

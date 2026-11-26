@@ -1,0 +1,1 @@
+from .attachments_show import AttachmentShowFacade
