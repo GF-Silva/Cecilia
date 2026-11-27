@@ -1,1 +1,2 @@
 from .attachments_show import AttachmentShowFacade
+from .attachments_modify import AttachmentModifyFacade
