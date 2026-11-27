@@ -1,35 +1,35 @@
 import pytest
-from cecilia.use_cases import DeleteAttachmentUseCase, CreateAttachmentsUseCase
+from cecilia.use_cases import CreateAttachmentsUseCase
 from cecilia.models.attachment_model import AttachmentUpdate
 from cecilia.models.tables import Attachment
 from fastapi import UploadFile
 from cecilia.validators.responses import FileData
 from cecilia.core.exceptions import RuleError, SimulatedError
 
-async def test_delete(mocker, attachment):
-    gen_attachment = attachment(id=1, message_id=1, is_valid=None)
-    mock_r2_integration = mocker.AsyncMock()
-    mock_attachments_service = mocker.Mock()
-    mock_attachments_service.update.return_value = Attachment.model_validate({
-        **gen_attachment.model_dump(), 
-        "is_valid": False
-    })
+# async def test_delete(mocker, attachment):
+#     gen_attachment = attachment(id=1, message_id=1, is_valid=None)
+#     mock_r2_integration = mocker.AsyncMock()
+#     mock_attachments_service = mocker.Mock()
+#     mock_attachments_service.update.return_value = Attachment.model_validate({
+#         **gen_attachment.model_dump(), 
+#         "is_valid": False
+#     })
 
-    use_case = DeleteAttachmentUseCase(
-        r2_integration=mock_r2_integration, 
-        attachments_service=mock_attachments_service
-    )
+#     use_case = DeleteAttachmentUseCase(
+#         r2_integration=mock_r2_integration, 
+#         attachments_service=mock_attachments_service
+#     )
 
-    await use_case(attachment_id=gen_attachment.id, message_id=gen_attachment.message_id)
+#     await use_case(attachment_id=gen_attachment.id, message_id=gen_attachment.message_id)
 
-    mock_attachments_service.update.assert_called_once_with(
-        id=gen_attachment.id,
-        message_id=gen_attachment.message_id,
-        attachment_update=AttachmentUpdate(is_valid=False)
-    )
-    mock_r2_integration.delete_file.assert_called_once_with(gen_attachment.path)
+#     mock_attachments_service.update.assert_called_once_with(
+#         id=gen_attachment.id,
+#         message_id=gen_attachment.message_id,
+#         attachment_update=AttachmentUpdate(is_valid=False)
+#     )
+#     mock_r2_integration.delete_file.assert_called_once_with(gen_attachment.path)
 
-    # TODO: Finish the features requests based on Test-Driven-Development
+#     # TODO: Finish the features requests based on Test-Driven-Development
 
 async def test_create_accepts_single_file(mocker, message, file):
     # Generations

@@ -18,17 +18,17 @@ from cecilia.integrations.openrouter.types.messages import (
     SummaryReasoning
 )
 from cecilia.integrations.cloudflare.r2 import R2
-from cecilia.use_cases.attachments.delete import DeleteAttachmentUseCase
+from cecilia.use_cases.attachments.delete import AttachmentDeleteUseCase
 import fastpybase64 as base64
 
 class DBToOpenrouterMessageBuilder:
     def __init__(
         self,
         r2_integration: R2,
-        delete_attachment_use_case: DeleteAttachmentUseCase
+        attachment_delete_use_case: AttachmentDeleteUseCase
     ):
         self.r2_integration = r2_integration
-        self.delete_attachment_use_case = delete_attachment_use_case
+        self.attachment_delete_use_case = attachment_delete_use_case
 
     async def __call__(self, db_message: DBMessage):
         reasonings = [
@@ -74,10 +74,10 @@ class DBToOpenrouterMessageBuilder:
                 file_data = await self.r2_integration.get_file_data(db_attachment.path)
             except FileNotFoundError:
                 print('invalidating file')
-                await self.delete_attachment_use_case(
-                    attachment_id=db_attachment.id, 
-                    message_id=db_attachment.message_id
-                )
+                # await self.attachment_delete_use_case(
+                #     attachment_id=db_attachment.id, 
+                #     message_id=db_attachment.message_id
+                # )
                 return
 
             base64_file = base64.b64encode(file_data).decode('utf-8')
@@ -96,10 +96,10 @@ class DBToOpenrouterMessageBuilder:
                 )
             except FileNotFoundError:
                 print('invalidating file')
-                await self.delete_attachment_use_case(
-                    attachment_id=db_attachment.id, 
-                    message_id=db_attachment.message_id
-                )
+                # await self.attachment_delete_use_case(
+                #     attachment_id=db_attachment.id, 
+                #     message_id=db_attachment.message_id
+                # )
                 return
 
             if not presigned_url: return
