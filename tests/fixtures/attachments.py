@@ -51,3 +51,13 @@ def attachment(attachment_create):
         )
     
     return _factory
+
+@pytest.fixture
+def attachment_invalid():
+    def _factory(db_attachment: Attachment):
+        return Attachment.model_validate({
+            **db_attachment.model_dump(),
+            "is_valid": False
+        })
+
+    return _factory

@@ -52,3 +52,10 @@ class AttachmentService:
     def update(self, id: int, message_id: int, attachment_update: AttachmentUpdate):
         attachment = self.show(id, message_id)
         return self.attachment_repository.update(db_attachment=attachment, attachment_update=attachment_update)
+
+    def invalidate(self, id: int, message_id: int):
+        attachment = self.show(id, message_id)
+        return self.attachment_repository.update(
+            db_attachment=attachment, 
+            attachment_update=AttachmentUpdate(is_valid=False)
+        )
