@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import BinaryIO
+from io import BufferedIOBase
 
 @dataclass
 class FileData:
-    stream: BinaryIO
+    stream: BufferedIOBase
     mime_type: str | None = None
     size: int | None = None

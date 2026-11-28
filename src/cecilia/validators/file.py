@@ -1,4 +1,4 @@
-from typing import BinaryIO
+from io import BufferedIOBase
 import asyncio
 import magic
 from .audio_validator import AudioValidator
@@ -21,7 +21,7 @@ class FileValidator:
     # TODO: Paralelismo com asyncio.gather e to_thread
     async def __call__(
         self, 
-        stream: BinaryIO, 
+        stream: BufferedIOBase, 
         filename: str | None = None,
         max_size: int | None = None,
         allowed_types: list[str] | None = None
