@@ -7,7 +7,8 @@ from .attachments import (
     AttachmentShowUseCase,
     AttachmentShowPayload,
     AttachmentCreateUseCase,
-    AttachmentCreatePayload
+    AttachmentCreatePayload,
+    File
 )
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     'AttachmentShowUseCase',
     'AttachmentShowPayload',
     'AttachmentCreatePayload',
-    'AttachmentCreateUseCase'
+    'AttachmentCreateUseCase',
+    'File'
 ]

@@ -8,11 +8,13 @@ class AttachmentShowPayload(BaseModel):
     message_id: int
     attachment_id: int
 
-class AttachmentCreatePayload(BaseModel):
+class File(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
+    stream: BufferedIOBase
+    filename: str | None = None
 
+class AttachmentCreatePayload(BaseModel):
     user_id: int
     chat_id: uuid.UUID
     message_id: int
-    file: BufferedIOBase
-    filename: str | None = None
+    files: list[File]
