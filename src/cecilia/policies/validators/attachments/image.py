@@ -1,4 +1,4 @@
-from typing import BinaryIO
+from io import BufferedIOBase
 from cecilia.validators import ImageValidator
 from cecilia.policies.validators.errors import FileTooBigError
 
@@ -8,7 +8,7 @@ class AttachmentImageValidationPolicy:
     def __init__(self, image_validator: ImageValidator):
         self.image_validator = image_validator
         
-    def __call__(self, file: BinaryIO, size: int): 
+    def __call__(self, file: BufferedIOBase, size: int): 
         if size > self._MAX_SIZE:
             raise FileTooBigError(size=size, max_size=self._MAX_SIZE, resource='attachments')
 

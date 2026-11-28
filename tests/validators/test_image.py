@@ -1,7 +1,7 @@
 from cecilia.validators import ImageValidator
 from cecilia.validators.errors import FileError, EmptyFileError
 import pytest
-from typing import BinaryIO
+from io import BytesIO
 
 @pytest.mark.parametrize(
     'mime_type, type, filename',
@@ -23,7 +23,7 @@ def test_success(file, mime_type, type, filename):
     image_validator(gen_file.stream)
 
 def test_rejecs_empty_file():
-    gen_file = BinaryIO()
+    gen_file = BytesIO()
     image_validator = ImageValidator()
 
     with pytest.raises(EmptyFileError):

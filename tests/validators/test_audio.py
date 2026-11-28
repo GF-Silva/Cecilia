@@ -1,6 +1,6 @@
 from cecilia.validators import AudioValidator
 from cecilia.validators.errors import EmptyFileError, InvalidFileError
-from typing import BinaryIO
+from io import BytesIO
 import pytest
 
 async def test_success(mocker, file):
@@ -15,7 +15,7 @@ async def test_success(mocker, file):
     mock_ffprobe_adapter.validate_file_from_buffer.assert_called_once()
 
 async def test_rejecs_empty_file(mocker):
-    gen_file = BinaryIO()
+    gen_file = BytesIO()
 
     mock_ffprobe_adapter = mocker.AsyncMock()
     audio_validator = AudioValidator(ffprobe_adapter=mock_ffprobe_adapter)

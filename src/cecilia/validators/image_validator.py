@@ -1,12 +1,13 @@
 from PIL import Image, UnidentifiedImageError
-from typing import BinaryIO
+from io import BufferedIOBase
+from typing import cast, BinaryIO
 from .errors import FileError, InvalidFileError, FileTooBigError, EmptyFileError
 
 # TODO: Add more validations using magic / file content / etc
 class ImageValidator:
     def __call__(
         self,
-        stream: BinaryIO
+        stream: BufferedIOBase
     ):
         stream.seek(0)
 
@@ -16,7 +17,7 @@ class ImageValidator:
         stream.seek(0)
 
         try:
-            with Image.open(stream) as img:
+            with Image.open(cast(BinaryIO, stream)) as img:
                 img.verify()
 
         except UnidentifiedImageError:
