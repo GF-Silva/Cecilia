@@ -39,3 +39,4 @@ async def test_delete_success(mocker, attachment, attachment_invalid, chat, mess
         user_id=gen_chat.user_id,
         attachment_id=gen_attachment.id
     )
+    mock_r2_integration.delete_file.assert_called_once_with(path=gen_attachment.path)

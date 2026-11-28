@@ -28,6 +28,6 @@ class AttachmentDeleteUseCase:
             message_id=payload.message_id
         )
 
-        await self.r2_integration.delete_file(attachment.path)
+        await self.r2_integration.delete_file(path=attachment.path)
 
         return AttachmentPublic.model_validate(attachment.model_dump())
