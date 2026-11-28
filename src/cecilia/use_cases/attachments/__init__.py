@@ -1,8 +1,9 @@
 from .dependencies import CreateAttachmentsUseCaseDep, AttachmentDeleteUseCaseDep
 from .delete import AttachmentDeleteUseCase
-from .create import CreateAttachmentsUseCase
+from .create_old import CreateAttachmentsUseCase
 from .show import AttachmentShowUseCase
-from .payloads import AttachmentShowPayload
+from .payloads import AttachmentShowPayload, AttachmentCreatePayload
+from .create import AttachmentCreateUseCase
 
 __all__ = [
     'AttachmentDeleteUseCase',
@@ -10,5 +11,7 @@ __all__ = [
     'CreateAttachmentsUseCaseDep',
     'AttachmentShowUseCase',
     'AttachmentShowPayload',
-    'AttachmentDeleteUseCaseDep'
+    'AttachmentDeleteUseCaseDep',
+    'AttachmentCreateUseCase',
+    'AttachmentCreatePayload'
 ]

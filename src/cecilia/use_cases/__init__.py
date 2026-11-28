@@ -5,7 +5,9 @@ from .attachments import (
     CreateAttachmentsUseCase, 
     AttachmentDeleteUseCase,
     AttachmentShowUseCase,
-    AttachmentShowPayload
+    AttachmentShowPayload,
+    AttachmentCreateUseCase,
+    AttachmentCreatePayload
 )
 
 __all__ = [
@@ -15,5 +17,7 @@ __all__ = [
     'SendChatMessagesUseCaseDep',
     'AttachmentDeleteUseCase',
     'AttachmentShowUseCase',
-    'AttachmentShowPayload'
+    'AttachmentShowPayload',
+    'AttachmentCreatePayload',
+    'AttachmentCreateUseCase'
 ]

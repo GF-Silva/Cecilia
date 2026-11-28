@@ -1,117 +1,25 @@
+from cecilia.facades import AttachmentCreateFacade
+from cecilia.extractors import FileMetadataExtractor
+from cecilia.dispatchers import AttachmentValidationPolicyDispatcher
 from cecilia.services import AttachmentService
-from cecilia.core.settings import settings
-from cecilia.models.attachment_model import AttachmentCreate
-from cecilia.models.tables import Message
-from cecilia.integrations.cloudflare.r2 import R2
-from cecilia.validators import FileValidator
-from cecilia.integrations.openrouter.rules import ACCEPTED_MIME_TYPES
-from cecilia.core.exceptions import RuleError
+from cecilia.models import AttachmentCreate
+from cecilia.integrations import R2
+from .payloads import AttachmentCreatePayload
 
-from dataclasses import dataclass
-from fastapi import UploadFile
-
-@dataclass
-class FileData:
-    file: UploadFile
-    mime_type: str
-    size: int
-    filename: str | None = None
-
-class CreateAttachmentsUseCase:
+class AttachmentCreateUseCase:
     def __init__(
         self,
-        attachment_service: AttachmentService,
-        r2_integration: R2,
-        file_validator: FileValidator
+        create_facade: AttachmentCreateFacade,
+        file_metada_extractor: FileMetadataExtractor,
+        validation_policy_dispatcher: AttachmentValidationPolicyDispatcher,
+        service: AttachmentService,
+        r2_integration: R2
     ):
-        self.attachment_service = attachment_service
-        self.r2_integration = r2_integration
-        self.file_validator = file_validator
-
-    async def __call__(
-        self,
-        message_id: int,
-        message: Message,
-        files: list[UploadFile], # TODO: Substituir o maldito por BinaryIO (facilita os testes)
-    ):
-        if not files:
-            raise RuleError(message='At least 1 file should be uploaded', values={"files": files})
-
-        if not isinstance(message_id, int):
-            raise RuleError(
-                message='The message_id field must be of type int', 
-                values={
-                    "message_id": message_id,
-                    "message_id_type": type(message_id)
-                }
-            )
-
-        if not isinstance(message, Message):
-            raise RuleError(
-                message='The message field must be of type Message', 
-                values={
-                    "message": message,
-                    "message_type": type(message)
-                }
-            )
-        
-        if not isinstance(files, list) or not all(isinstance(file, UploadFile) for file in files):
-            raise RuleError(
-                message='The files field must be of type list[UploadFile]', 
-                values={
-                    "files": files,
-                    "files_type": type(files)
-                }
-            )
-
-        self.attachment_service.validate_message_role(message)
-        files_data = await self._validate_files(files)
+        self.create_facade=create_facade
+        self.file_metada_extractor=file_metada_extractor
+        self.validation_policy_dispatcher=validation_policy_dispatcher
+        self.service=service
+        self.r2_integration=r2_integration
     
-        attachments_create: list = []
-        for file in files_data:
-            await file.file.seek(0)
-            attachment = AttachmentCreate(
-                mime_type = file.mime_type,
-                public_filename = file.filename,
-                size = file.size,
-                message_id = message_id
-            )
-
-            await self.r2_integration.create_file(
-                data=await file.file.read(),
-                path=attachment.path,
-                bucket=settings.r2.bucket
-            )
-    
-            attachments_create.append(attachment)
-    
-        db_attachments = self.attachment_service.create_list(
-            attachments=attachments_create,
-            message_id=message_id
-        )
-    
-        return db_attachments
-
-    async def _validate_files(self, files: list[UploadFile]) -> list[FileData]:
-        files_data: list[FileData] = []
-
-        for file in files:
-            validated_file = await self.file_validator(
-                stream=file.file,
-                filename=file.filename,
-                max_size=self.r2_integration.MAX_FILE_SIZE,
-                allowed_types=ACCEPTED_MIME_TYPES
-            )
-            assert validated_file.mime_type
-            assert validated_file.size
-            
-            files_data.append(FileData(
-                file=file,
-                mime_type=validated_file.mime_type,
-                size=validated_file.size,
-                filename=file.filename
-            ))
-
-        return files_data
-
-    
+    def __call__(self, payload: AttachmentCreatePayload):
+        return True
