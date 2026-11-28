@@ -92,7 +92,17 @@ async def test_create_accepts_file_list(mocker, chat, message, attachment, file)
     mock_service = mocker.MagicMock()
     mock_r2_integration = mocker.AsyncMock()
 
-    mock_service.create.return_value = attachment()
+    mock_service.create_list.return_value = [
+        attachment(
+            id=id,
+            mime_type=file.mime_type, 
+            size=file.size, 
+            message_id=gen_message.id, 
+            public_filename=file.public_filename, 
+            is_valid=True
+        ) for id, file in enumerate(gen_files, 1)
+    ]
+
     mock_file_metada_extractor.side_effect = [
         FileMetadata(
             mime_type=gen_file.mime_type,
@@ -117,7 +127,10 @@ async def test_create_accepts_file_list(mocker, chat, message, attachment, file)
         files=[File(stream=file.stream, filename=file.public_filename) for file in gen_files]
     ))
 
-    # assert isinstance(result, AttachmentPublic)
+    assert isinstance(result, list)
+    for i in result:
+        assert isinstance(i, AttachmentPublic)
+    
     mock_create_facade.assert_called_once_with(
         user_id=user_id,
         chat_id=gen_chat.id,
@@ -133,3 +146,7 @@ async def test_create_accepts_file_list(mocker, chat, message, attachment, file)
     )
     mock_service.create_list.assert_called_once()
     mock_r2_integration.create_file.assert_called()
+
+    assert mock_file_metada_extractor.call_count == len(gen_files)
+    assert mock_validation_policy_dispatcher.call_count == len(gen_files)
+    assert mock_r2_integration.create_file.call_count == len(valid_files)
