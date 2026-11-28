@@ -16,7 +16,7 @@ def test_dispatch_accepts_audio(mocker, file):
     )
 
     dispatcher(mime_type='audio/mpeg', file=gen_file.stream, size=gen_file.size)
-    mock_attachment_audio_validation_policy.assert_called_once_with(file=gen_file, size=gen_file.size)
+    mock_attachment_audio_validation_policy.assert_called_once_with(file=gen_file.stream, size=gen_file.size)
     mock_attachment_image_validation_policy.assert_not_called()
 
 def test_dispatch_accepts_image(mocker, file):
@@ -34,7 +34,7 @@ def test_dispatch_accepts_image(mocker, file):
 
     dispatcher(mime_type='image/png', file=gen_file.stream, size=gen_file.size)
     mock_attachment_audio_validation_policy.assert_not_called()
-    mock_attachment_image_validation_policy.assert_called_once_with(file=gen_file, size=gen_file.size)
+    mock_attachment_image_validation_policy.assert_called_once_with(file=gen_file.stream, size=gen_file.size)
 
 def test_dispatch_refuses_other_formats(mocker, file):
     mock_attachment_image_validation_policy = mocker.MagicMock()

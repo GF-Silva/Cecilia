@@ -14,9 +14,9 @@ import pytest
         ('image/jpeg', 'jpg', 'file1'),
         ('image/jpeg', 'jpg', 'file2'),
         ('image/jpeg', 'jpg', 'file3'),
-        ('image/png', 'png', 'file'),
-        ('application/json', 'json', 'file'),
-        ('application/pdf', 'pdf', 'file'),
+        ('image/png', 'png', 'file1'),
+        ('application/json', 'json', 'file1'),
+        ('application/pdf', 'pdf', 'file1'),
         ('application/zip', 'zip', '42')
     ]
 )
